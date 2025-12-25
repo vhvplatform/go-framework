@@ -487,7 +487,13 @@ configure_environment() {
     # Generate JWT secret if not provided
     if [ -z "$JWT_SECRET" ]; then
         log_step "Generating secure JWT secret..."
-        JWT_SECRET=$(openssl rand -base64 32 2>/dev/null || cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+        if command -v openssl &> /dev/null; then
+            JWT_SECRET=$(openssl rand -base64 32)
+        else
+            # Fallback: generate random string and base64 encode it
+            JWT_SECRET=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1 | base64 2>/dev/null || \
+                        cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 32 | head -n 1)
+        fi
     fi
     
     # Update .env file
@@ -580,7 +586,13 @@ seed_database() {
     # Wait a bit more for MongoDB to be fully ready
     sleep 5
     
-    if [ -f "./scripts/database/seed.sh" ]; then
+    # Get the script directory
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    local seed_script="$script_dir/../database/seed.sh"
+    
+    if [ -f "$seed_script" ]; then
+        "$seed_script" || log_warning "Database seeding failed (services may still be starting)"
+    elif [ -f "./scripts/database/seed.sh" ]; then
         ./scripts/database/seed.sh || log_warning "Database seeding failed (services may still be starting)"
     else
         log_warning "Seed script not found"
