@@ -1,0 +1,259 @@
+@startuml component-relationships
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+title go-devtools - Component Relationships
+
+' Define colors
+!define PRIMARY_COLOR #4A90E2
+!define SECONDARY_COLOR #50C878
+!define TERTIARY_COLOR #FFB84D
+!define TOOL_COLOR #9B59B6
+
+' Core Components
+package "Developer Tools Core" #PRIMARY_COLOR {
+    [Makefile] as makefile
+    [CLI Tool\n(saas)] as cli
+    
+    note right of makefile
+        40+ automation targets
+        Entry point for all operations
+    end note
+    
+    note right of cli
+        Go-based CLI alternative
+        User-friendly interface
+    end note
+}
+
+' Script Categories
+package "Shell Scripts" #SECONDARY_COLOR {
+    folder "setup/" as setup {
+        [install-deps.sh]
+        [clone-repos.sh]
+        [install-tools.sh]
+        [init-workspace.sh]
+    }
+    
+    folder "dev/" as dev {
+        [restart-service.sh]
+        [rebuild.sh]
+        [shell.sh]
+        [wait-for-services.sh]
+        [create-service.sh]
+    }
+    
+    folder "database/" as database {
+        [seed.sh]
+        [reset.sh]
+        [backup.sh]
+        [restore.sh]
+        [migrate.sh]
+    }
+    
+    folder "testing/" as testing {
+        [run-unit-tests.sh]
+        [run-integration-tests.sh]
+        [run-e2e-tests.sh]
+        [run-load-tests.sh]
+        [generate-test-data.sh]
+    }
+    
+    folder "build/" as build {
+        [build-all.sh]
+        [build-service.sh]
+        [docker-build-all.sh]
+        [docker-push-all.sh]
+    }
+    
+    folder "deployment/" as deployment {
+        [deploy-local.sh]
+        [deploy-dev.sh]
+        [port-forward.sh]
+        [tunnel.sh]
+    }
+    
+    folder "monitoring/" as monitoring {
+        [open-grafana.sh]
+        [open-prometheus.sh]
+        [open-jaeger.sh]
+        [tail-logs.sh]
+    }
+    
+    folder "utilities/" as utilities {
+        [cleanup.sh]
+        [validate-env.sh]
+        [generate-jwt.sh]
+        [test-api.sh]
+        [check-health.sh]
+    }
+}
+
+' Configuration and Data
+package "Configuration & Data" #TERTIARY_COLOR {
+    folder "docker/" as docker {
+        [docker-compose.yml]
+        [docker-compose.dev.yml]
+        [docker-compose.test.yml]
+        [.env]
+    }
+    
+    folder "configs/" as configs {
+        [VS Code Settings]
+        [Git Hooks]
+        [Linting Rules]
+    }
+    
+    folder "fixtures/" as fixtures {
+        [Test Data JSON]
+        [Sample Configs]
+    }
+    
+    folder "postman/" as postman {
+        [API Collections]
+        [Environment Files]
+    }
+}
+
+' Documentation
+package "Documentation" #TOOL_COLOR {
+    [README.md]
+    [CONTRIBUTING.md]
+    [API Documentation]
+    
+    folder "docs/" as docs {
+        [GETTING_STARTED.md]
+        [LOCAL_DEVELOPMENT.md]
+        [TESTING.md]
+        [TROUBLESHOOTING.md]
+        [TOOLS.md]
+    }
+    
+    folder "docs/diagrams/" as diagrams {
+        [PlantUML Diagrams]
+        [Architecture Views]
+    }
+}
+
+' External Dependencies
+cloud "External Systems" {
+    [Docker Engine]
+    [Kubernetes Cluster]
+    [Service Repositories]
+}
+
+' Relationships - Makefile connections
+makefile --> setup : "make setup"
+makefile --> dev : "make start/stop/restart"
+makefile --> database : "make db-*"
+makefile --> testing : "make test-*"
+makefile --> build : "make build/docker-*"
+makefile --> deployment : "make deploy-*"
+makefile --> monitoring : "make open-*"
+makefile --> utilities : "make clean/health/etc"
+
+' CLI connections (mirrors Makefile)
+cli --> setup : "saas setup"
+cli --> dev : "saas start/stop"
+cli --> testing : "saas test"
+cli --> deployment : "saas deploy"
+cli ..> makefile : "delegates to"
+
+' Script category relationships
+setup --> [Docker Engine] : "installs & configures"
+setup --> [Service Repositories] : "clones"
+setup --> configs : "initializes"
+
+dev --> docker : "uses"
+dev --> [Docker Engine] : "controls services"
+
+database --> docker : "connects to services"
+database --> fixtures : "loads data from"
+
+testing --> docker : "runs tests against"
+testing --> postman : "can use collections"
+
+build --> [Service Repositories] : "builds code from"
+build --> [Docker Engine] : "creates images"
+
+deployment --> [Kubernetes Cluster] : "deploys to"
+deployment --> docker : "uses configs"
+
+monitoring --> [Docker Engine] : "queries services"
+
+utilities --> docker : "uses"
+utilities --> configs : "validates"
+
+' Configuration relationships
+docker ..> configs : "references"
+configs --> [Git Hooks] : "installs"
+configs --> [Linting Rules] : "enforces"
+
+' Documentation relationships
+docs --> diagrams : "includes"
+[README.md] --> docs : "links to"
+[CONTRIBUTING.md] --> configs : "documents"
+
+' Developer interaction
+actor Developer
+
+Developer --> makefile : "primary interface"
+Developer --> cli : "alternative interface"
+Developer --> docs : "reads"
+Developer --> postman : "tests APIs with"
+Developer --> configs : "configures IDE"
+
+' Notes
+note bottom of setup
+    **Setup Phase**
+    One-time initialization
+    Creates workspace structure
+end note
+
+note bottom of dev
+    **Daily Development**
+    Service management
+    Hot reload support
+end note
+
+note bottom of database
+    **Data Management**
+    CRUD operations
+    Backup/restore
+end note
+
+note bottom of testing
+    **Quality Assurance**
+    Unit, Integration, E2E
+    Load testing
+end note
+
+note bottom of deployment
+    **Deployment**
+    Local K8s, Dev, Prod
+    Port forwarding
+end note
+
+note bottom of monitoring
+    **Observability**
+    Metrics, Logs, Traces
+    Health checks
+end note
+
+' Legend
+legend right
+    **Component Types**
+    |= Color |= Type |
+    | <#4A90E2> | Core Tools |
+    | <#50C878> | Shell Scripts |
+    | <#FFB84D> | Configuration |
+    | <#9B59B6> | Documentation |
+    
+    **Relationship Types**
+    ---> : Direct usage/execution
+    ..> : References/delegates
+end legend
+
+@enduml
