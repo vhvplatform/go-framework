@@ -71,7 +71,7 @@ That's it! Your complete SaaS platform is now running locally.
 
 ### Minimum Requirements
 - **Docker Desktop** 4.0+
-- **Go** 1.23+
+- **Go** 1.25+
 - **Make** (usually pre-installed on macOS/Linux)
 
 ### Recommended

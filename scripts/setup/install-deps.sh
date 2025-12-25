@@ -7,7 +7,7 @@
 # This script automatically detects your operating system (macOS, Linux, Windows/WSL2)
 # and installs the required development tools:
 #   - Docker Desktop
-#   - Go 1.21+
+#   - Go 1.25+
 #   - kubectl (Kubernetes CLI)
 #   - Helm (Package manager for Kubernetes)
 #   - Protocol Buffers compiler
@@ -30,7 +30,7 @@
 #   - On Windows, must be run inside WSL2
 #
 # Author: VHV Corp
-# Last Modified: 2024-01-15
+# Last Modified: 2024-12-25
 #
 
 set -e
