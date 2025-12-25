@@ -4,7 +4,7 @@ x-common-variables: &common-variables
   ENVIRONMENT: development
   LOG_LEVEL: debug
   MONGODB_URI: mongodb://mongodb:27017
-  MONGODB_DATABASE: saas_dev
+  MONGODB_DATABASE: go_dev
   REDIS_URL: redis://redis:6379/0
   RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
 
@@ -12,11 +12,11 @@ services:
   # Infrastructure
   mongodb:
     image: mongo:7.0
-    container_name: saas-mongodb
+    container_name: go-mongodb
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_DATABASE: saas_dev
+      MONGO_INITDB_DATABASE: go_dev
     volumes:
       - mongodb_data:/data/db
     healthcheck:
@@ -25,11 +25,11 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - saas-network
+      - go-network
 
   redis:
     image: redis:7-alpine
-    container_name: saas-redis
+    container_name: go-redis
     ports:
       - "6379:6379"
     volumes:
@@ -40,11 +40,11 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - saas-network
+      - go-network
 
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
-    container_name: saas-rabbitmq
+    container_name: go-rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -59,14 +59,14 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - saas-network
+      - go-network
 
   # Microservices (using local builds by default, can be overridden)
   api-gateway:
     build:
       context: ../..
       dockerfile: services/api-gateway/Dockerfile
-    container_name: saas-api-gateway
+    container_name: go-api-gateway
     ports:
       - "8080:8080"
     environment:
@@ -84,14 +84,14 @@ services:
       - notification-service
       - system-config-service
     networks:
-      - saas-network
+      - go-network
     restart: unless-stopped
 
   auth-service:
     build:
       context: ../..
       dockerfile: services/auth-service/Dockerfile
-    container_name: saas-auth-service
+    container_name: go-auth-service
     ports:
       - "50051:50051"
       - "8081:8081"
@@ -104,14 +104,14 @@ services:
       - mongodb
       - redis
     networks:
-      - saas-network
+      - go-network
     restart: unless-stopped
 
   user-service:
     build:
       context: ../..
       dockerfile: services/user-service/Dockerfile
-    container_name: saas-user-service
+    container_name: go-user-service
     ports:
       - "50052:50052"
       - "8082:8082"
@@ -120,14 +120,14 @@ services:
     depends_on:
       - mongodb
     networks:
-      - saas-network
+      - go-network
     restart: unless-stopped
 
   tenant-service:
     build:
       context: ../..
       dockerfile: services/tenant-service/Dockerfile
-    container_name: saas-tenant-service
+    container_name: go-tenant-service
     ports:
       - "50053:50053"
       - "8083:8083"
@@ -136,14 +136,14 @@ services:
     depends_on:
       - mongodb
     networks:
-      - saas-network
+      - go-network
     restart: unless-stopped
 
   notification-service:
     build:
       context: ../..
       dockerfile: services/notification-service/Dockerfile
-    container_name: saas-notification-service
+    container_name: go-notification-service
     ports:
       - "50054:50054"
       - "8084:8084"
@@ -157,14 +157,14 @@ services:
       - mongodb
       - rabbitmq
     networks:
-      - saas-network
+      - go-network
     restart: unless-stopped
 
   system-config-service:
     build:
       context: ../..
       dockerfile: services/system-config-service/Dockerfile
-    container_name: saas-system-config-service
+    container_name: go-system-config-service
     ports:
       - "50055:50055"
       - "8085:8085"
@@ -176,13 +176,13 @@ services:
       - mongodb
       - redis
     networks:
-      - saas-network
+      - go-network
     restart: unless-stopped
 
   # Observability Stack
   prometheus:
     image: prom/prometheus:latest
-    container_name: saas-prometheus
+    container_name: go-prometheus
     ports:
       - "9090:9090"
     volumes:
@@ -194,12 +194,12 @@ services:
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
     networks:
-      - saas-network
+      - go-network
     restart: unless-stopped
 
   grafana:
     image: grafana/grafana:latest
-    container_name: saas-grafana
+    container_name: go-grafana
     ports:
       - "3000:3000"
     environment:
@@ -212,12 +212,12 @@ services:
     depends_on:
       - prometheus
     networks:
-      - saas-network
+      - go-network
     restart: unless-stopped
 
   jaeger:
     image: jaegertracing/all-in-one:latest
-    container_name: saas-jaeger
+    container_name: go-jaeger
     ports:
       - "5775:5775/udp"  # accept zipkin.thrift over compact thrift protocol
       - "6831:6831/udp"  # accept jaeger.thrift over compact thrift protocol
@@ -230,11 +230,11 @@ services:
     environment:
       COLLECTOR_ZIPKIN_HOST_PORT: :9411
     networks:
-      - saas-network
+      - go-network
     restart: unless-stopped
 
 networks:
-  saas-network:
+  go-network:
     driver: bridge
 
 volumes:

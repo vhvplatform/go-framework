@@ -6,7 +6,7 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${workspaceFolder}/../../saas-api-gateway/cmd/main.go",
+            "program": "${workspaceFolder}/../../go-api-gateway/cmd/main.go",
             "env": {
                 "AUTH_SERVICE_URL": "localhost:50051",
                 "USER_SERVICE_URL": "localhost:50052",
@@ -25,10 +25,10 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${workspaceFolder}/../../saas-auth-service/cmd/main.go",
+            "program": "${workspaceFolder}/../../go-auth-service/cmd/main.go",
             "env": {
                 "MONGODB_URI": "mongodb://localhost:27017",
-                "MONGODB_DATABASE": "saas_dev",
+                "MONGODB_DATABASE": "go_dev",
                 "REDIS_HOST": "localhost",
                 "REDIS_PORT": "6379",
                 "JWT_SECRET": "dev-secret-change-in-production",
@@ -43,10 +43,10 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${workspaceFolder}/../../saas-user-service/cmd/main.go",
+            "program": "${workspaceFolder}/../../go-user-service/cmd/main.go",
             "env": {
                 "MONGODB_URI": "mongodb://localhost:27017",
-                "MONGODB_DATABASE": "saas_dev",
+                "MONGODB_DATABASE": "go_dev",
                 "ENVIRONMENT": "development",
                 "LOG_LEVEL": "debug"
             },
@@ -58,10 +58,10 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${workspaceFolder}/../../saas-tenant-service/cmd/main.go",
+            "program": "${workspaceFolder}/../../go-tenant-service/cmd/main.go",
             "env": {
                 "MONGODB_URI": "mongodb://localhost:27017",
-                "MONGODB_DATABASE": "saas_dev",
+                "MONGODB_DATABASE": "go_dev",
                 "ENVIRONMENT": "development",
                 "LOG_LEVEL": "debug"
             },
@@ -73,10 +73,10 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${workspaceFolder}/../../saas-notification-service/cmd/main.go",
+            "program": "${workspaceFolder}/../../go-notification-service/cmd/main.go",
             "env": {
                 "MONGODB_URI": "mongodb://localhost:27017",
-                "MONGODB_DATABASE": "saas_dev",
+                "MONGODB_DATABASE": "go_dev",
                 "RABBITMQ_URL": "amqp://guest:guest@localhost:5672/",
                 "ENVIRONMENT": "development",
                 "LOG_LEVEL": "debug"
@@ -89,10 +89,10 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
-            "program": "${workspaceFolder}/../../saas-system-config-service/cmd/main.go",
+            "program": "${workspaceFolder}/../../go-system-config-service/cmd/main.go",
             "env": {
                 "MONGODB_URI": "mongodb://localhost:27017",
-                "MONGODB_DATABASE": "saas_dev",
+                "MONGODB_DATABASE": "go_dev",
                 "REDIS_HOST": "localhost",
                 "REDIS_PORT": "6379",
                 "ENVIRONMENT": "development",

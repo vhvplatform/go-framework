@@ -2,7 +2,7 @@
 
 echo "🔌 Setting up port forwarding..."
 
-NAMESPACE="${NAMESPACE:-saas-dev}"
+NAMESPACE="${NAMESPACE:-go-dev}"
 
 # Port forward API Gateway
 echo "Forwarding API Gateway (8080)..."

@@ -151,7 +151,7 @@ docker-compose up -d
 ```bash
 # Reset MongoDB
 docker-compose exec mongodb mongosh
-> use saas_dev
+> use go_dev
 > db.dropDatabase()
 ```
 
@@ -166,7 +166,7 @@ Healthy services will show `Up (healthy)`.
 
 ## Networking
 
-All services communicate over the `saas-network` bridge network. Service discovery uses Docker DNS:
+All services communicate over the `go-network` bridge network. Service discovery uses Docker DNS:
 - Services can reach each other by container name
 - Example: `mongodb:27017`, `redis:6379`, `auth-service:50051`
 
