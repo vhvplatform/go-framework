@@ -1,0 +1,63 @@
+{
+    "go.useLanguageServer": true,
+    "go.toolsManagement.autoUpdate": true,
+    "go.lintTool": "golangci-lint",
+    "go.lintOnSave": "package",
+    "go.formatTool": "goimports",
+    "go.testFlags": ["-v", "-race"],
+    "go.coverOnSave": false,
+    "go.coverageDecorator": {
+        "type": "gutter"
+    },
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "editor.rulers": [100, 120],
+    "editor.tabSize": 4,
+    "editor.insertSpaces": false,
+    "files.exclude": {
+        "**/.git": true,
+        "**/node_modules": true,
+        "**/vendor": true,
+        "**/.DS_Store": true,
+        "**/bin": true,
+        "**/*.pb.go": true,
+        "**/*_grpc.pb.go": true
+    },
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/node_modules/**": true,
+        "**/vendor/**": true,
+        "**/bin/**": true
+    },
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/vendor": true,
+        "**/bin": true,
+        "**/*.pb.go": true
+    },
+    "[go]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+    "[dockerfile]": {
+        "editor.defaultFormatter": "ms-azuretools.vscode-docker"
+    },
+    "[yaml]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.autoIndent": "advanced"
+    },
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "terminal.integrated.env.osx": {
+        "WORKSPACE_DIR": "${workspaceFolder}/../.."
+    },
+    "terminal.integrated.env.linux": {
+        "WORKSPACE_DIR": "${workspaceFolder}/../.."
+    }
+}

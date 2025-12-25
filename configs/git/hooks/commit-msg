@@ -1,0 +1,28 @@
+#!/bin/bash
+# Commit message hook - Validate commit message format
+
+commit_msg_file=$1
+commit_msg=$(cat "$commit_msg_file")
+
+# Check if commit message follows conventional commits format
+# Format: <type>(<scope>): <subject>
+# Example: feat(auth): add user registration
+
+pattern="^(feat|fix|docs|style|refactor|test|chore|perf|ci|build|revert)(\(.+\))?: .{10,}"
+
+if ! echo "$commit_msg" | grep -qE "$pattern"; then
+    echo "❌ Invalid commit message format"
+    echo ""
+    echo "Commit message should follow: <type>(<scope>): <subject>"
+    echo ""
+    echo "Types: feat, fix, docs, style, refactor, test, chore, perf, ci, build, revert"
+    echo ""
+    echo "Examples:"
+    echo "  feat(auth): add user registration"
+    echo "  fix(api): resolve timeout issue"
+    echo "  docs: update README with setup instructions"
+    echo ""
+    exit 1
+fi
+
+echo "✅ Commit message format valid"

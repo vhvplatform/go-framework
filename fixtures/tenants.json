@@ -1,0 +1,18 @@
+[
+  {
+    "id": "tenant-1",
+    "name": "Acme Corporation",
+    "slug": "acme",
+    "plan": "enterprise",
+    "status": "active",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  {
+    "id": "tenant-2",
+    "name": "Test Company",
+    "slug": "testco",
+    "plan": "pro",
+    "status": "active",
+    "created_at": "2024-01-01T00:00:00Z"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "id": "role-1",
+    "name": "admin",
+    "permissions": ["read", "write", "delete", "admin"],
+    "description": "Full system access"
+  },
+  {
+    "id": "role-2",
+    "name": "user",
+    "permissions": ["read", "write"],
+    "description": "Standard user access"
+  },
+  {
+    "id": "role-3",
+    "name": "viewer",
+    "permissions": ["read"],
+    "description": "Read-only access"
+  }
+]

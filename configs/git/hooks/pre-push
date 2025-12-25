@@ -1,0 +1,25 @@
+#!/bin/bash
+# Pre-push hook - Run before pushing
+
+set -e
+
+echo "Running pre-push checks..."
+
+# Run all tests
+echo "  Running all tests..."
+go test -race ./... || {
+    echo "❌ Tests failed. Fix tests before pushing."
+    exit 1
+}
+
+# Check for TODO/FIXME in staged changes
+echo "  Checking for TODO/FIXME..."
+git diff --cached --name-only | while read file; do
+    if [ -f "$file" ]; then
+        if grep -n "TODO\|FIXME" "$file" > /dev/null; then
+            echo "⚠️  Found TODO/FIXME in $file"
+        fi
+    fi
+done
+
+echo "✅ Pre-push checks passed!"

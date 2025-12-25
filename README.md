@@ -1,0 +1,392 @@
+# SaaS Platform - Developer Tools
+
+<p align="center">
+  <strong>Everything you need to develop and test the SaaS Platform locally</strong>
+</p>
+
+<p align="center">
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#features">Features</a> •
+  <a href="#documentation">Documentation</a> •
+  <a href="#requirements">Requirements</a>
+</p>
+
+---
+
+## 🚀 Quick Start
+
+Get up and running in minutes:
+
+```bash
+# Clone this repository
+git clone https://github.com/longvhv/saas-devtools.git
+cd saas-devtools
+
+# Setup development environment (installs tools, clones repos)
+make setup
+
+# Start all services
+make start
+
+# View service status
+make status
+
+# Access services
+make info
+```
+
+That's it! Your complete SaaS platform is now running locally.
+
+## 📦 What's Included
+
+### Infrastructure & Services
+- **Docker Compose** - Full local development stack
+- **All Microservices** - API Gateway, Auth, User, Tenant, Notification, System Config
+- **Databases** - MongoDB, Redis, RabbitMQ
+- **Observability** - Prometheus, Grafana, Jaeger
+
+### Development Tools
+- **40+ Make Commands** - Automation for everything
+- **25+ Shell Scripts** - Setup, testing, deployment
+- **IDE Configurations** - VS Code ready-to-use setups
+- **Git Hooks** - Commit quality enforcement
+- **Postman Collections** - Complete API testing suite
+
+### Testing & Utilities
+- **Test Fixtures** - Sample data for development
+- **Load Testing** - Performance testing tools
+- **Health Checks** - Service monitoring
+- **JWT Generator** - Testing token generation
+
+## 📚 Documentation
+
+- [Getting Started](docs/GETTING_STARTED.md) - Detailed setup guide
+- [Local Development](docs/LOCAL_DEVELOPMENT.md) - Development workflow
+- [Testing Guide](docs/TESTING.md) - How to run tests
+- [Debugging](docs/DEBUGGING.md) - Debugging tips and tricks
+- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
+- [Tools Reference](docs/TOOLS.md) - Complete tool documentation
+
+## 💻 Requirements
+
+### Minimum Requirements
+- **Docker Desktop** 4.0+
+- **Go** 1.21+
+- **Make** (usually pre-installed on macOS/Linux)
+
+### Recommended
+- **kubectl** 1.27+ (for Kubernetes deployment)
+- **Helm** 3.12+ (for Helm deployments)
+- **VS Code** (with Go extension)
+
+### Operating Systems
+- ✅ macOS (Intel & Apple Silicon)
+- ✅ Linux (Ubuntu, Debian, Fedora, etc.)
+- ✅ Windows (with WSL2)
+
+## 🎯 Key Features
+
+### One-Command Operations
+
+```bash
+make setup          # Complete development environment setup
+make start          # Start all services with one command
+make test           # Run full test suite
+make build          # Build all microservices
+make clean          # Clean up everything
+```
+
+### Powerful Scripts
+
+```bash
+# Database Management
+make db-seed        # Populate with test data
+make db-reset       # Reset database
+make db-backup      # Backup database
+make db-restore     # Restore from backup
+
+# Development
+make restart-service SERVICE=auth-service
+make logs-service SERVICE=auth-service
+make shell SERVICE=auth-service
+
+# Testing
+make test-unit           # Unit tests
+make test-integration    # Integration tests
+make test-e2e           # End-to-end tests
+make test-load          # Load/performance tests
+
+# Monitoring
+make open-grafana       # Open Grafana dashboard
+make open-prometheus    # Open Prometheus
+make open-jaeger        # Open Jaeger tracing
+```
+
+### Hot Reload Development
+
+```bash
+# Start with development mode for hot-reload
+make start-dev
+
+# Edit code - changes are automatically reflected!
+```
+
+## 🛠️ Directory Structure
+
+```
+saas-devtools/
+├── docker/                    # Docker Compose configurations
+│   ├── docker-compose.yml     # Main stack
+│   ├── docker-compose.dev.yml # Development overrides
+│   └── docker-compose.test.yml# Testing configuration
+├── scripts/                   # Automation scripts
+│   ├── setup/                 # Setup and installation
+│   ├── dev/                   # Development utilities
+│   ├── database/              # Database management
+│   ├── testing/               # Test automation
+│   ├── build/                 # Build scripts
+│   ├── deployment/            # Deployment automation
+│   ├── monitoring/            # Monitoring utilities
+│   └── utilities/             # General utilities
+├── configs/                   # IDE and tool configurations
+│   ├── vscode/                # VS Code settings
+│   ├── git/                   # Git hooks and config
+│   └── linting/               # Linter configurations
+├── fixtures/                  # Test data
+├── postman/                   # API testing collections
+├── tools/                     # Developer tools
+├── docs/                      # Documentation
+└── Makefile                   # Main automation file
+```
+
+## 🌐 Service URLs
+
+Once started, services are available at:
+
+### Microservices
+- **API Gateway**: http://localhost:8080
+- **Auth Service**: http://localhost:8081 (gRPC: 50051)
+- **User Service**: http://localhost:8082 (gRPC: 50052)
+- **Tenant Service**: http://localhost:8083 (gRPC: 50053)
+- **Notification Service**: http://localhost:8084 (gRPC: 50054)
+- **System Config Service**: http://localhost:8085 (gRPC: 50055)
+
+### Infrastructure
+- **MongoDB**: mongodb://localhost:27017
+- **Redis**: redis://localhost:6379
+- **RabbitMQ Management**: http://localhost:15672 (guest/guest)
+
+### Observability
+- **Prometheus**: http://localhost:9090
+- **Grafana**: http://localhost:3000 (admin/admin)
+- **Jaeger**: http://localhost:16686
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Copy and customize the environment file:
+
+```bash
+cd docker
+cp .env.example .env
+# Edit .env with your settings
+```
+
+Key variables:
+- `JWT_SECRET` - JWT signing secret (change in production!)
+- `SMTP_*` - Email configuration (optional for local dev)
+- `GRAFANA_PASSWORD` - Grafana admin password
+
+### VS Code Setup
+
+VS Code configuration is included! Just open the workspace:
+
+```bash
+code ../saas-platform
+```
+
+Features:
+- Debug configurations for all services
+- Recommended extensions
+- Task automation
+- Code formatting and linting
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+make test
+
+# Run specific test suites
+make test-unit              # Fast unit tests
+make test-integration       # Integration tests with services
+make test-e2e              # Full end-to-end tests
+make test-load             # Performance/load tests
+
+# Generate test data
+make test-data
+make db-seed
+```
+
+## 🐛 Debugging
+
+### View Logs
+
+```bash
+make logs                          # All services
+make logs-service SERVICE=auth-service   # Specific service
+```
+
+### Check Health
+
+```bash
+make status          # Quick health check
+make health          # Detailed status
+```
+
+### Access Service Shell
+
+```bash
+make shell SERVICE=auth-service
+```
+
+### Debug with VS Code
+
+1. Start infrastructure: `make start`
+2. Open VS Code: `code .`
+3. Press F5 and select service to debug
+4. Set breakpoints and debug!
+
+## 📊 Monitoring
+
+Built-in observability stack:
+
+```bash
+# Open dashboards
+make open-grafana      # Metrics and dashboards
+make open-prometheus   # Raw metrics and queries
+make open-jaeger       # Distributed tracing
+```
+
+**Grafana** provides:
+- Request rates and latency
+- Error rates
+- Resource usage (CPU, memory)
+- Database metrics
+- Queue sizes
+
+## 🚢 Deployment
+
+### Local Kubernetes
+
+```bash
+# Deploy to local cluster (minikube, kind, etc.)
+make deploy-local
+
+# Setup port forwarding
+make port-forward
+```
+
+### Remote Environments
+
+```bash
+# Deploy to development environment
+make deploy-dev
+```
+
+## 💡 Tips & Tricks
+
+### Fast Restart
+
+```bash
+# Restart specific service quickly
+make restart-service SERVICE=auth-service
+
+# Rebuild and restart
+make rebuild SERVICE=auth-service
+```
+
+### Generate JWT for Testing
+
+```bash
+make generate-jwt
+# Copy token and use in API requests
+```
+
+### API Testing
+
+```bash
+# Quick API test
+make test-api
+
+# Or use Postman collections in postman/
+```
+
+### Clean Start
+
+```bash
+# Stop everything and clean data
+make clean-all
+
+# Fresh start
+make start
+```
+
+## 🤝 Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and coding standards.
+
+## 📋 Common Tasks
+
+### Adding a New Service
+
+1. Clone service repo to workspace
+2. Add to `docker-compose.yml`
+3. Add health check to `scripts/utilities/check-health.sh`
+4. Update Makefile if needed
+5. Test with `make start`
+
+### Updating Dependencies
+
+```bash
+# Update Go dependencies
+cd <service-directory>
+go get -u ./...
+go mod tidy
+
+# Update Docker images
+make docker-build
+```
+
+### Backing Up Data
+
+```bash
+# Backup database
+make db-backup
+
+# Backup is saved to: devtools/backups/
+```
+
+## 🆘 Getting Help
+
+1. Check [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
+2. View service logs: `make logs-service SERVICE=<name>`
+3. Check service health: `make status`
+4. Open an issue on GitHub
+
+## 📄 License
+
+This project is licensed under the MIT License - see [LICENSE](../LICENSE) file for details.
+
+## 🔗 Links
+
+- [Main Repository](https://github.com/longvhv/saas-framework-go)
+- [Shared Library](https://github.com/longvhv/saas-shared-go)
+- [Infrastructure](https://github.com/longvhv/saas-infrastructure)
+
+---
+
+<p align="center">
+  Made with ❤️ for developers who want to move fast
+</p>

@@ -1,0 +1,16 @@
+{
+    "recommendations": [
+        "golang.go",
+        "ms-azuretools.vscode-docker",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode",
+        "eamodio.gitlens",
+        "streetsidesoftware.code-spell-checker",
+        "gruntfuggly.todo-tree",
+        "aaron-bond.better-comments",
+        "42crunch.vscode-openapi",
+        "humao.rest-client",
+        "rangav.vscode-thunder-client"
+    ]
+}

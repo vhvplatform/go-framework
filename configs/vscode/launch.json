@@ -1,0 +1,134 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug API Gateway",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/../../saas-api-gateway/cmd/main.go",
+            "env": {
+                "AUTH_SERVICE_URL": "localhost:50051",
+                "USER_SERVICE_URL": "localhost:50052",
+                "TENANT_SERVICE_URL": "localhost:50053",
+                "NOTIFICATION_SERVICE_URL": "localhost:50054",
+                "SYSTEM_CONFIG_SERVICE_URL": "localhost:50055",
+                "JWT_SECRET": "dev-secret-change-in-production",
+                "ENVIRONMENT": "development",
+                "LOG_LEVEL": "debug"
+            },
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "Debug Auth Service",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/../../saas-auth-service/cmd/main.go",
+            "env": {
+                "MONGODB_URI": "mongodb://localhost:27017",
+                "MONGODB_DATABASE": "saas_dev",
+                "REDIS_HOST": "localhost",
+                "REDIS_PORT": "6379",
+                "JWT_SECRET": "dev-secret-change-in-production",
+                "ENVIRONMENT": "development",
+                "LOG_LEVEL": "debug"
+            },
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "Debug User Service",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/../../saas-user-service/cmd/main.go",
+            "env": {
+                "MONGODB_URI": "mongodb://localhost:27017",
+                "MONGODB_DATABASE": "saas_dev",
+                "ENVIRONMENT": "development",
+                "LOG_LEVEL": "debug"
+            },
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "Debug Tenant Service",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/../../saas-tenant-service/cmd/main.go",
+            "env": {
+                "MONGODB_URI": "mongodb://localhost:27017",
+                "MONGODB_DATABASE": "saas_dev",
+                "ENVIRONMENT": "development",
+                "LOG_LEVEL": "debug"
+            },
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "Debug Notification Service",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/../../saas-notification-service/cmd/main.go",
+            "env": {
+                "MONGODB_URI": "mongodb://localhost:27017",
+                "MONGODB_DATABASE": "saas_dev",
+                "RABBITMQ_URL": "amqp://guest:guest@localhost:5672/",
+                "ENVIRONMENT": "development",
+                "LOG_LEVEL": "debug"
+            },
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "Debug System Config Service",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/../../saas-system-config-service/cmd/main.go",
+            "env": {
+                "MONGODB_URI": "mongodb://localhost:27017",
+                "MONGODB_DATABASE": "saas_dev",
+                "REDIS_HOST": "localhost",
+                "REDIS_PORT": "6379",
+                "ENVIRONMENT": "development",
+                "LOG_LEVEL": "debug"
+            },
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "Debug Current File",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${file}",
+            "showLog": true
+        },
+        {
+            "name": "Attach to Process",
+            "type": "go",
+            "request": "attach",
+            "mode": "local",
+            "processId": "${command:pickProcess}"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug All Services",
+            "configurations": [
+                "Debug Auth Service",
+                "Debug User Service",
+                "Debug Tenant Service",
+                "Debug Notification Service",
+                "Debug System Config Service",
+                "Debug API Gateway"
+            ],
+            "stopAll": true
+        }
+    ]
+}
