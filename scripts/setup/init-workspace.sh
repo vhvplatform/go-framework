@@ -1,4 +1,32 @@
 #!/bin/bash
+#
+# Script: init-workspace.sh
+# Description: Initialize workspace directory structure
+# Usage: ./init-workspace.sh
+#
+# This script creates the required directory structure for development:
+#   - bin/: Compiled binaries
+#   - logs/: Service logs
+#   - data/: Persistent data
+#   - backups/: Database backups
+#
+# Environment Variables:
+#   WORKSPACE_DIR - Target workspace (default: $HOME/workspace/go-platform)
+#
+# Examples:
+#   ./init-workspace.sh
+#   WORKSPACE_DIR=/custom/path ./init-workspace.sh
+#   make setup  # Includes this step
+#
+# Notes:
+#   - Safe to run multiple times (idempotent)
+#   - Creates directories only if they don't exist
+#   - Sets appropriate permissions
+#
+# Author: VHV Corp
+# Last Modified: 2024-01-15
+#
+
 set -e
 
 WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/workspace/go-platform}"

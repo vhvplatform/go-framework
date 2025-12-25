@@ -1,4 +1,38 @@
 #!/bin/bash
+#
+# Script: install-deps.sh
+# Description: Install system dependencies required for development
+# Usage: ./install-deps.sh
+#
+# This script automatically detects your operating system (macOS, Linux, Windows/WSL2)
+# and installs the required development tools:
+#   - Docker Desktop
+#   - Go 1.21+
+#   - kubectl (Kubernetes CLI)
+#   - Helm (Package manager for Kubernetes)
+#   - Protocol Buffers compiler
+#   - jq (JSON processor)
+#   - hey (HTTP load testing tool)
+#
+# Supported Platforms:
+#   - macOS (Intel and Apple Silicon)
+#   - Linux (Ubuntu, Debian, Fedora, RHEL)
+#   - Windows (via WSL2)
+#
+# Examples:
+#   ./install-deps.sh
+#   make setup  # Runs this script as part of setup
+#
+# Notes:
+#   - Requires internet connection
+#   - May require sudo privileges on Linux
+#   - On macOS, requires Homebrew (will be installed if missing)
+#   - On Windows, must be run inside WSL2
+#
+# Author: VHV Corp
+# Last Modified: 2024-01-15
+#
+
 set -e
 
 echo "📦 Installing dependencies..."
