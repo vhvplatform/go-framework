@@ -1,0 +1,185 @@
+@startuml system-architecture
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+title SaaS Platform - System Architecture
+
+' Define colors
+!define PRIMARY_COLOR #4A90E2
+!define SECONDARY_COLOR #50C878
+!define TERTIARY_COLOR #FFB84D
+!define DANGER_COLOR #FF6B6B
+
+' External Actor
+actor "Client/User" as client #PRIMARY_COLOR
+
+' API Gateway Layer
+package "API Gateway Layer" #PRIMARY_COLOR {
+    component "API Gateway\n:8080" as gateway {
+        [HTTP/REST API]
+        [JWT Validation]
+        [Rate Limiting]
+        [Request Router]
+    }
+}
+
+' Service Layer
+package "Microservices Layer" #SECONDARY_COLOR {
+    component "Auth Service\n:8081 (HTTP)\n:50051 (gRPC)" as auth {
+        [Authentication]
+        [Authorization]
+        [Token Management]
+    }
+    
+    component "User Service\n:8082 (HTTP)\n:50052 (gRPC)" as user {
+        [User Management]
+        [Profile CRUD]
+        [Role Assignment]
+    }
+    
+    component "Tenant Service\n:8083 (HTTP)\n:50053 (gRPC)" as tenant {
+        [Multi-tenancy]
+        [Subscription Mgmt]
+        [Feature Flags]
+    }
+    
+    component "Notification Service\n:8084 (HTTP)\n:50054 (gRPC)" as notification {
+        [Email Sending]
+        [SMS (Future)]
+        [Push (Future)]
+    }
+    
+    component "System Config Service\n:8085 (HTTP)\n:50055 (gRPC)" as config {
+        [Configuration]
+        [Feature Toggles]
+        [Settings Cache]
+    }
+}
+
+' Data Layer
+package "Data Layer" #TERTIARY_COLOR {
+    database "MongoDB\n:27017" as mongodb {
+        [Users Collection]
+        [Tenants Collection]
+        [Configs Collection]
+        [Audit Logs]
+    }
+    
+    database "Redis\n:6379" as redis {
+        [Session Cache]
+        [Config Cache]
+        [Rate Limit Data]
+    }
+    
+    queue "RabbitMQ\n:5672" as rabbitmq {
+        [Email Queue]
+        [Event Queue]
+        [Webhook Queue]
+    }
+}
+
+' Observability Layer
+package "Observability Stack" #DANGER_COLOR {
+    component "Prometheus\n:9090" as prometheus {
+        [Metrics Collection]
+        [Alerting Rules]
+    }
+    
+    component "Grafana\n:3000" as grafana {
+        [Dashboards]
+        [Visualization]
+    }
+    
+    component "Jaeger\n:16686" as jaeger {
+        [Distributed Tracing]
+        [Trace Visualization]
+    }
+}
+
+' Connections - Client to Gateway
+client --> gateway : "HTTPS/REST"
+
+' Connections - Gateway to Services
+gateway --> auth : "gRPC"
+gateway --> user : "gRPC"
+gateway --> tenant : "gRPC"
+gateway --> notification : "gRPC"
+gateway --> config : "gRPC"
+
+' Connections - Services to Data Layer
+auth --> mongodb : "Read/Write\nUsers, Sessions"
+auth --> redis : "Session Storage\nToken Blacklist"
+
+user --> mongodb : "Read/Write\nUser Profiles"
+user --> redis : "Profile Cache"
+
+tenant --> mongodb : "Read/Write\nTenant Data"
+tenant --> redis : "Tenant Cache"
+
+notification --> rabbitmq : "Consume Events"
+notification --> mongodb : "Write Logs"
+
+config --> mongodb : "Read Configs"
+config --> redis : "Config Cache"
+
+' Connections - Event Publishing
+auth ..> rabbitmq : "Publish\nuser.login"
+user ..> rabbitmq : "Publish\nuser.created"
+tenant ..> rabbitmq : "Publish\ntenant.created"
+
+' Connections - Observability
+gateway --> prometheus : "Export Metrics"
+auth --> prometheus : "Export Metrics"
+user --> prometheus : "Export Metrics"
+tenant --> prometheus : "Export Metrics"
+notification --> prometheus : "Export Metrics"
+config --> prometheus : "Export Metrics"
+
+prometheus --> grafana : "Data Source"
+
+gateway --> jaeger : "Send Traces"
+auth --> jaeger : "Send Traces"
+user --> jaeger : "Send Traces"
+tenant --> jaeger : "Send Traces"
+
+' Notes
+note right of gateway
+  Single entry point
+  for all client requests
+  
+  Protocol translation:
+  HTTP/REST → gRPC
+end note
+
+note right of mongodb
+  Primary data store
+  Collections organized
+  by domain
+  
+  Indexes on:
+  - email (unique)
+  - tenant_id
+  - created_at
+end note
+
+note right of redis
+  Fast caching layer
+  
+  TTL Strategy:
+  - Sessions: 24h
+  - Configs: 30min
+  - Rate limits: 1min
+end note
+
+note right of rabbitmq
+  Async messaging
+  
+  Queues:
+  - notifications.email
+  - notifications.sms
+  - events.audit
+end note
+
+@enduml

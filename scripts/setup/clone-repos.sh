@@ -1,4 +1,42 @@
 #!/bin/bash
+#
+# Script: clone-repos.sh
+# Description: Clone all microservice repositories to workspace
+# Usage: ./clone-repos.sh
+#
+# This script clones all required repositories for the SaaS Platform:
+#   - go-shared-go: Shared library code
+#   - go-api-gateway: API Gateway service
+#   - go-auth-service: Authentication service
+#   - go-user-service: User management service
+#   - go-tenant-service: Multi-tenancy service
+#   - go-notification-service: Notification service
+#   - go-system-config-service: System configuration service
+#   - go-infrastructure: Infrastructure as code
+#
+# Environment Variables:
+#   WORKSPACE_DIR - Target directory (default: $HOME/workspace/go-platform)
+#   GITHUB_ORG - GitHub organization (default: vhvcorp)
+#
+# Requirements:
+#   - Git must be installed
+#   - GitHub access (may need SSH keys configured)
+#   - Internet connection
+#
+# Examples:
+#   ./clone-repos.sh
+#   WORKSPACE_DIR=/custom/path ./clone-repos.sh
+#   make setup-repos
+#
+# Notes:
+#   - Skips repositories that already exist
+#   - Creates WORKSPACE_DIR if it doesn't exist
+#   - Clones from vhvcorp GitHub organization
+#
+# Author: VHV Corp
+# Last Modified: 2024-01-15
+#
+
 set -e
 
 GITHUB_ORG="${GITHUB_ORG:-vhvcorp}"

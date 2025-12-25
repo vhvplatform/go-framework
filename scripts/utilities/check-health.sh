@@ -1,4 +1,69 @@
 #!/bin/bash
+#
+# Script: check-health.sh
+# Description: Check health status of all services
+# Usage: ./check-health.sh
+#
+# This script checks:
+#   - Docker container status
+#   - HTTP health endpoints
+#   - Database connectivity (MongoDB, Redis)
+#   - Message queue status (RabbitMQ)
+#   - Service responsiveness
+#
+# Health Indicators:
+#   ✅ Green: Service healthy and responding
+#   ⚠️  Yellow: Service degraded or slow
+#   ❌ Red: Service down or not responding
+#
+# Examples:
+#   ./check-health.sh
+#   make status
+#   make health
+#
+# Checks Performed:
+#   1. Container running status
+#   2. HTTP /health endpoint (200 OK)
+#   3. Database ping
+#   4. Redis ping
+#   5. RabbitMQ management API
+#   6. Response time checks
+#
+# Exit Codes:
+#   0 - All services healthy
+#   1 - One or more services unhealthy
+#
+# Services Monitored:
+#   - API Gateway
+#   - Auth Service
+#   - User Service
+#   - Tenant Service
+#   - Notification Service
+#   - System Config Service
+#   - MongoDB
+#   - Redis
+#   - RabbitMQ
+#   - Prometheus
+#   - Grafana
+#   - Jaeger
+#
+# Timeout:
+#   - Each check: 5 seconds
+#   - Total time: ~30 seconds
+#
+# Troubleshooting Unhealthy Services:
+#   1. Check logs: make logs-service SERVICE=<name>
+#   2. Restart service: make restart-service SERVICE=<name>
+#   3. Check dependencies
+#   4. Verify configuration
+#
+# See Also:
+#   - wait-for-services.sh: Wait for services to start
+#   - restart-service.sh: Restart unhealthy service
+#
+# Author: VHV Corp
+# Last Modified: 2024-01-15
+#
 
 echo "🏥 Checking service health..."
 

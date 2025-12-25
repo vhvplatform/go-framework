@@ -35,3 +35,13 @@ dist/
 
 # Go
 vendor/
+
+# Generated diagram files
+docs/diagrams/*.png
+docs/diagrams/*.svg
+docs/diagrams/*.eps
+docs/diagrams/*.pdf
+
+# Setup summary files
+SETUP_SUMMARY.txt
+**/SETUP_SUMMARY.txt

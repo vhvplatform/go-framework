@@ -1,4 +1,37 @@
 #!/bin/bash
+#
+# Script: wait-for-services.sh
+# Description: Wait for all services to be healthy before proceeding
+# Usage: ./wait-for-services.sh
+#
+# This script:
+#   - Checks if Docker containers are running
+#   - Tests HTTP health endpoints
+#   - Verifies database connections
+#   - Checks message queue accessibility
+#   - Waits up to 5 minutes for all services to be ready
+#
+# Configuration:
+#   TIMEOUT - Maximum wait time in seconds (default: 300)
+#   INTERVAL - Check interval in seconds (default: 5)
+#
+# Exit Codes:
+#   0 - All services healthy
+#   1 - Timeout or service unhealthy
+#
+# Examples:
+#   ./wait-for-services.sh
+#   TIMEOUT=600 ./wait-for-services.sh  # Wait up to 10 minutes
+#
+# Notes:
+#   - Automatically called by 'make start'
+#   - Provides progress feedback
+#   - Checks all critical services
+#
+# Author: VHV Corp
+# Last Modified: 2024-01-15
+#
+
 set -e
 
 echo "⏳ Waiting for services to be healthy..."

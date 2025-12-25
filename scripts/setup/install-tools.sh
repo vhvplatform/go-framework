@@ -1,4 +1,39 @@
 #!/bin/bash
+#
+# Script: install-tools.sh
+# Description: Install Go development tools and utilities
+# Usage: ./install-tools.sh
+#
+# This script installs essential Go development tools:
+#   - protoc-gen-go: Protocol buffer Go code generator
+#   - protoc-gen-go-grpc: gRPC Go code generator
+#   - golangci-lint: Go linter
+#   - air: Hot reload tool for Go applications
+#   - mockgen: Mock generation for testing
+#   - goimports: Import formatter
+#   - swag: Swagger documentation generator
+#   - hey: HTTP load testing tool
+#
+# Environment Variables:
+#   GOPATH - Go workspace path (auto-detected if not set)
+#
+# Requirements:
+#   - Go 1.21+ must be installed
+#   - Internet connection
+#   - $GOPATH/bin should be in your $PATH
+#
+# Examples:
+#   ./install-tools.sh
+#   make setup-tools
+#
+# Troubleshooting:
+#   If tools are not found after installation, add to PATH:
+#   export PATH=$PATH:$(go env GOPATH)/bin
+#
+# Author: VHV Corp
+# Last Modified: 2024-01-15
+#
+
 set -e
 
 echo "🔧 Installing development tools..."

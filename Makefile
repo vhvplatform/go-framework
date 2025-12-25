@@ -47,6 +47,28 @@ setup-env: ## Setup environment variables
 	@echo "${YELLOW}Please edit docker/.env with your configuration${RESET}"
 
 ## Development Commands
+create-service: ## Create new service (SERVICE=name, see docs/NEW_SERVICE_GUIDE.md)
+	@if [ -z "$(SERVICE)" ]; then \
+		echo "${RED}❌ Error: SERVICE variable required${RESET}"; \
+		echo "Usage: make create-service SERVICE=my-service"; \
+		echo ""; \
+		echo "Options:"; \
+		echo "  PORT=8080              HTTP port"; \
+		echo "  DATABASE=mongodb       Database type (mongodb/postgres/none)"; \
+		echo "  WITH_GRPC=true         Include gRPC"; \
+		echo "  WITH_MESSAGING=true    Include RabbitMQ"; \
+		echo ""; \
+		echo "Example:"; \
+		echo "  make create-service SERVICE=user-service PORT=8085 DATABASE=mongodb"; \
+		exit 1; \
+	fi
+	@ARGS="$(SERVICE)"; \
+	[ -n "$(PORT)" ] && ARGS="$$ARGS --port $(PORT)"; \
+	[ -n "$(DATABASE)" ] && ARGS="$$ARGS --database $(DATABASE)"; \
+	[ "$(WITH_GRPC)" = "true" ] && ARGS="$$ARGS --with-grpc"; \
+	[ "$(WITH_MESSAGING)" = "true" ] && ARGS="$$ARGS --with-messaging"; \
+	./scripts/dev/create-service.sh $$ARGS
+
 start: ## Start all services
 	@echo "${GREEN}🚀 Starting all services...${RESET}"
 	@cd docker && docker-compose up -d

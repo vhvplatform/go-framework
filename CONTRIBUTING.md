@@ -62,28 +62,230 @@ make setup
 
 ### Shell Scripts
 
+#### Basic Requirements
+
 - Use `#!/bin/bash` shebang
-- Use `set -e` for error handling
-- Add helpful echo messages
-- Include usage examples in comments
+- Use `set -e` for error handling  
+- Use `set -u` to catch undefined variables
+- Use `set -o pipefail` for pipeline failures
+- Add comprehensive header comments
+- Include usage examples in headers
 - Make scripts idempotent when possible
+
+#### Script Header Template
+
+```bash
+#!/bin/bash
+#
+# Script: script-name.sh
+# Description: What this script does
+# Usage: ./script-name.sh [OPTIONS]
+#
+# Options:
+#   -h, --help     Show this help message
+#   -v, --verbose  Enable verbose output
+#
+# Environment Variables:
+#   VAR_NAME - Description (default: default_value)
+#
+# Examples:
+#   ./script-name.sh
+#   VAR_NAME=custom ./script-name.sh --verbose
+#
+# Requirements:
+#   - Docker must be installed
+#   - Services must be running
+#
+# Author: VHV Corp
+# Last Modified: YYYY-MM-DD
+#
+
+set -e
+set -u
+set -o pipefail
+```
+
+#### Variable Naming
+
+```bash
+# Constants: UPPER_SNAKE_CASE
+readonly MAX_RETRIES=3
+readonly DEFAULT_TIMEOUT=30
+
+# Environment variables: UPPER_SNAKE_CASE with defaults
+WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/workspace}"
+
+# Local variables: lower_snake_case
+local service_name="auth-service"
+local retry_count=0
+```
+
+#### Error Handling
+
+```bash
+# Check command success
+if ! command -v docker &> /dev/null; then
+    echo "Error: Docker not found" >&2
+    exit 1
+fi
+
+# Check file existence
+if [[ ! -f "$config_file" ]]; then
+    echo "Error: Config file not found: $config_file" >&2
+    exit 1
+fi
+
+# Trap errors for cleanup
+cleanup() {
+    echo "Cleaning up..."
+    # Cleanup code
+}
+trap cleanup EXIT ERR
+```
+
+#### Output Messages
+
+```bash
+# Use colors for different message types
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly NC='\033[0m'
+
+# Info messages
+echo -e "${GREEN}✓${NC} Operation successful"
+
+# Warning messages
+echo -e "${YELLOW}⚠${NC} Warning: Something to note"
+
+# Error messages
+echo -e "${RED}✗${NC} Error: Something failed" >&2
+```
+
+#### Quoting Best Practices
+
+```bash
+# Always quote variables
+echo "$variable"
+echo "${WORKSPACE_DIR}/path"
+
+# Quote command substitutions
+current_dir="$(pwd)"
+
+# Use arrays for multiple items
+services=("auth" "user" "tenant")
+for service in "${services[@]}"; do
+    echo "$service"
+done
+```
+
+#### Function Organization
+
+```bash
+# Helper functions at top
+log_info() {
+    echo -e "${GREEN}$*${NC}"
+}
+
+log_error() {
+    echo -e "${RED}$*${NC}" >&2
+}
+
+# Validation functions
+check_prerequisites() {
+    # Validation logic
+}
+
+# Main business logic
+do_something() {
+    # Main logic
+}
+
+# Main function at bottom
+main() {
+    check_prerequisites
+    do_something
+    log_info "Complete"
+}
+
+# Execute
+main "$@"
+```
+
+#### Common Patterns
+
+**Retry Logic:**
+```bash
+retry_command() {
+    local max_attempts=3
+    local timeout=5
+    local attempt=1
+    
+    while (( attempt <= max_attempts )); do
+        if command_to_retry; then
+            return 0
+        fi
+        echo "Attempt $attempt failed. Retrying in ${timeout}s..."
+        sleep "$timeout"
+        ((attempt++))
+    done
+    
+    echo "Command failed after $max_attempts attempts" >&2
+    return 1
+}
+```
+
+**User Confirmation:**
+```bash
+confirm() {
+    local prompt="$1"
+    read -r -p "$prompt [y/N] " response
+    case "$response" in
+        [yY][eE][sS]|[yY]) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+if confirm "Are you sure?"; then
+    echo "Proceeding..."
+fi
+```
+
+#### Testing Scripts
+
+```bash
+# 1. Syntax check
+bash -n script.sh
+
+# 2. ShellCheck (install with: brew install shellcheck)
+shellcheck script.sh
+
+# 3. Manual testing
+./script.sh
+./script.sh --help
+./script.sh --invalid  # Test error handling
+```
+
+#### Documentation in Scripts
+
+- Add header with description, usage, and examples
+- Document all environment variables
+- Explain prerequisites and requirements
+- Include troubleshooting tips
+- Cross-reference related scripts
 
 Example:
 ```bash
 #!/bin/bash
-set -e
-
-echo "🔧 Running my script..."
-
-# Check prerequisites
-if ! command -v docker &> /dev/null; then
-    echo "❌ Docker is not installed"
-    exit 1
-fi
-
-# Do work
-echo "✅ Script complete!"
+#
+# Script: restart-service.sh
+# Description: Restart a specific microservice quickly
+#
+# See Also:
+#   - rebuild.sh: For code changes
+#   - wait-for-services.sh: Wait for health
 ```
+
 
 ### Makefiles
 

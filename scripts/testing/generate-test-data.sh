@@ -1,4 +1,74 @@
 #!/bin/bash
+#
+# Script: generate-test-data.sh
+# Description: Generate realistic test data for development
+# Usage: ./generate-test-data.sh
+#
+# This script generates:
+#   - Users (customizable count)
+#   - Tenants with subscriptions
+#   - Sample notifications
+#   - Activity logs
+#   - Configuration entries
+#   - Realistic relationships between entities
+#
+# Environment Variables:
+#   USERS - Number of users to generate (default: 50)
+#   TENANTS - Number of tenants (default: 10)
+#   NOTIFICATIONS - Number of notifications (default: 100)
+#
+# Requirements:
+#   - MongoDB must be running
+#   - Sufficient disk space
+#
+# Examples:
+#   ./generate-test-data.sh
+#   make test-data
+#   USERS=100 TENANTS=20 ./generate-test-data.sh
+#   USERS=1000 ./generate-test-data.sh  # Large dataset
+#
+# Generated Data:
+#   - Users with varied roles and permissions
+#   - Tenants with different subscription plans
+#   - Notifications in various states
+#   - Audit logs with timestamps
+#   - System configurations
+#
+# Data Characteristics:
+#   - Realistic names (using faker library)
+#   - Valid email addresses
+#   - Proper relationships (users ↔ tenants)
+#   - Timestamp distribution
+#   - Varied statuses
+#
+# Use Cases:
+#   - Performance testing with realistic data volume
+#   - UI development with varied content
+#   - Search and filter testing
+#   - Pagination testing
+#   - Load testing preparation
+#
+# Generation Time:
+#   - 50 users: ~5 seconds
+#   - 100 users: ~10 seconds
+#   - 1000 users: ~60 seconds
+#
+# Database Size:
+#   - 50 users: ~1MB
+#   - 100 users: ~2MB
+#   - 1000 users: ~20MB
+#
+# Cleanup:
+#   make db-reset  # Remove generated data
+#
+# See Also:
+#   - db-seed.sh: Load predefined test data
+#   - run-load-tests.sh: Load testing
+#
+# Author: VHV Corp
+# Last Modified: 2024-01-15
+#
+
 set -e
 
 echo "📊 Generating test data..."
