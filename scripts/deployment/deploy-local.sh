@@ -22,24 +22,24 @@ if ! command -v helm &> /dev/null; then
     exit 1
 fi
 
-HELM_DIR="${HELM_DIR:-$HOME/workspace/saas-platform/saas-infrastructure/helm}"
+HELM_DIR="${HELM_DIR:-$HOME/workspace/go-platform/go-infrastructure/helm}"
 
-if [ ! -d "${HELM_DIR}/saas-framework" ]; then
+if [ ! -d "${HELM_DIR}/go-framework" ]; then
     echo "❌ Helm charts not found at ${HELM_DIR}"
     exit 1
 fi
 
 echo "📦 Installing with Helm..."
-helm upgrade --install saas-framework "${HELM_DIR}/saas-framework" \
-    -f "${HELM_DIR}/saas-framework/values-dev.yaml" \
+helm upgrade --install go-framework "${HELM_DIR}/go-framework" \
+    -f "${HELM_DIR}/go-framework/values-dev.yaml" \
     --create-namespace \
-    --namespace saas-dev
+    --namespace go-dev
 
 echo ""
 echo "✅ Deployment complete!"
 echo ""
 echo "Check status:"
-echo "  kubectl get pods -n saas-dev"
-echo "  kubectl get services -n saas-dev"
+echo "  kubectl get pods -n go-dev"
+echo "  kubectl get services -n go-dev"
 echo ""
 echo "Setup port forwarding: make port-forward"

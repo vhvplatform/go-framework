@@ -4,13 +4,13 @@ set -e
 echo "🧪 Running unit tests..."
 
 # Navigate to workspace root (assuming services are in subdirectories)
-WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/workspace/saas-platform}"
+WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/workspace/go-platform}"
 
 if [ -d "${WORKSPACE_DIR}" ]; then
     cd "${WORKSPACE_DIR}"
     
     # Run tests for each service
-    for service in saas-api-gateway saas-auth-service saas-user-service saas-tenant-service saas-notification-service saas-system-config-service saas-shared-go; do
+    for service in go-api-gateway go-auth-service go-user-service go-tenant-service go-notification-service go-system-config-service go-shared-go; do
         if [ -d "$service" ]; then
             echo ""
             echo "Testing ${service}..."

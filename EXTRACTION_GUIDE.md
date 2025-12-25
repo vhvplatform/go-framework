@@ -1,6 +1,6 @@
 # Developer Tools Repository Extraction Guide
 
-This guide explains how to extract the `devtools/` directory from the monorepo into its own separate repository (`saas-devtools`).
+This guide explains how to extract the `devtools/` directory from the monorepo into its own separate repository (`go-devtools`).
 
 ## Why Extract?
 
