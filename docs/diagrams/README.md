@@ -29,6 +29,38 @@ Detailed sequence diagram showing request/response flow:
 - Event publishing to message queue
 - JWT token generation
 
+### 4. Developer Workflow (`developer-workflow.puml`)
+Comprehensive activity diagram showing the daily developer workflow:
+- Initial setup phase (one-time)
+- Daily development cycle
+- Development iteration loop with hot-reload
+- Integration testing phase
+- Monitoring and debugging with observability tools
+- Deployment to local Kubernetes and dev environments
+- Daily cleanup procedures
+- Common utility commands reference
+
+### 5. Component Relationships (`component-relationships.puml`)
+Component diagram illustrating relationships between all go-devtools components:
+- Core tools (Makefile, CLI)
+- Shell script categories (setup, dev, database, testing, build, deployment, monitoring, utilities)
+- Configuration and data files
+- Documentation structure
+- External dependencies (Docker, Kubernetes, Service repos)
+- How all components interact with each other
+
+### 6. CI/CD Process (`cicd-process.puml`)
+Detailed sequence diagram of the complete CI/CD pipeline:
+- Development and local testing phase
+- Code quality checks (linting, static analysis)
+- Build phase with multi-service compilation
+- Testing phase (unit, integration, coverage, security)
+- Docker image build and security scanning
+- Deployment to development environment
+- Staged deployment to production (staging → approval → production)
+- Canary and blue-green deployment strategies
+- Post-deployment monitoring and rollback procedures
+
 ## 🎨 Viewing the Diagrams
 
 ### Option 1: Online PlantUML Editor

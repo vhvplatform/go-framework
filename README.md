@@ -71,7 +71,7 @@ That's it! Your complete SaaS platform is now running locally.
 
 ### Minimum Requirements
 - **Docker Desktop** 4.0+
-- **Go** 1.21+
+- **Go** 1.25+
 - **Make** (usually pre-installed on macOS/Linux)
 
 ### Recommended
@@ -368,12 +368,122 @@ make db-backup
 # Backup is saved to: devtools/backups/
 ```
 
+## 🔧 Available Tools & Scripts
+
+### Setup Scripts (`scripts/setup/`)
+- **install-deps.sh** - Automatically install all system dependencies (Docker, Go 1.25+, kubectl, Helm, etc.)
+- **clone-repos.sh** - Clone all microservice repositories to workspace
+- **install-tools.sh** - Install Go development tools and utilities
+- **init-workspace.sh** - Initialize workspace structure and configuration
+
+### Development Scripts (`scripts/dev/`)
+- **restart-service.sh** - Quick restart of a specific service (with optional health check wait)
+- **rebuild.sh** - Rebuild service with code changes
+- **shell.sh** - Access service container shell for debugging
+- **wait-for-services.sh** - Wait for all services to be healthy
+- **create-service.sh** - Scaffold a new microservice with templates
+
+### Database Scripts (`scripts/database/`)
+- **seed.sh** - Populate database with test data
+- **reset.sh** - Reset database (delete all data)
+- **backup.sh** - Backup MongoDB with compression and timestamping
+- **restore.sh** - Restore database from backup file
+- **migrate.sh** - Run database migrations
+
+### Testing Scripts (`scripts/testing/`)
+- **run-unit-tests.sh** - Execute unit tests across all services
+- **run-integration-tests.sh** - Run integration tests with real services
+- **run-e2e-tests.sh** - End-to-end testing of complete workflows
+- **run-load-tests.sh** - Performance and load testing
+- **generate-test-data.sh** - Generate realistic test data
+
+### Build Scripts (`scripts/build/`)
+- **build-all.sh** - Build all microservices
+- **build-service.sh** - Build a specific service
+- **docker-build-all.sh** - Build all Docker images
+- **docker-push-all.sh** - Push images to container registry
+
+### Deployment Scripts (`scripts/deployment/`)
+- **deploy-local.sh** - Deploy to local Kubernetes (minikube/kind)
+- **deploy-dev.sh** - Deploy to development environment
+- **port-forward.sh** - Setup port forwarding for K8s services
+- **tunnel.sh** - Create tunnel to remote cluster
+
+### Monitoring Scripts (`scripts/monitoring/`)
+- **open-grafana.sh** - Open Grafana dashboards in browser
+- **open-prometheus.sh** - Open Prometheus metrics UI
+- **open-jaeger.sh** - Open Jaeger tracing UI
+- **tail-logs.sh** - Real-time log streaming from all services
+
+### Utility Scripts (`scripts/utilities/`)
+- **cleanup.sh** - Clean up Docker resources
+- **validate-env.sh** - Validate environment configuration
+- **generate-jwt.sh** - Generate JWT tokens for testing
+- **test-api.sh** - Quick API endpoint testing
+- **check-health.sh** - Comprehensive health check of all services
+
+### Configuration Files (`configs/`)
+- **vscode/** - VS Code settings, debug configurations, extensions
+- **git/pre-commit.sh** - Git pre-commit hooks for code quality
+- **linting/** - Linter configurations (golangci-lint, shellcheck)
+
+### Developer CLI Tool (`tools/cli/`)
+Built with Go 1.25+ and Cobra, the `saas` CLI provides a user-friendly interface:
+
+```bash
+# Build the CLI
+make build-cli
+
+# Install system-wide
+make install-cli
+
+# Usage examples
+saas setup          # Setup development environment
+saas start          # Start all services
+saas stop           # Stop all services
+saas logs auth      # View auth service logs
+saas test           # Run all tests
+saas status         # Check service status
+saas deploy local   # Deploy to local Kubernetes
+```
+
 ## 🆘 Getting Help
 
 1. Check [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
 2. View service logs: `make logs-service SERVICE=<name>`
 3. Check service health: `make status`
-4. Open an issue on GitHub
+4. Review [PlantUML diagrams](docs/diagrams/) for architecture understanding
+5. Read the [comprehensive documentation](docs/)
+6. Open an issue on GitHub
+
+## 🎓 Learning Resources
+
+### Documentation
+- [Getting Started Guide](docs/GETTING_STARTED.md) - Step-by-step onboarding
+- [Local Development Guide](docs/LOCAL_DEVELOPMENT.md) - Daily workflow
+- [Testing Guide](docs/TESTING.md) - Testing strategies
+- [Debugging Guide](docs/DEBUGGING.md) - Troubleshooting tips
+- [Tools Reference](docs/TOOLS.md) - Complete tool documentation
+- [Architecture Diagrams](docs/diagrams/) - Visual system overview
+
+### Best Practices
+- [Contributing Guidelines](CONTRIBUTING.md) - Coding standards and workflow
+- [Changelog](CHANGELOG.md) - Version history and updates
+- Pre-commit hooks for code quality enforcement
+- golangci-lint for Go code standards
+- shellcheck for shell script best practices
+
+## 📊 Code Quality & Standards
+
+This repository follows industry best practices:
+
+- **Go**: Version 1.25+, follows official Go style guide
+- **Linting**: golangci-lint with strict rules (see `.golangci.yml`)
+- **Testing**: Unit tests with >80% coverage target
+- **Shell Scripts**: ShellCheck validated, includes error handling
+- **Git Hooks**: Automated pre-commit checks
+- **Documentation**: Comprehensive inline comments and external docs
+- **Security**: Regular dependency updates, no hardcoded secrets
 
 ## 📄 License
 
