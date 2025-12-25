@@ -56,7 +56,7 @@ group CI: Code Quality Checks [#TERTIARY_COLOR]
     
     ci -> ci: Checkout code
     
-    ci -> ci: Setup Go 1.23+
+    ci -> ci: Setup Go 1.25+
     
     ci -> ci: Cache dependencies
     note right

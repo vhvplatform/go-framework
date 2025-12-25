@@ -23,7 +23,7 @@ partition "Initial Setup (One-time)" #PRIMARY_COLOR {
     note right
         Installs:
         - Docker Desktop
-        - Go 1.23+
+        - Go 1.25+
         - kubectl, Helm
         - Development tools
     end note

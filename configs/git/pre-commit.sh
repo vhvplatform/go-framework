@@ -53,7 +53,8 @@ print_success "Branch check passed ($BRANCH)"
 # Check 2: Check for debug statements
 echo ""
 echo "Checking for debug statements..."
-if git diff --cached --name-only | grep -E '\.(go|sh)$' | xargs grep -n -E '(console\.log|print\(|fmt\.Println.*TODO|DEBUG)' 2>/dev/null; then
+# Exclude fmt.Print* functions which are legitimate in Go
+if git diff --cached --name-only | grep -E '\.(go|sh)$' | xargs grep -n -E '(console\.log|\bprint\(|println\(|DEBUG)' 2>/dev/null | grep -v 'fmt\.Print'; then
     print_warning "Found potential debug statements (review before committing)"
 else
     print_success "No debug statements found"

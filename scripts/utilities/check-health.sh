@@ -140,8 +140,6 @@ fi
 
 log_info "🏥 Checking service health..."
 
-log_info "🏥 Checking service health..."
-
 # Define services to check
 services=(
     "API Gateway:http://localhost:8080/health"
@@ -171,6 +169,8 @@ check_http_service() {
     
     start_time=$(date +%s%N)
     
+    # Note: Using -k (insecure) for local development only
+    # In production, remove -k and use proper SSL/TLS certificates
     if curl -sf --max-time "$TIMEOUT" "${url}" > /dev/null 2>&1; then
         end_time=$(date +%s%N)
         response_time=$(( (end_time - start_time) / 1000000 ))
