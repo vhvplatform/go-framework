@@ -9,7 +9,7 @@ RED    := $(shell tput -Txterm setaf 1)
 RESET  := $(shell tput -Txterm sgr0)
 
 # Workspace directory
-WORKSPACE_DIR ?= $(HOME)/workspace/saas-platform
+WORKSPACE_DIR ?= $(HOME)/workspace/go-platform
 
 help: ## Show this help
 	@echo ''

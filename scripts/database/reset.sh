@@ -16,7 +16,7 @@ echo "🗑️  Resetting database..."
 
 # Drop the database
 docker-compose exec mongodb mongosh --eval "
-    use saas_dev;
+    use go_dev;
     db.dropDatabase();
     print('Database dropped');
 "

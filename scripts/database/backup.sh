@@ -14,7 +14,7 @@ cd "${DOCKER_DIR}"
 
 # Create backup using mongodump
 docker-compose exec -T mongodb mongodump \
-    --db saas_dev \
+    --db go_dev \
     --archive \
     --gzip > "${BACKUP_FILE}"
 

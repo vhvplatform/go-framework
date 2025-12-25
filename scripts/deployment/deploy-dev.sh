@@ -16,8 +16,8 @@ echo "Example for GCP GKE:"
 echo "  gcloud container clusters get-credentials dev-cluster --region us-central1"
 echo ""
 echo "Then deploy with Helm:"
-echo "  helm upgrade --install saas-framework ./helm/saas-framework \\"
-echo "    -f ./helm/saas-framework/values-dev.yaml \\"
-echo "    --namespace saas-dev"
+echo "  helm upgrade --install go-framework ./helm/go-framework \\"
+echo "    -f ./helm/go-framework/values-dev.yaml \\"
+echo "    --namespace go-dev"
 
 exit 0

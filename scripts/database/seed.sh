@@ -20,7 +20,7 @@ echo "📊 Loading test data..."
 if [ -f "${FIXTURES_DIR}/users.json" ]; then
     echo "  Loading users..."
     docker-compose exec -T mongodb mongoimport \
-        --db saas_dev \
+        --db go_dev \
         --collection users \
         --file /dev/stdin \
         --jsonArray < "${FIXTURES_DIR}/users.json" || true
@@ -30,7 +30,7 @@ fi
 if [ -f "${FIXTURES_DIR}/tenants.json" ]; then
     echo "  Loading tenants..."
     docker-compose exec -T mongodb mongoimport \
-        --db saas_dev \
+        --db go_dev \
         --collection tenants \
         --file /dev/stdin \
         --jsonArray < "${FIXTURES_DIR}/tenants.json" || true
@@ -40,7 +40,7 @@ fi
 if [ -f "${FIXTURES_DIR}/roles.json" ]; then
     echo "  Loading roles..."
     docker-compose exec -T mongodb mongoimport \
-        --db saas_dev \
+        --db go_dev \
         --collection roles \
         --file /dev/stdin \
         --jsonArray < "${FIXTURES_DIR}/roles.json" || true

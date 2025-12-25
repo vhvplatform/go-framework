@@ -19,8 +19,8 @@ Get up and running in minutes:
 
 ```bash
 # Clone this repository
-git clone https://github.com/longvhv/saas-devtools.git
-cd saas-devtools
+git clone https://github.com/vhvcorp/go-devtools.git
+cd go-devtools
 
 # Setup development environment (installs tools, clones repos)
 make setup
@@ -134,7 +134,7 @@ make start-dev
 ## 🛠️ Directory Structure
 
 ```
-saas-devtools/
+go-devtools/
 ├── docker/                    # Docker Compose configurations
 │   ├── docker-compose.yml     # Main stack
 │   ├── docker-compose.dev.yml # Development overrides
@@ -203,7 +203,7 @@ Key variables:
 VS Code configuration is included! Just open the workspace:
 
 ```bash
-code ../saas-platform
+code ../go-platform
 ```
 
 Features:
@@ -381,9 +381,9 @@ This project is licensed under the MIT License - see [LICENSE](../LICENSE) file 
 
 ## 🔗 Links
 
-- [Main Repository](https://github.com/longvhv/saas-framework-go)
-- [Shared Library](https://github.com/longvhv/saas-shared-go)
-- [Infrastructure](https://github.com/longvhv/saas-infrastructure)
+- [Main Repository](https://github.com/vhvcorp/go-framework-go)
+- [Shared Library](https://github.com/vhvcorp/go-shared-go)
+- [Infrastructure](https://github.com/vhvcorp/go-infrastructure)
 
 ---
 

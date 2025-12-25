@@ -1,4 +1,4 @@
-module github.com/longvhv/saas-devtools/tools/cli
+module github.com/vhvcorp/go-devtools/tools/cli
 
 go 1.21
 
