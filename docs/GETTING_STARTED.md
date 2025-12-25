@@ -74,12 +74,12 @@ sudo usermod -aG docker $USER
 
 ```bash
 # Create workspace directory
-mkdir -p ~/workspace/saas-platform
-cd ~/workspace/saas-platform
+mkdir -p ~/workspace/go-platform
+cd ~/workspace/go-platform
 
 # Clone devtools repository
-git clone https://github.com/longvhv/saas-devtools.git
-cd saas-devtools
+git clone https://github.com/vhvcorp/go-devtools.git
+cd go-devtools
 ```
 
 ## Step 3: Install Development Tools
@@ -107,15 +107,15 @@ make setup-repos
 ```
 
 This clones:
-- `saas-shared-go` - Shared library
-- `saas-api-gateway` - API Gateway service
-- `saas-auth-service` - Authentication service
-- `saas-user-service` - User management service
-- `saas-tenant-service` - Multi-tenancy service
-- `saas-notification-service` - Notification service
-- `saas-system-config-service` - Configuration service
-- `saas-infrastructure` - Infrastructure as code
-- `saas-devtools` - This repository
+- `go-shared-go` - Shared library
+- `go-api-gateway` - API Gateway service
+- `go-auth-service` - Authentication service
+- `go-user-service` - User management service
+- `go-tenant-service` - Multi-tenancy service
+- `go-notification-service` - Notification service
+- `go-system-config-service` - Configuration service
+- `go-infrastructure` - Infrastructure as code
+- `go-devtools` - This repository
 
 ## Step 5: Configure Environment
 
@@ -232,16 +232,16 @@ Now that your environment is set up:
 Your workspace should now look like:
 
 ```
-~/workspace/saas-platform/
-├── saas-devtools/           # This repository (tools & scripts)
-├── saas-shared-go/          # Shared library
-├── saas-api-gateway/        # API Gateway
-├── saas-auth-service/       # Auth service
-├── saas-user-service/       # User service
-├── saas-tenant-service/     # Tenant service
-├── saas-notification-service/  # Notification service
-├── saas-system-config-service/ # Config service
-├── saas-infrastructure/     # Infrastructure code
+~/workspace/go-platform/
+├── go-devtools/           # This repository (tools & scripts)
+├── go-shared-go/          # Shared library
+├── go-api-gateway/        # API Gateway
+├── go-auth-service/       # Auth service
+├── go-user-service/       # User service
+├── go-tenant-service/     # Tenant service
+├── go-notification-service/  # Notification service
+├── go-system-config-service/ # Config service
+├── go-infrastructure/     # Infrastructure code
 └── bin/                     # Compiled binaries (created on build)
 ```
 

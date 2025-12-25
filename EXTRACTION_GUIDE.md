@@ -35,8 +35,8 @@ pip3 install git-filter-repo
 ## Step 2: Create New Repository on GitHub
 
 1. Go to https://github.com/new
-2. Repository name: `saas-devtools`
-3. Description: "Developer tools and utilities for SaaS Platform"
+2. Repository name: `go-devtools`
+3. Description: "Developer tools and utilities for Go Platform"
 4. Visibility: Public (or Private if preferred)
 5. Don't initialize with README (we're bringing history)
 6. Click "Create repository"
@@ -45,8 +45,8 @@ pip3 install git-filter-repo
 
 ```bash
 # Clone fresh copy of monorepo
-git clone https://github.com/longvhv/saas-framework-go.git saas-devtools-temp
-cd saas-devtools-temp
+git clone https://github.com/vhvcorp/go-framework-go.git go-devtools-temp
+cd go-devtools-temp
 ```
 
 ## Step 4: Extract devtools Directory
@@ -67,8 +67,8 @@ git filter-repo --path devtools/ --path-rename devtools/:
 # Remove old remote
 git remote remove origin
 
-# Add new remote for saas-devtools repository
-git remote add origin https://github.com/longvhv/saas-devtools.git
+# Add new remote for go-devtools repository
+git remote add origin https://github.com/vhvcorp/go-devtools.git
 ```
 
 ## Step 6: Push to New Repository
@@ -94,7 +94,7 @@ auth-service:
 ### After (separate repo)
 ```yaml
 auth-service:
-  image: ghcr.io/longvhv/saas-auth-service:dev
+  image: ghcr.io/vhvcorp/go-auth-service:dev
 ```
 
 Update `docker/docker-compose.yml`:
@@ -106,7 +106,7 @@ cd docker
 # For each service, change from:
 #   build: ...
 # To:
-#   image: ghcr.io/longvhv/saas-<service>:dev
+#   image: ghcr.io/vhvcorp/go-<service>:dev
 ```
 
 ## Step 8: Update Documentation
@@ -116,12 +116,12 @@ Update references to repository structure:
 1. **README.md** - Update clone instructions
    ```bash
    # Old
-   git clone https://github.com/longvhv/saas-framework-go.git
-   cd saas-framework-go/devtools
+   git clone https://github.com/vhvcorp/go-framework-go.git
+   cd go-framework-go/devtools
    
    # New
-   git clone https://github.com/longvhv/saas-devtools.git
-   cd saas-devtools
+   git clone https://github.com/vhvcorp/go-devtools.git
+   cd go-devtools
    ```
 
 2. **scripts/setup/clone-repos.sh** - Already clones repos separately, no changes needed
@@ -132,7 +132,7 @@ Update references to repository structure:
 
 ```bash
 # From extracted repository
-cd saas-devtools
+cd go-devtools
 
 # Setup should work
 make setup
@@ -156,17 +156,17 @@ In the original monorepo, update README to point to new devtools repo:
 
 Developer tools have been extracted to a separate repository for easier maintenance.
 
-**Repository:** https://github.com/longvhv/saas-devtools
+**Repository:** https://github.com/vhvcorp/go-devtools
 
 **Quick Start:**
 \```bash
-git clone https://github.com/longvhv/saas-devtools.git
-cd saas-devtools
+git clone https://github.com/vhvcorp/go-devtools.git
+cd go-devtools
 make setup
 make start
 \```
 
-See the [devtools README](https://github.com/longvhv/saas-devtools) for complete documentation.
+See the [devtools README](https://github.com/vhvcorp/go-devtools) for complete documentation.
 ```
 
 ## Step 11: Archive devtools in Monorepo (Optional)
@@ -174,12 +174,12 @@ See the [devtools README](https://github.com/longvhv/saas-devtools) for complete
 Optionally remove devtools/ from monorepo after extraction:
 
 ```bash
-cd saas-framework-go
+cd go-framework-go
 git rm -r devtools/
 git commit -m "docs: extract devtools to separate repository
 
 Devtools have been extracted to:
-https://github.com/longvhv/saas-devtools
+https://github.com/vhvcorp/go-devtools
 
 See that repository for development tools and scripts."
 git push
@@ -207,7 +207,7 @@ If extraction fails:
 
 ```bash
 # Simply delete the temp directory
-rm -rf saas-devtools-temp
+rm -rf go-devtools-temp
 
 # And try again from Step 3
 ```
@@ -228,7 +228,7 @@ The original monorepo is untouched.
 ### Updating Tools
 
 ```bash
-cd saas-devtools
+cd go-devtools
 git checkout -b feature/new-tool
 # Make changes
 git commit -m "feat(tools): add new utility script"
@@ -247,7 +247,7 @@ If you make changes in monorepo devtools/ before extraction, you can:
 
 ```bash
 # In any project
-git clone https://github.com/longvhv/saas-devtools.git tools
+git clone https://github.com/vhvcorp/go-devtools.git tools
 cd tools
 make setup
 # Customize for your project

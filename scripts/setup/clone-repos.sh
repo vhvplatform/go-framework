@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-GITHUB_ORG="${GITHUB_ORG:-longvhv}"
-WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/workspace/saas-platform}"
+GITHUB_ORG="${GITHUB_ORG:-vhvcorp}"
+WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/workspace/go-platform}"
 
 echo "📂 Cloning repositories to ${WORKSPACE_DIR}..."
 mkdir -p "${WORKSPACE_DIR}"
@@ -10,15 +10,15 @@ cd "${WORKSPACE_DIR}"
 
 # List of all service repositories
 repos=(
-    "saas-shared-go"
-    "saas-api-gateway"
-    "saas-auth-service"
-    "saas-user-service"
-    "saas-tenant-service"
-    "saas-notification-service"
-    "saas-system-config-service"
-    "saas-infrastructure"
-    "saas-devtools"
+    "go-shared-go"
+    "go-api-gateway"
+    "go-auth-service"
+    "go-user-service"
+    "go-tenant-service"
+    "go-notification-service"
+    "go-system-config-service"
+    "go-infrastructure"
+    "go-devtools"
 )
 
 echo "Cloning from GitHub organization: ${GITHUB_ORG}"

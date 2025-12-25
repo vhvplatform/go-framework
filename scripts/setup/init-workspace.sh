@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/workspace/saas-platform}"
+WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/workspace/go-platform}"
 
 echo "🔧 Initializing workspace..."
 
@@ -10,17 +10,17 @@ mkdir -p "${WORKSPACE_DIR}"
 cd "${WORKSPACE_DIR}"
 
 # Check if devtools exists
-if [ ! -d "saas-devtools" ]; then
-    echo "⚠️  saas-devtools not found. Run 'make setup-repos' first."
+if [ ! -d "go-devtools" ]; then
+    echo "⚠️  go-devtools not found. Run 'make setup-repos' first."
     exit 1
 fi
 
 # Create .env file from example
 echo "⚙️  Setting up environment configuration..."
-if [ ! -f "saas-devtools/docker/.env" ]; then
-    cp "saas-devtools/docker/.env.example" "saas-devtools/docker/.env"
+if [ ! -f "go-devtools/docker/.env" ]; then
+    cp "go-devtools/docker/.env.example" "go-devtools/docker/.env"
     echo "✅ Created .env file from template"
-    echo "   Please edit saas-devtools/docker/.env with your configuration"
+    echo "   Please edit go-devtools/docker/.env with your configuration"
 else
     echo "✅ .env file already exists"
 fi
@@ -28,7 +28,7 @@ fi
 # Initialize go modules in each service
 echo ""
 echo "📦 Initializing Go modules..."
-for service in saas-api-gateway saas-auth-service saas-user-service saas-tenant-service saas-notification-service saas-system-config-service; do
+for service in go-api-gateway go-auth-service go-user-service go-tenant-service go-notification-service go-system-config-service; do
     if [ -d "$service" ]; then
         echo "  Initializing ${service}..."
         cd "${service}"
@@ -43,7 +43,7 @@ done
 echo ""
 echo "🔗 Creating helpful symlinks..."
 if [ ! -L "devtools" ]; then
-    ln -s saas-devtools devtools
+    ln -s go-devtools devtools
     echo "✅ Created 'devtools' symlink"
 fi
 
@@ -54,7 +54,7 @@ if [ ! -f "go.work" ]; then
     go work init || echo "⚠️  go work not supported in this Go version"
     
     # Add all service modules to workspace
-    for service in saas-shared-go saas-api-gateway saas-auth-service saas-user-service saas-tenant-service saas-notification-service saas-system-config-service; do
+    for service in go-shared-go go-api-gateway go-auth-service go-user-service go-tenant-service go-notification-service go-system-config-service; do
         if [ -d "$service" ] && [ -f "$service/go.mod" ]; then
             go work use "./$service" 2>/dev/null || true
         fi

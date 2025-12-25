@@ -13,7 +13,7 @@ Thank you for your interest in contributing! This document provides guidelines a
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/longvhv/saas-devtools/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/vhvcorp/go-devtools/issues)
 2. If not, create a new issue with:
    - Clear title and description
    - Steps to reproduce
@@ -48,11 +48,11 @@ Thank you for your interest in contributing! This document provides guidelines a
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/saas-devtools.git
-cd saas-devtools
+git clone https://github.com/YOUR_USERNAME/go-devtools.git
+cd go-devtools
 
 # Add upstream remote
-git remote add upstream https://github.com/longvhv/saas-devtools.git
+git remote add upstream https://github.com/vhvcorp/go-devtools.git
 
 # Install dependencies
 make setup

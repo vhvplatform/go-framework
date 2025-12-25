@@ -23,7 +23,7 @@ linters-settings:
   gocyclo:
     min-complexity: 15
   goimports:
-    local-prefixes: github.com/longvhv/saas-framework-go
+    local-prefixes: github.com/vhvcorp/go-framework-go
   golint:
     min-confidence: 0
   gomnd:
