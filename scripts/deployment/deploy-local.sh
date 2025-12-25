@@ -1,4 +1,69 @@
 #!/bin/bash
+#
+# Script: deploy-local.sh
+# Description: Deploy to local Kubernetes cluster
+# Usage: ./deploy-local.sh
+#
+# This script:
+#   - Deploys all microservices to local K8s cluster
+#   - Installs MongoDB, Redis, RabbitMQ
+#   - Sets up observability stack (Prometheus, Grafana, Jaeger)
+#   - Configures networking and ingress
+#
+# Prerequisites:
+#   - Local Kubernetes cluster running (minikube, kind, or Docker Desktop K8s)
+#   - kubectl configured and accessible
+#   - Helm installed (for chart deployments)
+#   - Docker images built (make docker-build)
+#
+# Environment Variables:
+#   KUBE_CONTEXT - Kubernetes context (default: current context)
+#   NAMESPACE - Target namespace (default: default)
+#
+# Examples:
+#   ./deploy-local.sh
+#   make deploy-local
+#   NAMESPACE=dev ./deploy-local.sh
+#
+# Deployment Includes:
+#   - All 6 microservices
+#   - MongoDB with persistence
+#   - Redis
+#   - RabbitMQ with management UI
+#   - Prometheus for metrics
+#   - Grafana for visualization
+#   - Jaeger for tracing
+#
+# Deployment Time:
+#   - Typical: 3-5 minutes
+#   - First time: 5-10 minutes (downloading images)
+#
+# Verification:
+#   kubectl get pods
+#   kubectl get services
+#   make port-forward  # Access services
+#
+# Accessing Services:
+#   make port-forward  # Then access via localhost
+#
+# Troubleshooting:
+#   - Check pod status: kubectl get pods
+#   - View logs: kubectl logs <pod-name>
+#   - Describe pod: kubectl describe pod <pod-name>
+#   - Check events: kubectl get events
+#
+# Cleanup:
+#   kubectl delete namespace <namespace>
+#   # Or redeploy: ./deploy-local.sh
+#
+# See Also:
+#   - port-forward.sh: Access deployed services
+#   - deploy-dev.sh: Deploy to dev environment
+#
+# Author: VHV Corp
+# Last Modified: 2024-01-15
+#
+
 set -e
 
 echo "☸️  Deploying to local Kubernetes..."

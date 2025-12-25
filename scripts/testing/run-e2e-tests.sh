@@ -1,4 +1,71 @@
 #!/bin/bash
+#
+# Script: run-e2e-tests.sh
+# Description: Run end-to-end tests simulating user workflows
+# Usage: ./run-e2e-tests.sh
+#
+# This script:
+#   - Simulates complete user workflows
+#   - Tests entire request flow (API → Services → Database)
+#   - Validates business logic end-to-end
+#   - Tests error handling paths
+#
+# Test Scenarios:
+#   - User registration and login workflow
+#   - Complete CRUD operations
+#   - Multi-tenant scenarios
+#   - Notification workflows
+#   - Error handling and recovery
+#
+# Prerequisites:
+#   - All services running: make start
+#   - Test data loaded: make db-seed
+#   - All services healthy: make status
+#
+# Examples:
+#   ./run-e2e-tests.sh
+#   make test-e2e
+#   API_URL=https://dev.example.com ./run-e2e-tests.sh
+#
+# Test Duration:
+#   - Typical: 5-10 minutes
+#   - Slowest test type
+#   - Most comprehensive
+#
+# Environment Variables:
+#   API_URL - API endpoint (default: http://localhost:8080)
+#   VERBOSE - Enable verbose output
+#   SKIP_CLEANUP - Skip test data cleanup
+#
+# What is Tested:
+#   - User authentication flow
+#   - Tenant creation and management
+#   - User CRUD operations
+#   - Permission enforcement
+#   - Notification delivery
+#   - Cross-service workflows
+#
+# Failure Analysis:
+#   - Check logs: make logs
+#   - Review Jaeger traces: make open-jaeger
+#   - Verify data: docker exec mongodb mongosh
+#   - Check metrics: make open-grafana
+#
+# Best Practices:
+#   - Run after integration tests
+#   - Test critical user journeys
+#   - Keep scenarios realistic
+#   - Document test scenarios
+#
+# See Also:
+#   - run-unit-tests.sh: Unit tests
+#   - run-integration-tests.sh: Integration tests
+#   - run-load-tests.sh: Performance tests
+#
+# Author: VHV Corp
+# Last Modified: 2024-01-15
+#
+
 set -e
 
 echo "🧪 Running end-to-end tests..."

@@ -1,4 +1,60 @@
 #!/bin/bash
+#
+# Script: run-integration-tests.sh
+# Description: Run integration tests with live services
+# Usage: ./run-integration-tests.sh
+#
+# This script:
+#   - Tests service-to-service communication
+#   - Validates database operations
+#   - Tests API endpoints
+#   - Validates gRPC calls
+#   - Tests message queue integration
+#
+# Prerequisites:
+#   - All services must be running (make start)
+#   - Test database must be available
+#   - Message queue must be accessible
+#
+# Test Coverage:
+#   - Database CRUD operations
+#   - Service interactions
+#   - API contracts
+#   - gRPC endpoints
+#   - Message publishing/consuming
+#
+# Examples:
+#   ./run-integration-tests.sh
+#   make test-integration
+#
+# Test Duration:
+#   - Typical: 2-5 minutes
+#   - Slower than unit tests
+#   - Tests real integrations
+#
+# Environment Variables:
+#   API_URL - API endpoint (default: http://localhost:8080)
+#   VERBOSE - Enable verbose output
+#
+# Failure Handling:
+#   - Check service logs: make logs
+#   - Verify service health: make status
+#   - Check database: docker exec mongodb mongosh
+#
+# Best Practices:
+#   - Run after unit tests pass
+#   - Ensure services are healthy first
+#   - Review logs on failure
+#   - Keep integration tests focused
+#
+# See Also:
+#   - run-unit-tests.sh: Unit tests (run first)
+#   - run-e2e-tests.sh: End-to-end tests
+#
+# Author: VHV Corp
+# Last Modified: 2024-01-15
+#
+
 set -e
 
 echo "🧪 Running integration tests..."
