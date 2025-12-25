@@ -1,0 +1,284 @@
+@startuml installation-flow
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam activityBorderColor #4A90E2
+skinparam activityBackgroundColor #E3F2FD
+skinparam activityFontSize 12
+
+title Developer Setup Flow - Initial Installation
+
+start
+
+:Developer clones repository;
+note right
+  git clone https://github.com/vhvcorp/go-devtools.git
+  cd go-devtools
+end note
+
+:Run interactive setup script;
+note right
+  ./scripts/setup/interactive-setup.sh
+  
+  Or with parameters:
+  ./scripts/setup/interactive-setup.sh \
+    --workspace ~/my-workspace \
+    --skip-docker-check
+end note
+
+partition "System Detection" {
+    :Detect Operating System;
+    note right
+      Supported:
+      - macOS (Intel/Apple Silicon)
+      - Linux (Ubuntu/Debian/Fedora)
+      - Windows (WSL2)
+    end note
+    
+    if (OS Supported?) then (yes)
+        :Continue;
+    else (no)
+        :Show error message;
+        stop
+    endif
+}
+
+partition "Prerequisites Check" {
+    :Check Docker installed;
+    
+    if (Docker exists?) then (yes)
+        :✓ Docker found;
+    else (no)
+        :Install Docker;
+        note right
+          macOS: brew install --cask docker
+          Linux: Install via package manager
+          Windows: Docker Desktop for Windows
+        end note
+    endif
+    
+    :Check Docker running;
+    
+    if (Docker running?) then (yes)
+        :✓ Docker running;
+    else (no)
+        :Start Docker;
+        :Wait for Docker;
+    endif
+    
+    :Check Go installed;
+    
+    if (Go exists?) then (yes)
+        :Check version ≥ 1.21;
+        if (Version OK?) then (yes)
+            :✓ Go version OK;
+        else (no)
+            :Upgrade Go;
+        endif
+    else (no)
+        :Install Go 1.21+;
+    endif
+}
+
+partition "Workspace Setup" {
+    :Prompt for workspace location;
+    note right
+      Default: ~/workspace/go-platform
+      Or custom path
+    end note
+    
+    :Create workspace directory;
+    
+    :Create subdirectories;
+    note right
+      - bin/
+      - logs/
+      - data/
+      - backups/
+    end note
+}
+
+partition "Dependencies Installation" {
+    :Install system dependencies;
+    note right
+      - kubectl (Kubernetes CLI)
+      - helm (Package manager)
+      - jq (JSON processor)
+      - protobuf compiler
+    end note
+    
+    :Install Go development tools;
+    note right
+      - protoc-gen-go
+      - protoc-gen-go-grpc
+      - golangci-lint
+      - air (hot reload)
+      - mockgen
+    end note
+}
+
+partition "Repository Cloning" {
+    :Prompt for repositories to clone;
+    note right
+      Options:
+      1. All repositories (default)
+      2. Core services only
+      3. Custom selection
+    end note
+    
+    :Clone selected repositories;
+    note right
+      Repositories:
+      - go-shared-go
+      - go-api-gateway
+      - go-auth-service
+      - go-user-service
+      - go-tenant-service
+      - go-notification-service
+      - go-system-config-service
+      - go-infrastructure
+    end note
+    
+    :Show clone progress;
+}
+
+partition "Environment Configuration" {
+    :Create .env file;
+    note right
+      Copy from .env.example
+    end note
+    
+    :Prompt for configuration;
+    note right
+      Required:
+      - JWT_SECRET (generate random)
+      
+      Optional:
+      - SMTP settings
+      - Custom ports
+      - Database name
+    end note
+    
+    :Generate secure JWT secret;
+    note right
+      Using: openssl rand -base64 32
+    end note
+    
+    :Save configuration;
+}
+
+partition "Service Startup" {
+    :Pull Docker images;
+    note right
+      - mongo:7.0
+      - redis:7-alpine
+      - rabbitmq:3.12-management-alpine
+      - prom/prometheus
+      - grafana/grafana
+      - jaegertracing/all-in-one
+    end note
+    
+    :Start Docker Compose;
+    note right
+      docker-compose up -d
+    end note
+    
+    :Wait for services healthy;
+    note right
+      Health checks:
+      - MongoDB: mongosh ping
+      - Redis: redis-cli ping
+      - RabbitMQ: diagnostics ping
+      - Services: HTTP /health
+      
+      Timeout: 5 minutes
+    end note
+    
+    if (All healthy?) then (yes)
+        :✓ All services running;
+    else (no)
+        :Show troubleshooting guide;
+        :Check service logs;
+        stop
+    endif
+}
+
+partition "Data Initialization" {
+    :Prompt to seed database;
+    
+    if (Seed database?) then (yes)
+        :Load test data;
+        note right
+          - 3 test users
+          - 2 test tenants
+          - Sample notifications
+          - System configs
+        end note
+        
+        :Show test credentials;
+        note right
+          Admin: admin@example.com / admin123
+          User: user@example.com / user123
+        end note
+    else (no)
+        :Skip seeding;
+    endif
+}
+
+partition "Verification" {
+    :Run health checks;
+    
+    :Test API endpoint;
+    note right
+      curl http://localhost:8080/health
+      Expected: {"status":"healthy"}
+    end note
+    
+    if (API responds?) then (yes)
+        :✓ API healthy;
+    else (no)
+        :Show error;
+        stop
+    endif
+    
+    :Test authentication;
+    note right
+      Login with test credentials
+      Verify JWT token generation
+    end note
+}
+
+partition "Post-Installation" {
+    :Show service URLs;
+    note right
+      - API Gateway: http://localhost:8080
+      - Grafana: http://localhost:3000
+      - Jaeger: http://localhost:16686
+      - RabbitMQ Mgmt: http://localhost:15672
+    end note
+    
+    :Show next steps;
+    note right
+      1. Open Grafana dashboards
+      2. Import Postman collection
+      3. Read documentation
+      4. Try example API calls
+    end note
+    
+    :Create setup summary file;
+    note right
+      Save to: ~/workspace/SETUP_SUMMARY.txt
+      
+      Contains:
+      - Installation time
+      - Workspace location
+      - Service URLs
+      - Test credentials
+      - Quick commands
+    end note
+}
+
+:Setup complete! ✓;
+
+stop
+
+@enduml

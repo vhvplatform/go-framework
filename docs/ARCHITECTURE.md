@@ -2,14 +2,47 @@
 
 Technical architecture and design documentation for the go-devtools repository and the SaaS platform it supports.
 
+## 📊 Visual Diagrams
+
+For visual learners, we provide PlantUML diagrams showing the system architecture:
+
+- **[System Architecture Diagram](diagrams/system-architecture.puml)** - Complete microservices architecture
+- **[Installation Flow Diagram](diagrams/installation-flow.puml)** - Step-by-step setup process
+- **[Data Flow Diagram](diagrams/data-flow.puml)** - Request/response sequences
+
+To view these diagrams:
+```bash
+# Install PlantUML
+brew install plantuml  # macOS
+sudo apt-get install plantuml  # Linux
+
+# Generate images
+cd docs/diagrams
+plantuml *.puml
+
+# View the generated PNG files
+open *.png  # macOS
+xdg-open *.png  # Linux
+```
+
+Or view online: Copy the `.puml` file content to [PlantUML Web Server](http://www.plantuml.com/plantuml/uml/)
+
+See [diagrams/README.md](diagrams/README.md) for detailed instructions.
+
 ## Table of Contents
 
+- [Visual Diagrams](#-visual-diagrams)
 - [Overview](#overview)
 - [Directory Structure](#directory-structure)
 - [Design Philosophy](#design-philosophy)
 - [Tool Organization](#tool-organization)
 - [Docker Compose Architecture](#docker-compose-architecture)
 - [Service Interactions](#service-interactions)
+- [Detailed Service Architecture](#detailed-service-architecture)
+- [Real-World Scenarios](#real-world-scenarios)
+- [Configuration Management](#configuration-management)
+- [Performance Optimization](#performance-optimization)
+- [Disaster Recovery](#disaster-recovery)
 - [Extension Points](#extension-points)
 - [Integration Patterns](#integration-patterns)
 - [Development Workflow](#development-workflow)
@@ -19,6 +52,30 @@ Technical architecture and design documentation for the go-devtools repository a
 ## Overview
 
 The go-devtools repository provides a comprehensive development environment for the SaaS Platform microservices. It follows a **tools-as-code** approach where all development operations are scripted, versioned, and automated.
+
+### Quick Start
+
+Use our interactive setup script for easy installation:
+
+```bash
+# Clone the repository
+git clone https://github.com/vhvcorp/go-devtools.git
+cd go-devtools
+
+# Run interactive setup (with prompts)
+./scripts/setup/interactive-setup.sh
+
+# Or quick setup (no prompts, all defaults)
+./scripts/setup/interactive-setup.sh --quick
+
+# Or with custom options
+./scripts/setup/interactive-setup.sh \
+  --workspace ~/my-workspace \
+  --skip-seed \
+  --jwt-secret "my-custom-secret"
+```
+
+See [Installation Flow Diagram](diagrams/installation-flow.puml) for the complete setup process visualization.
 
 ### Core Principles
 
@@ -685,6 +742,1069 @@ make start-dev
 
 ---
 
+## Detailed Service Architecture
+
+### Microservices Overview
+
+The platform consists of 6 core microservices following a hexagonal (ports and adapters) architecture:
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                        API Gateway                              │
+│  Port: 8080 (HTTP/REST)                                        │
+│  - Authentication middleware                                    │
+│  - Request routing and load balancing                          │
+│  - Rate limiting and throttling                                │
+│  - Response caching                                            │
+└────────────────────────────────────────────────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        │                     │                     │
+        ▼                     ▼                     ▼
+┌──────────────┐      ┌──────────────┐     ┌──────────────┐
+│ Auth Service │      │ User Service │     │Tenant Service│
+│ Port: 8081   │      │ Port: 8082   │     │ Port: 8083   │
+│ gRPC: 50051  │      │ gRPC: 50052  │     │ gRPC: 50053  │
+└──────────────┘      └──────────────┘     └──────────────┘
+        │                     │                     │
+        └─────────────────────┼─────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        ▼                     ▼                     ▼
+┌──────────────┐      ┌──────────────┐     ┌──────────────┐
+│Notification  │      │System Config │     │   MongoDB    │
+│Service       │      │Service       │     │ Port: 27017  │
+│Port: 8084    │      │Port: 8085    │     │              │
+│gRPC: 50054   │      │gRPC: 50055   │     └──────────────┘
+└──────────────┘      └──────────────┘
+        │                     │
+        ▼                     ▼
+┌──────────────┐      ┌──────────────┐
+│  RabbitMQ    │      │    Redis     │
+│ Port: 5672   │      │ Port: 6379   │
+│ Mgmt: 15672  │      │              │
+└──────────────┘      └──────────────┘
+```
+
+### Service Responsibilities
+
+#### 1. API Gateway
+**Purpose:** Single entry point for all client requests
+
+**Key Functions:**
+- HTTP to gRPC protocol translation
+- JWT token validation
+- Request/response transformation
+- Cross-cutting concerns (logging, monitoring, tracing)
+
+**Technology Stack:**
+- Go 1.21+
+- Gin web framework
+- gRPC client connections
+
+**Example Request Flow:**
+```go
+// Client Request
+POST /api/auth/login
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+
+// API Gateway processes:
+1. Validates request format
+2. Forwards to Auth Service via gRPC
+3. Receives gRPC response
+4. Transforms to HTTP response
+5. Returns to client
+
+// Response
+HTTP 200 OK
+{
+  "token": "eyJhbGc...",
+  "user": {
+    "id": "user-123",
+    "email": "user@example.com"
+  }
+}
+```
+
+#### 2. Auth Service
+**Purpose:** Authentication and authorization
+
+**Key Functions:**
+- User authentication (login, logout)
+- JWT token generation and validation
+- Password hashing (bcrypt)
+- Session management
+- OAuth2 integration (future)
+
+**Data Storage:**
+- MongoDB: User credentials, permissions
+- Redis: Active sessions, token blacklist
+
+**Example Authentication Flow:**
+```
+1. Client → API Gateway: POST /api/auth/login
+   Body: {"email": "...", "password": "..."}
+
+2. API Gateway → Auth Service: LoginRequest gRPC
+   
+3. Auth Service:
+   a. Fetch user from MongoDB
+   b. Verify password with bcrypt
+   c. Generate JWT token
+   d. Store session in Redis
+   e. Return LoginResponse
+
+4. Auth Service → API Gateway: LoginResponse
+   Token: eyJhbGc...
+   User: {...}
+
+5. API Gateway → Client: HTTP 200
+   JSON response with token
+```
+
+**Configuration Example:**
+```yaml
+# auth-service/config.yaml
+server:
+  http_port: 8081
+  grpc_port: 50051
+  
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 24h
+  issuer: "saas-platform"
+  
+database:
+  mongodb_uri: "mongodb://mongodb:27017"
+  database_name: "go_dev"
+  
+redis:
+  url: "redis://redis:6379/0"
+  session_ttl: 86400  # 24 hours
+```
+
+#### 3. User Service
+**Purpose:** User profile and management
+
+**Key Functions:**
+- User CRUD operations
+- Profile management
+- User search and filtering
+- Role assignment
+- Activity logging
+
+**Data Model:**
+```go
+type User struct {
+    ID        string    `bson:"_id" json:"id"`
+    Email     string    `bson:"email" json:"email"`
+    Name      string    `bson:"name" json:"name"`
+    Avatar    string    `bson:"avatar" json:"avatar"`
+    TenantID  string    `bson:"tenant_id" json:"tenant_id"`
+    Roles     []string  `bson:"roles" json:"roles"`
+    Status    string    `bson:"status" json:"status"`
+    CreatedAt time.Time `bson:"created_at" json:"created_at"`
+    UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
+}
+```
+
+**API Examples:**
+```bash
+# Get user by ID
+grpcurl -d '{"user_id": "user-123"}' \
+  localhost:50052 user.UserService/GetUser
+
+# Update user profile
+grpcurl -d '{
+  "user_id": "user-123",
+  "name": "New Name",
+  "avatar": "https://..."
+}' localhost:50052 user.UserService/UpdateUser
+
+# List users with pagination
+grpcurl -d '{
+  "tenant_id": "tenant-1",
+  "page": 1,
+  "page_size": 20
+}' localhost:50052 user.UserService/ListUsers
+```
+
+#### 4. Tenant Service
+**Purpose:** Multi-tenancy management
+
+**Key Functions:**
+- Tenant creation and configuration
+- Subscription management
+- Feature flags per tenant
+- Tenant isolation
+- Billing integration (future)
+
+**Data Model:**
+```go
+type Tenant struct {
+    ID          string            `bson:"_id" json:"id"`
+    Name        string            `bson:"name" json:"name"`
+    Slug        string            `bson:"slug" json:"slug"`
+    Plan        string            `bson:"plan" json:"plan"`
+    Status      string            `bson:"status" json:"status"`
+    Settings    map[string]string `bson:"settings" json:"settings"`
+    Features    []string          `bson:"features" json:"features"`
+    MaxUsers    int               `bson:"max_users" json:"max_users"`
+    CreatedAt   time.Time         `bson:"created_at" json:"created_at"`
+}
+```
+
+**Tenant Isolation Strategy:**
+```
+Database Level:
+- Separate MongoDB collections per tenant
+- Tenant ID in every query
+- Database indexes on tenant_id
+
+Application Level:
+- Tenant context in every request
+- Middleware validates tenant access
+- Cross-tenant queries prevented
+
+Example Query:
+db.users.find({
+  "tenant_id": "tenant-123",
+  "status": "active"
+})
+```
+
+#### 5. Notification Service
+**Purpose:** Asynchronous notification delivery
+
+**Key Functions:**
+- Email notifications
+- SMS notifications (future)
+- Push notifications (future)
+- Notification templates
+- Delivery tracking
+- Retry logic
+
+**Architecture Pattern:** Event-driven with message queue
+
+**Flow Diagram:**
+```
+Service A                Notification Service
+   │                            │
+   │  Publish Event             │
+   ├───────────────────────────▶│
+   │  UserCreated               │
+   │                            │
+   │                     RabbitMQ Queue
+   │                            │
+   │                      ┌─────▼─────┐
+   │                      │  Consumer  │
+   │                      │  Workers   │
+   │                      └─────┬─────┘
+   │                            │
+   │                      Process Event
+   │                            │
+   │                      Generate Email
+   │                            │
+   │                      Send via SMTP
+   │                            │
+   │                      Store in DB
+   │                            ▼
+```
+
+**Event Example:**
+```json
+{
+  "event_type": "user.created",
+  "tenant_id": "tenant-123",
+  "user_id": "user-456",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "data": {
+    "email": "newuser@example.com",
+    "name": "New User"
+  },
+  "notification_template": "welcome_email"
+}
+```
+
+**RabbitMQ Configuration:**
+```yaml
+# Queues
+queues:
+  - name: notifications.email
+    durable: true
+    auto_delete: false
+    
+  - name: notifications.sms
+    durable: true
+    auto_delete: false
+
+# Exchanges
+exchanges:
+  - name: notifications
+    type: topic
+    durable: true
+
+# Bindings
+bindings:
+  - exchange: notifications
+    queue: notifications.email
+    routing_key: "email.*"
+```
+
+#### 6. System Config Service
+**Purpose:** Centralized configuration management
+
+**Key Functions:**
+- Application settings
+- Feature flags
+- A/B testing configuration
+- Cache management
+- Configuration versioning
+
+**Caching Strategy:**
+```
+Request Flow:
+1. Client requests config
+2. Check Redis cache
+   - If hit: Return cached value (fast)
+   - If miss: Fetch from MongoDB
+3. Store in Redis with TTL
+4. Return to client
+
+Cache Keys:
+- config:tenant:{tenant_id}:{key}
+- config:global:{key}
+- features:{tenant_id}
+
+TTL Strategy:
+- Global configs: 1 hour
+- Tenant configs: 30 minutes
+- Feature flags: 5 minutes
+```
+
+**Example Configs:**
+```json
+// Global Configuration
+{
+  "key": "smtp.settings",
+  "value": {
+    "host": "smtp.example.com",
+    "port": 587,
+    "from": "noreply@example.com"
+  },
+  "scope": "global"
+}
+
+// Tenant Configuration
+{
+  "key": "max_file_upload_size",
+  "value": "10MB",
+  "tenant_id": "tenant-123",
+  "scope": "tenant"
+}
+
+// Feature Flag
+{
+  "key": "feature.new_dashboard",
+  "value": true,
+  "tenant_id": "tenant-123",
+  "scope": "feature"
+}
+```
+
+### Infrastructure Services
+
+#### MongoDB
+**Purpose:** Primary data store
+
+**Collections:**
+```
+go_dev/
+├── users           # User profiles
+├── tenants         # Tenant information
+├── sessions        # User sessions (temporary)
+├── notifications   # Notification history
+├── configs         # System configurations
+├── audit_logs      # Activity audit trail
+└── migrations      # Database version tracking
+```
+
+**Indexes:**
+```javascript
+// users collection
+db.users.createIndex({ "email": 1 }, { unique: true })
+db.users.createIndex({ "tenant_id": 1, "status": 1 })
+db.users.createIndex({ "created_at": -1 })
+
+// tenants collection
+db.tenants.createIndex({ "slug": 1 }, { unique: true })
+db.tenants.createIndex({ "status": 1 })
+
+// audit_logs collection
+db.audit_logs.createIndex({ "tenant_id": 1, "created_at": -1 })
+db.audit_logs.createIndex({ "user_id": 1, "action": 1 })
+```
+
+**Backup Strategy:**
+```bash
+# Automated daily backups
+0 2 * * * /scripts/database/backup.sh
+
+# Retention policy
+- Daily backups: 7 days
+- Weekly backups: 4 weeks
+- Monthly backups: 12 months
+```
+
+#### Redis
+**Purpose:** Caching and session storage
+
+**Key Patterns:**
+```
+# Session keys
+session:{session_id} → User session data
+TTL: 24 hours
+
+# Token blacklist
+blacklist:token:{token_id} → "revoked"
+TTL: Token expiration time
+
+# Cache keys
+cache:user:{user_id} → User object
+cache:config:{key} → Config value
+TTL: 30 minutes
+
+# Rate limiting
+ratelimit:{ip}:{endpoint} → Request count
+TTL: 1 minute
+```
+
+**Memory Management:**
+```
+# Redis configuration
+maxmemory 2gb
+maxmemory-policy allkeys-lru
+
+# Eviction strategy
+- LRU eviction when memory limit reached
+- Prioritize session data over cache
+- Monitor memory usage via metrics
+```
+
+#### RabbitMQ
+**Purpose:** Asynchronous message queue
+
+**Queue Structure:**
+```
+Exchange: notifications (topic)
+    │
+    ├─→ notifications.email (queue)
+    │   └─ Routing key: email.*
+    │
+    ├─→ notifications.sms (queue)
+    │   └─ Routing key: sms.*
+    │
+    └─→ notifications.push (queue)
+        └─ Routing key: push.*
+
+Exchange: events (fanout)
+    │
+    ├─→ audit.logs (queue)
+    ├─→ analytics.events (queue)
+    └─→ webhooks.dispatch (queue)
+```
+
+**Message Format:**
+```json
+{
+  "message_id": "msg-uuid-123",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "type": "user.created",
+  "tenant_id": "tenant-123",
+  "payload": {
+    "user_id": "user-456",
+    "email": "user@example.com"
+  },
+  "metadata": {
+    "source": "user-service",
+    "correlation_id": "req-123"
+  }
+}
+```
+
+**Consumer Configuration:**
+```yaml
+# Consumer settings
+prefetch_count: 10        # Process 10 messages at a time
+auto_ack: false          # Manual acknowledgment
+requeue_on_error: true   # Retry failed messages
+
+# Dead letter exchange
+dead_letter_exchange: dlx
+dead_letter_routing_key: failed
+
+# Max retries: 3
+# Retry backoff: exponential (1s, 2s, 4s)
+```
+
+### Observability Stack
+
+#### Prometheus
+**Purpose:** Metrics collection and alerting
+
+**Metrics Collected:**
+```
+# HTTP metrics
+http_requests_total
+http_request_duration_seconds
+http_response_size_bytes
+
+# gRPC metrics
+grpc_server_handled_total
+grpc_server_handling_seconds
+
+# Business metrics
+user_registrations_total
+login_attempts_total
+notifications_sent_total
+
+# System metrics
+go_goroutines
+go_memstats_alloc_bytes
+process_cpu_seconds_total
+```
+
+**Scrape Configuration:**
+```yaml
+# prometheus.yml
+scrape_configs:
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:8081']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+```
+
+**Alert Rules:**
+```yaml
+# alerts.yml
+groups:
+  - name: service_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          
+      - alert: ServiceDown
+        expr: up{job="api-gateway"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API Gateway is down"
+```
+
+#### Grafana
+**Purpose:** Metrics visualization
+
+**Pre-configured Dashboards:**
+
+1. **Service Overview Dashboard**
+```
+- Request rate (req/s)
+- Response time (p50, p95, p99)
+- Error rate (%)
+- Active connections
+- Service health status
+```
+
+2. **Resource Usage Dashboard**
+```
+- CPU usage per service
+- Memory usage per service
+- Goroutine count
+- GC pause time
+- Network I/O
+```
+
+3. **Business Metrics Dashboard**
+```
+- User registrations (daily)
+- Active users
+- API calls per endpoint
+- Notification delivery rate
+- Tenant growth
+```
+
+#### Jaeger
+**Purpose:** Distributed tracing
+
+**Trace Example:**
+```
+Trace ID: abc123
+Duration: 245ms
+Spans: 8
+
+┌─ HTTP GET /api/users/123 (API Gateway) [245ms]
+│  ├─ Validate JWT (API Gateway) [5ms]
+│  ├─ gRPC GetUser (User Service) [220ms]
+│  │  ├─ MongoDB Find Query [200ms]
+│  │  │  └─ Index Scan: users.email [195ms]
+│  │  └─ Object Mapping [20ms]
+│  └─ Response Serialization [20ms]
+```
+
+**Trace Context Propagation:**
+```go
+// API Gateway injects trace context
+ctx = context.WithValue(ctx, "trace_id", traceID)
+ctx = context.WithValue(ctx, "span_id", spanID)
+
+// User Service extracts trace context
+traceID := ctx.Value("trace_id").(string)
+parentSpanID := ctx.Value("span_id").(string)
+
+// Creates child span
+childSpan := tracer.StartSpan(
+    "GetUser",
+    opentracing.ChildOf(parentSpanID),
+)
+```
+
+## Real-World Scenarios
+
+### Scenario 1: User Registration Flow
+
+**Complete Request Flow:**
+```
+1. Client → API Gateway
+   POST /api/auth/register
+   {
+     "email": "new@example.com",
+     "password": "secure123",
+     "name": "New User",
+     "tenant_id": "tenant-123"
+   }
+
+2. API Gateway → Auth Service (gRPC)
+   RegisterRequest {
+     email: "new@example.com"
+     password_hash: "$2a$10$..." (bcrypt)
+     name: "New User"
+     tenant_id: "tenant-123"
+   }
+
+3. Auth Service → MongoDB
+   - Check email uniqueness
+   - Create user document
+   - Generate activation token
+
+4. Auth Service → RabbitMQ
+   Publish event: {
+     type: "user.created",
+     user_id: "user-789",
+     email: "new@example.com"
+   }
+
+5. Notification Service ← RabbitMQ
+   - Consume event
+   - Generate welcome email
+   - Send via SMTP
+   - Update delivery status
+
+6. Auth Service → API Gateway
+   RegisterResponse {
+     user_id: "user-789",
+     status: "pending_activation"
+   }
+
+7. API Gateway → Client
+   HTTP 201 Created
+   {
+     "user_id": "user-789",
+     "message": "Check email for activation"
+   }
+
+Total Duration: ~300ms
+- Registration: 50ms
+- Email queued: 5ms
+- Email delivery: async (2-5s)
+```
+
+### Scenario 2: Authenticated API Call
+
+**Request with JWT:**
+```
+1. Client → API Gateway
+   GET /api/users/profile
+   Authorization: Bearer eyJhbGc...
+
+2. API Gateway Middleware
+   - Extract JWT from header
+   - Validate signature
+   - Check expiration
+   - Extract user_id, tenant_id
+   - Check Redis for token blacklist
+   Duration: 5ms
+
+3. API Gateway → User Service (gRPC)
+   GetUserRequest {
+     user_id: "user-123",
+     tenant_id: "tenant-456"
+   }
+
+4. User Service → Redis
+   - Check cache: cache:user:user-123
+   - Cache HIT: Return cached data
+   Duration: 2ms
+
+5. User Service → API Gateway
+   UserResponse {
+     user: {...}
+   }
+
+6. API Gateway → Client
+   HTTP 200 OK
+   {
+     "user": {
+       "id": "user-123",
+       "email": "user@example.com",
+       "name": "User Name"
+     }
+   }
+
+Total Duration: ~10ms (with cache)
+Without cache: ~50ms (MongoDB query)
+```
+
+### Scenario 3: Multi-Service Transaction
+
+**Creating Tenant with Admin User:**
+```
+1. Client → API Gateway
+   POST /api/tenants
+   {
+     "name": "Acme Corp",
+     "slug": "acme",
+     "plan": "enterprise",
+     "admin_email": "admin@acme.com"
+   }
+
+2. API Gateway → Tenant Service
+   - Create tenant record
+   - Set default configuration
+   - Initialize feature flags
+   Duration: 30ms
+
+3. Tenant Service → User Service
+   - Create admin user
+   - Assign admin role
+   - Link to tenant
+   Duration: 40ms
+
+4. Tenant Service → System Config Service
+   - Create tenant-specific configs
+   - Initialize settings
+   Duration: 20ms
+
+5. Tenant Service → RabbitMQ
+   - Publish tenant.created event
+   - Publish user.created event
+
+6. Multiple Consumers Process Events:
+   - Notification: Send welcome email
+   - Audit: Log tenant creation
+   - Analytics: Track new signup
+   - Webhooks: Notify integrations
+
+7. Response to Client
+   HTTP 201 Created
+   {
+     "tenant_id": "tenant-789",
+     "admin_user_id": "user-999",
+     "status": "active"
+   }
+
+Total Duration: ~100ms (synchronous)
+Async processing: 2-10s
+```
+
+## Configuration Management
+
+### Environment Variables
+
+**Complete .env Example:**
+```bash
+# Application
+ENVIRONMENT=development
+LOG_LEVEL=debug
+APP_NAME=saas-platform
+
+# API Gateway
+API_GATEWAY_PORT=8080
+API_GATEWAY_TIMEOUT=30s
+API_GATEWAY_MAX_BODY_SIZE=10MB
+
+# Service URLs (gRPC)
+AUTH_SERVICE_URL=auth-service:50051
+USER_SERVICE_URL=user-service:50052
+TENANT_SERVICE_URL=tenant-service:50053
+NOTIFICATION_SERVICE_URL=notification-service:50054
+SYSTEM_CONFIG_SERVICE_URL=system-config-service:50055
+
+# JWT Configuration
+JWT_SECRET=change-this-in-production-very-important
+JWT_EXPIRATION=24h
+JWT_ISSUER=saas-platform
+JWT_ALGORITHM=HS256
+
+# MongoDB
+MONGODB_URI=mongodb://mongodb:27017
+MONGODB_DATABASE=go_dev
+MONGODB_MAX_POOL_SIZE=100
+MONGODB_MIN_POOL_SIZE=10
+MONGODB_MAX_IDLE_TIME=60s
+
+# Redis
+REDIS_URL=redis://redis:6379/0
+REDIS_PASSWORD=
+REDIS_MAX_RETRIES=3
+REDIS_POOL_SIZE=10
+
+# RabbitMQ
+RABBITMQ_URL=******rabbitmq:5672/
+RABBITMQ_USERNAME=guest
+RABBITMQ_PASSWORD=guest
+RABBITMQ_VHOST=/
+RABBITMQ_PREFETCH=10
+
+# SMTP (for notifications)
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USERNAME=notifications@example.com
+SMTP_PASSWORD=smtp-password
+SMTP_FROM=noreply@example.com
+SMTP_TLS=true
+
+# Observability
+PROMETHEUS_PORT=9090
+PROMETHEUS_SCRAPE_INTERVAL=15s
+GRAFANA_PORT=3000
+GRAFANA_USER=admin
+GRAFANA_PASSWORD=admin
+JAEGER_AGENT_HOST=jaeger
+JAEGER_AGENT_PORT=6831
+JAEGER_SAMPLER_TYPE=const
+JAEGER_SAMPLER_PARAM=1
+
+# Rate Limiting
+RATE_LIMIT_REQUESTS=100
+RATE_LIMIT_WINDOW=60s
+RATE_LIMIT_BURST=20
+
+# Feature Flags
+FEATURE_NEW_DASHBOARD=true
+FEATURE_ADVANCED_ANALYTICS=false
+FEATURE_SSO=false
+
+# Security
+CORS_ALLOWED_ORIGINS=http://localhost:3000,https://app.example.com
+CORS_ALLOWED_METHODS=GET,POST,PUT,DELETE,OPTIONS
+CORS_ALLOWED_HEADERS=Content-Type,Authorization
+CORS_MAX_AGE=3600
+
+# Session Management
+SESSION_TIMEOUT=1800s  # 30 minutes
+SESSION_COOKIE_SECURE=false  # true in production
+SESSION_COOKIE_SAME_SITE=lax
+```
+
+### Configuration Precedence
+
+```
+1. Command-line flags (highest priority)
+2. Environment variables
+3. Configuration files (.env, config.yaml)
+4. System Config Service (runtime)
+5. Default values (lowest priority)
+```
+
+**Example:**
+```bash
+# Default in code
+timeout := 30 * time.Second
+
+# Overridden by config file
+timeout = config.Get("timeout")  # 60s
+
+# Overridden by environment variable
+timeout = os.Getenv("TIMEOUT")  # 120s
+
+# Final: 120s
+```
+
+## Performance Optimization
+
+### Database Query Optimization
+
+**Before Optimization:**
+```javascript
+// Slow query - full collection scan
+db.users.find({
+  "email": "user@example.com"
+})
+// Execution time: 500ms (100k documents)
+```
+
+**After Optimization:**
+```javascript
+// Create index
+db.users.createIndex({ "email": 1 }, { unique: true })
+
+// Fast query - index scan
+db.users.find({
+  "email": "user@example.com"
+})
+// Execution time: 2ms (index lookup)
+```
+
+### Caching Strategy
+
+**Multi-level Caching:**
+```
+Request → API Gateway Cache (1s TTL)
+          ↓ (miss)
+          Redis Cache (5min TTL)
+          ↓ (miss)
+          Database (persistent)
+          ↓
+          Cache result in Redis
+          ↓
+          Return to client
+
+Response Time:
+- API Gateway cache hit: <1ms
+- Redis cache hit: 2-5ms
+- Database query: 20-100ms
+```
+
+### Connection Pooling
+
+**MongoDB Connection Pool:**
+```go
+// Pool configuration
+clientOptions := options.Client().
+    SetMaxPoolSize(100).
+    SetMinPoolSize(10).
+    SetMaxConnIdleTime(60 * time.Second)
+
+// Connection reuse
+// - New request: Grab connection from pool (fast)
+// - After request: Return connection to pool
+// - No repeated TCP handshake overhead
+```
+
+**Performance Improvement:**
+```
+Without pooling: 50-100ms per request (new connection)
+With pooling: 5-10ms per request (reused connection)
+Improvement: 5-10x faster
+```
+
+## Disaster Recovery
+
+### Backup Strategy
+
+**Automated Backups:**
+```bash
+# Daily full backup (2 AM)
+0 2 * * * /scripts/database/backup.sh
+
+# Hourly incremental (business hours)
+0 9-18 * * * /scripts/database/backup-incremental.sh
+
+# Backup verification
+0 3 * * * /scripts/database/verify-backup.sh
+```
+
+**Backup Locations:**
+```
+Local: /backups/
+  ├── daily/
+  │   ├── mongodb-2024-01-15.tar.gz
+  │   └── mongodb-2024-01-14.tar.gz
+  ├── weekly/
+  │   └── mongodb-week-03.tar.gz
+  └── monthly/
+      └── mongodb-2024-01.tar.gz
+
+Remote: S3/Cloud Storage
+  └── backups/
+      ├── daily/ (7 days retention)
+      ├── weekly/ (4 weeks retention)
+      └── monthly/ (12 months retention)
+```
+
+### Recovery Procedures
+
+**Scenario: Data Corruption**
+```bash
+# 1. Stop services
+make stop
+
+# 2. Verify backup integrity
+tar -tzf backups/mongodb-latest.tar.gz
+
+# 3. Restore from backup
+make db-restore FILE=backups/mongodb-latest.tar.gz
+
+# 4. Verify data integrity
+docker exec mongodb mongosh --eval "db.users.count()"
+
+# 5. Start services
+make start
+
+# 6. Monitor logs
+make logs
+
+# Recovery time: ~5-10 minutes
+```
+
+**Scenario: Service Failure**
+```bash
+# 1. Check health
+make status
+
+# 2. View logs
+make logs-service SERVICE=failed-service
+
+# 3. Restart service
+make restart-service SERVICE=failed-service
+
+# 4. If restart fails, rebuild
+make rebuild SERVICE=failed-service
+
+# 5. Verify recovery
+curl http://localhost:8080/health
+
+# Recovery time: ~30 seconds
+```
+
+---
+
 ## See Also
 
 - [DEVELOPMENT.md](DEVELOPMENT.md) - Development practices
@@ -694,5 +1814,5 @@ make start-dev
 
 ---
 
-**Last Updated:** 2024-01-15  
-**Architecture Version:** 1.0
+**Last Updated:** 2024-12-25  
+**Architecture Version:** 1.1
