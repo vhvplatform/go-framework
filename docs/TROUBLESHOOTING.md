@@ -573,7 +573,7 @@ go mod verify
 git config --global url."git@github.com:".insteadOf "https://github.com/"
 
 # Set GOPRIVATE
-export GOPRIVATE=github.com/vhvcorp/*
+export GOPRIVATE=github.com/vhvplatform/*
 ```
 
 ---
@@ -1005,7 +1005,7 @@ docker network inspect go-framework_saas-network
    ```
 
 4. **Search Existing Issues**
-   - [GitHub Issues](https://github.com/vhvcorp/go-framework/issues)
+   - [GitHub Issues](https://github.com/vhvplatform/go-framework/issues)
 
 ### Reporting Issues
 
@@ -1097,4 +1097,4 @@ Any other relevant information
 ---
 
 **Last Updated:** 2024-01-15  
-**Need more help?** Open an issue on [GitHub](https://github.com/vhvcorp/go-framework/issues)
+**Need more help?** Open an issue on [GitHub](https://github.com/vhvplatform/go-framework/issues)

@@ -23,7 +23,7 @@ Before developing on go-framework:
 
 ```bash
 # Clone the repository
-git clone https://github.com/vhvcorp/go-framework.git
+git clone https://github.com/vhvplatform/go-framework.git
 cd go-framework
 
 # Setup your environment

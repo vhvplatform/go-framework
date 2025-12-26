@@ -102,19 +102,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `generate-jwt.sh` - Generate test JWT tokens
 - `test-api.sh` - Quick API testing
 
-### Migration from longvhv to vhvcorp
+### Migration from longvhv to vhvplatform
 
-This repository was migrated from the `longvhv` GitHub organization to `vhvcorp`. All references have been updated:
+This repository was migrated from the `longvhv` GitHub organization to `vhvplatform`. All references have been updated:
 
-- Repository URLs: `github.com/longvhv/*` → `github.com/vhvcorp/*`
-- Docker images: `longvhv/*` → `vhvcorp/*` (update in progress)
+- Repository URLs: `github.com/longvhv/*` → `github.com/vhvplatform/*`
+- Docker images: `longvhv/*` → `vhvplatform/*` (update in progress)
 - Documentation links: Updated throughout
 - Environment variables: Review and update in `.env` files
 
 **Action Required:**
 1. Update your Git remote URLs:
    ```bash
-   git remote set-url origin https://github.com/vhvcorp/go-framework.git
+   git remote set-url origin https://github.com/vhvplatform/go-framework.git
    ```
 
 2. Re-clone repositories with new URLs:
@@ -122,7 +122,7 @@ This repository was migrated from the `longvhv` GitHub organization to `vhvcorp`
    cd ~/workspace/go-platform
    rm -rf go-*  # Backup first if you have uncommitted changes!
    cd go-framework
-   make setup-repos  # Clones from vhvcorp organization
+   make setup-repos  # Clones from vhvplatform organization
    ```
 
 3. Update any bookmarks or CI/CD configurations
@@ -172,9 +172,9 @@ None (initial release)
 
 ## Links
 
-- [GitHub Repository](https://github.com/vhvcorp/go-framework)
-- [Issue Tracker](https://github.com/vhvcorp/go-framework/issues)
-- [Pull Requests](https://github.com/vhvcorp/go-framework/pulls)
+- [GitHub Repository](https://github.com/vhvplatform/go-framework)
+- [Issue Tracker](https://github.com/vhvplatform/go-framework/issues)
+- [Pull Requests](https://github.com/vhvplatform/go-framework/pulls)
 - [Documentation](./docs/)
 - [Contributing Guide](./CONTRIBUTING.md)
 

@@ -36,7 +36,7 @@
 #   ./create-service.sh user-service --database none --no-cache --no-tests
 #
 # Environment Variables:
-#   GO_MODULE_PREFIX - Go module prefix (default: github.com/vhvcorp)
+#   GO_MODULE_PREFIX - Go module prefix (default: github.com/vhvplatform)
 #
 # Requirements:
 #   - Go 1.21+ installed
@@ -65,7 +65,7 @@ WITH_MESSAGING=false
 WITH_CACHE=true
 WITH_TESTS=true
 OUTPUT_DIR="../services"
-GO_MODULE_PREFIX="${GO_MODULE_PREFIX:-github.com/vhvcorp}"
+GO_MODULE_PREFIX="${GO_MODULE_PREFIX:-github.com/vhvplatform}"
 
 # Function to print colored output
 print_info() {
@@ -1323,7 +1323,7 @@ cat > Makefile << 'EOF'
 .PHONY: help build run test docker-build docker-run clean
 
 SERVICE_NAME=__SERVICE_NAME__
-DOCKER_IMAGE=vhvcorp/$(SERVICE_NAME)
+DOCKER_IMAGE=vhvplatform/$(SERVICE_NAME)
 PORT=__PORT__
 
 help: ## Show this help
@@ -1415,7 +1415,7 @@ $([ "$WITH_MESSAGING" == "true" ] && echo "- RabbitMQ 3.9+")
 
 \`\`\`bash
 # Clone the repository
-git clone https://github.com/vhvcorp/$SERVICE_NAME.git
+git clone https://github.com/vhvplatform/$SERVICE_NAME.git
 cd $SERVICE_NAME
 
 # Install dependencies
@@ -1551,7 +1551,7 @@ kubectl apply -f k8s/
 4. Push to the branch (\`git push origin feature/amazing-feature\`)
 5. Open a Pull Request
 
-See [CONTRIBUTING.md](https://github.com/vhvcorp/go-framework/blob/main/CONTRIBUTING.md) for more details.
+See [CONTRIBUTING.md](https://github.com/vhvplatform/go-framework/blob/main/CONTRIBUTING.md) for more details.
 
 ## License
 
@@ -1560,8 +1560,8 @@ Copyright © 2024 VHV Corp. All rights reserved.
 ## Support
 
 For support and questions:
-- Documentation: https://github.com/vhvcorp/go-framework
-- Issues: https://github.com/vhvcorp/$SERVICE_NAME/issues
+- Documentation: https://github.com/vhvplatform/go-framework
+- Issues: https://github.com/vhvplatform/$SERVICE_NAME/issues
 EOF
 print_success "README.md created"
 

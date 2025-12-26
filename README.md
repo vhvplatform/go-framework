@@ -19,7 +19,7 @@ Get up and running in minutes:
 
 ```bash
 # Clone this repository
-git clone https://github.com/vhvcorp/go-framework.git
+git clone https://github.com/vhvplatform/go-framework.git
 cd go-framework
 
 # Setup development environment (installs tools, clones repos)
@@ -491,9 +491,9 @@ This project is licensed under the MIT License - see [LICENSE](../LICENSE) file 
 
 ## 🔗 Links
 
-- [Main Repository](https://github.com/vhvcorp/go-framework-go)
-- [Shared Library](https://github.com/vhvcorp/go-shared-go)
-- [Infrastructure](https://github.com/vhvcorp/go-infrastructure)
+- [Main Repository](https://github.com/vhvplatform/go-framework-go)
+- [Shared Library](https://github.com/vhvplatform/go-shared-go)
+- [Infrastructure](https://github.com/vhvplatform/go-infrastructure)
 
 ---
 

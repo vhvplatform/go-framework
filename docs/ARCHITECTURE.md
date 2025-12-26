@@ -59,7 +59,7 @@ Use our interactive setup script for easy installation:
 
 ```bash
 # Clone the repository
-git clone https://github.com/vhvcorp/go-framework.git
+git clone https://github.com/vhvplatform/go-framework.git
 cd go-framework
 
 # Run interactive setup (with prompts)
@@ -342,7 +342,7 @@ Each microservice follows a consistent pattern:
 
 ```yaml
 service-name:
-  image: vhvcorp/service-name:latest
+  image: vhvplatform/service-name:latest
   container_name: service-name
   environment:
     - ENV_VAR=value
@@ -452,7 +452,7 @@ Services
 **1. Add to docker-compose.yml:**
 ```yaml
 new-service:
-  image: vhvcorp/new-service:latest
+  image: vhvplatform/new-service:latest
   container_name: new-service
   environment:
     - CONFIG_VAR=value

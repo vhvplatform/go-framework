@@ -453,7 +453,7 @@ clone_repositories() {
             log_warning "$repo already exists, skipping"
         else
             log_step "Cloning $repo..."
-            if git clone "https://github.com/vhvcorp/$repo.git" "$repo_path" 2>/dev/null; then
+            if git clone "https://github.com/vhvplatform/$repo.git" "$repo_path" 2>/dev/null; then
                 log_info "$repo cloned successfully"
             else
                 log_error "Failed to clone $repo (repository may not exist yet)"
@@ -717,13 +717,13 @@ Documentation:
 - docs/ARCHITECTURE.md - System architecture
 
 Support:
-- GitHub Issues: https://github.com/vhvcorp/go-framework/issues
-- Documentation: https://github.com/vhvcorp/go-framework/tree/main/docs
+- GitHub Issues: https://github.com/vhvplatform/go-framework/issues
+- Documentation: https://github.com/vhvplatform/go-framework/tree/main/docs
 EOF
     
     log_info "Setup summary saved to: $summary_file"
     echo ""
-    echo "For help, visit: https://github.com/vhvcorp/go-framework"
+    echo "For help, visit: https://github.com/vhvplatform/go-framework"
     echo ""
 }
 

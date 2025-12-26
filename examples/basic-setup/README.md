@@ -6,7 +6,7 @@ This example demonstrates a basic setup of the go-framework development environm
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/vhvcorp/go-framework.git
+git clone https://github.com/vhvplatform/go-framework.git
 cd go-framework
 
 # 2. Run automated setup
@@ -167,6 +167,6 @@ make restart-service SERVICE=auth-service
 
 ## Support
 
-- [GitHub Issues](https://github.com/vhvcorp/go-framework/issues)
+- [GitHub Issues](https://github.com/vhvplatform/go-framework/issues)
 - [Documentation](../../docs/)
 - [Contributing Guide](../../CONTRIBUTING.md)

@@ -37,7 +37,7 @@ Chào mừng bạn đến với tài liệu tiếng Việt cho go-framework!
 #### Bước 1: Clone Repository
 
 ```bash
-git clone https://github.com/vhvcorp/go-framework.git
+git clone https://github.com/vhvplatform/go-framework.git
 cd go-framework
 ```
 
@@ -907,12 +907,12 @@ services:
    - [TROUBLESHOOTING.md](../TROUBLESHOOTING.md)
 
 4. **Tạo issue:**
-   - [GitHub Issues](https://github.com/vhvcorp/go-framework/issues)
+   - [GitHub Issues](https://github.com/vhvplatform/go-framework/issues)
 
 ### Liên Hệ
 
-- **Issues:** https://github.com/vhvcorp/go-framework/issues
-- **Pull Requests:** https://github.com/vhvcorp/go-framework/pulls
+- **Issues:** https://github.com/vhvplatform/go-framework/issues
+- **Pull Requests:** https://github.com/vhvplatform/go-framework/pulls
 
 ---
 

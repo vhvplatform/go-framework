@@ -83,7 +83,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: vhvcorp/my-service
+          images: vhvplatform/my-service
       
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -330,7 +330,7 @@ steps:
   - name: build
     image: plugins/docker
     settings:
-      repo: vhvcorp/my-service
+      repo: vhvplatform/my-service
       tags: [ latest, ${DRONE_TAG} ]
       username:
         from_secret: docker_username

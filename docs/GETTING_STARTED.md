@@ -78,7 +78,7 @@ mkdir -p ~/workspace/go-platform
 cd ~/workspace/go-platform
 
 # Clone framework repository
-git clone https://github.com/vhvcorp/go-framework.git
+git clone https://github.com/vhvplatform/go-framework.git
 cd go-framework
 ```
 

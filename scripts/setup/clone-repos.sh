@@ -16,7 +16,7 @@
 #
 # Environment Variables:
 #   WORKSPACE_DIR - Target directory (default: $HOME/workspace/go-platform)
-#   GITHUB_ORG - GitHub organization (default: vhvcorp)
+#   GITHUB_ORG - GitHub organization (default: vhvplatform)
 #
 # Requirements:
 #   - Git must be installed
@@ -31,7 +31,7 @@
 # Notes:
 #   - Skips repositories that already exist
 #   - Creates WORKSPACE_DIR if it doesn't exist
-#   - Clones from vhvcorp GitHub organization
+#   - Clones from vhvplatform GitHub organization
 #
 # Author: VHV Corp
 # Last Modified: 2024-01-15
@@ -39,7 +39,7 @@
 
 set -e
 
-GITHUB_ORG="${GITHUB_ORG:-vhvcorp}"
+GITHUB_ORG="${GITHUB_ORG:-vhvplatform}"
 WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/workspace/go-platform}"
 
 echo "📂 Cloning repositories to ${WORKSPACE_DIR}..."

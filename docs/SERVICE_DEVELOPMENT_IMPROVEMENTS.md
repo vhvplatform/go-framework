@@ -343,7 +343,7 @@ The combination of automated code generation, comprehensive documentation in mul
 
 - **Documentation:** [docs/NEW_SERVICE_GUIDE.md](docs/NEW_SERVICE_GUIDE.md)
 - **Vietnamese Docs:** [docs/vi/README.md](docs/vi/README.md)
-- **Issues:** https://github.com/vhvcorp/go-framework/issues
+- **Issues:** https://github.com/vhvplatform/go-framework/issues
 - **Examples:** Check generated services in `../services/`
 
 ---

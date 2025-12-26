@@ -13,7 +13,7 @@ Thank you for your interest in contributing! This document provides guidelines a
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/vhvcorp/go-framework/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/vhvplatform/go-framework/issues)
 2. If not, create a new issue with:
    - Clear title and description
    - Steps to reproduce
@@ -52,7 +52,7 @@ git clone https://github.com/YOUR_USERNAME/go-framework.git
 cd go-framework
 
 # Add upstream remote
-git remote add upstream https://github.com/vhvcorp/go-framework.git
+git remote add upstream https://github.com/vhvplatform/go-framework.git
 
 # Install dependencies
 make setup

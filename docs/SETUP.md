@@ -48,7 +48,7 @@ For users who want to get started quickly:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/vhvcorp/go-framework.git
+git clone https://github.com/vhvplatform/go-framework.git
 cd go-framework
 
 # 2. Run automated setup (installs everything)
@@ -182,7 +182,7 @@ mkdir -p ~/workspace/go-platform
 cd ~/workspace/go-platform
 
 # Clone go-framework repository
-git clone https://github.com/vhvcorp/go-framework.git
+git clone https://github.com/vhvplatform/go-framework.git
 cd go-framework
 ```
 
@@ -645,7 +645,7 @@ EOF
 
 # Configure Go proxy
 export GOPROXY=https://proxy.golang.org,direct
-export GOPRIVATE=github.com/vhvcorp/*
+export GOPRIVATE=github.com/vhvplatform/*
 ```
 
 ### Using Pre-built Images
@@ -720,5 +720,5 @@ If you encounter issues:
 ---
 
 **Setup Time:** 15-30 minutes  
-**Support:** [GitHub Issues](https://github.com/vhvcorp/go-framework/issues)  
+**Support:** [GitHub Issues](https://github.com/vhvplatform/go-framework/issues)  
 **Last Updated:** 2024-01-15

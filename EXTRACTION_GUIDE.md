@@ -45,7 +45,7 @@ pip3 install git-filter-repo
 
 ```bash
 # Clone fresh copy of monorepo
-git clone https://github.com/vhvcorp/go-framework-go.git go-framework-temp
+git clone https://github.com/vhvplatform/go-framework-go.git go-framework-temp
 cd go-framework-temp
 ```
 
@@ -68,7 +68,7 @@ git filter-repo --path framework/ --path-rename framework/:
 git remote remove origin
 
 # Add new remote for go-framework repository
-git remote add origin https://github.com/vhvcorp/go-framework.git
+git remote add origin https://github.com/vhvplatform/go-framework.git
 ```
 
 ## Step 6: Push to New Repository
@@ -94,7 +94,7 @@ auth-service:
 ### After (separate repo)
 ```yaml
 auth-service:
-  image: ghcr.io/vhvcorp/go-auth-service:dev
+  image: ghcr.io/vhvplatform/go-auth-service:dev
 ```
 
 Update `docker/docker-compose.yml`:
@@ -106,7 +106,7 @@ cd docker
 # For each service, change from:
 #   build: ...
 # To:
-#   image: ghcr.io/vhvcorp/go-<service>:dev
+#   image: ghcr.io/vhvplatform/go-<service>:dev
 ```
 
 ## Step 8: Update Documentation
@@ -116,11 +116,11 @@ Update references to repository structure:
 1. **README.md** - Update clone instructions
    ```bash
    # Old
-   git clone https://github.com/vhvcorp/go-framework-go.git
+   git clone https://github.com/vhvplatform/go-framework-go.git
    cd go-framework-go/framework
    
    # New
-   git clone https://github.com/vhvcorp/go-framework.git
+   git clone https://github.com/vhvplatform/go-framework.git
    cd go-framework
    ```
 
@@ -156,17 +156,17 @@ In the original monorepo, update README to point to new framework repo:
 
 Developer tools have been extracted to a separate repository for easier maintenance.
 
-**Repository:** https://github.com/vhvcorp/go-framework
+**Repository:** https://github.com/vhvplatform/go-framework
 
 **Quick Start:**
 \```bash
-git clone https://github.com/vhvcorp/go-framework.git
+git clone https://github.com/vhvplatform/go-framework.git
 cd go-framework
 make setup
 make start
 \```
 
-See the [framework README](https://github.com/vhvcorp/go-framework) for complete documentation.
+See the [framework README](https://github.com/vhvplatform/go-framework) for complete documentation.
 ```
 
 ## Step 11: Archive framework in Monorepo (Optional)
@@ -179,7 +179,7 @@ git rm -r framework/
 git commit -m "docs: extract framework to separate repository
 
 Framework have been extracted to:
-https://github.com/vhvcorp/go-framework
+https://github.com/vhvplatform/go-framework
 
 See that repository for development tools and scripts."
 git push
@@ -247,7 +247,7 @@ If you make changes in monorepo framework/ before extraction, you can:
 
 ```bash
 # In any project
-git clone https://github.com/vhvcorp/go-framework.git tools
+git clone https://github.com/vhvplatform/go-framework.git tools
 cd tools
 make setup
 # Customize for your project

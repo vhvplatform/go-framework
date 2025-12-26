@@ -25,7 +25,7 @@ Real-world examples and scenarios for using the go-framework and SaaS platform.
 # Day 1: Initial Setup (30 minutes)
 
 # 1. Clone repository
-git clone https://github.com/vhvcorp/go-framework.git
+git clone https://github.com/vhvplatform/go-framework.git
 cd go-framework
 
 # 2. Run automated setup
@@ -669,7 +669,7 @@ kubectl scale deployment api-gateway -n go-platform --replicas=3
 make docker-build
 kubectl set image deployment/api-gateway \
   -n go-platform \
-  api-gateway=vhvcorp/api-gateway:latest
+  api-gateway=vhvplatform/api-gateway:latest
 
 kubectl rollout status deployment/api-gateway -n go-platform
 

@@ -175,10 +175,10 @@ import (
     "syscall"
     "time"
 
-    "github.com/vhvcorp/my-service/internal/config"
-    "github.com/vhvcorp/my-service/internal/handler"
-    "github.com/vhvcorp/my-service/internal/repository"
-    "github.com/vhvcorp/my-service/internal/service"
+    "github.com/vhvplatform/my-service/internal/config"
+    "github.com/vhvplatform/my-service/internal/handler"
+    "github.com/vhvplatform/my-service/internal/repository"
+    "github.com/vhvplatform/my-service/internal/service"
 )
 
 func main() {
@@ -340,8 +340,8 @@ import (
 
     "github.com/gorilla/mux"
     "github.com/prometheus/client_golang/prometheus/promhttp"
-    "github.com/vhvcorp/my-service/internal/config"
-    "github.com/vhvcorp/my-service/internal/service"
+    "github.com/vhvplatform/my-service/internal/config"
+    "github.com/vhvplatform/my-service/internal/service"
 )
 
 type HTTPHandler struct {
@@ -563,9 +563,9 @@ import (
     "context"
     "errors"
 
-    "github.com/vhvcorp/my-service/internal/config"
-    "github.com/vhvcorp/my-service/internal/model"
-    "github.com/vhvcorp/my-service/internal/repository"
+    "github.com/vhvplatform/my-service/internal/config"
+    "github.com/vhvplatform/my-service/internal/model"
+    "github.com/vhvplatform/my-service/internal/repository"
 )
 
 type Service struct {
@@ -652,8 +652,8 @@ import (
     "go.mongodb.org/mongo-driver/mongo"
     "go.mongodb.org/mongo-driver/mongo/options"
 
-    "github.com/vhvcorp/my-service/internal/config"
-    "github.com/vhvcorp/my-service/internal/model"
+    "github.com/vhvplatform/my-service/internal/config"
+    "github.com/vhvplatform/my-service/internal/model"
 )
 
 type Repository struct {
@@ -1184,7 +1184,7 @@ import (
     "testing"
 
     "github.com/stretchr/testify/assert"
-    "github.com/vhvcorp/my-service/internal/repository"
+    "github.com/vhvplatform/my-service/internal/repository"
 )
 
 func TestRepositoryIntegration(t *testing.T) {
@@ -1268,7 +1268,7 @@ spec:
     spec:
       containers:
       - name: my-service
-        image: vhvcorp/my-service:latest
+        image: vhvplatform/my-service:latest
         ports:
         - containerPort: 8080
         env:

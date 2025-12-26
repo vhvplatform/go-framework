@@ -1458,7 +1458,7 @@ Git is **version control** - like Google Docs history for your code. It tracks e
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/vhvcorp/go-framework.git
+git clone https://github.com/vhvplatform/go-framework.git
 cd go-framework
 
 # 2. Create branch for your feature
@@ -1606,7 +1606,7 @@ help:
 
 ```makefile
 SERVICE_NAME=user-service
-IMAGE_NAME=vhvcorp/$(SERVICE_NAME)
+IMAGE_NAME=vhvplatform/$(SERVICE_NAME)
 
 # Build Docker image
 build:
