@@ -1551,7 +1551,7 @@ kubectl apply -f k8s/
 4. Push to the branch (\`git push origin feature/amazing-feature\`)
 5. Open a Pull Request
 
-See [CONTRIBUTING.md](https://github.com/vhvcorp/go-devtools/blob/main/CONTRIBUTING.md) for more details.
+See [CONTRIBUTING.md](https://github.com/vhvcorp/go-framework/blob/main/CONTRIBUTING.md) for more details.
 
 ## License
 
@@ -1560,7 +1560,7 @@ Copyright © 2024 VHV Corp. All rights reserved.
 ## Support
 
 For support and questions:
-- Documentation: https://github.com/vhvcorp/go-devtools
+- Documentation: https://github.com/vhvcorp/go-framework
 - Issues: https://github.com/vhvcorp/$SERVICE_NAME/issues
 EOF
 print_success "README.md created"

@@ -807,8 +807,8 @@ vim .env
 ### 2. Run Locally
 
 ```bash
-# Start dependencies (from go-devtools)
-cd ../../go-devtools
+# Start dependencies (from go-framework)
+cd ../../go-framework
 make start-deps
 
 # Run your service

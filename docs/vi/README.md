@@ -1,6 +1,6 @@
 # Tài Liệu Tiếng Việt - Go DevTools
 
-Chào mừng bạn đến với tài liệu tiếng Việt cho go-devtools!
+Chào mừng bạn đến với tài liệu tiếng Việt cho go-framework!
 
 ## 📚 Mục Lục Tài Liệu
 
@@ -37,8 +37,8 @@ Chào mừng bạn đến với tài liệu tiếng Việt cho go-devtools!
 #### Bước 1: Clone Repository
 
 ```bash
-git clone https://github.com/vhvcorp/go-devtools.git
-cd go-devtools
+git clone https://github.com/vhvcorp/go-framework.git
+cd go-framework
 ```
 
 #### Bước 2: Chạy Script Cài Đặt Tự Động
@@ -907,12 +907,12 @@ services:
    - [TROUBLESHOOTING.md](../TROUBLESHOOTING.md)
 
 4. **Tạo issue:**
-   - [GitHub Issues](https://github.com/vhvcorp/go-devtools/issues)
+   - [GitHub Issues](https://github.com/vhvcorp/go-framework/issues)
 
 ### Liên Hệ
 
-- **Issues:** https://github.com/vhvcorp/go-devtools/issues
-- **Pull Requests:** https://github.com/vhvcorp/go-devtools/pulls
+- **Issues:** https://github.com/vhvcorp/go-framework/issues
+- **Pull Requests:** https://github.com/vhvcorp/go-framework/pulls
 
 ---
 

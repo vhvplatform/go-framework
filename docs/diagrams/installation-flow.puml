@@ -11,8 +11,8 @@ start
 
 :Developer clones repository;
 note right
-  git clone https://github.com/vhvcorp/go-devtools.git
-  cd go-devtools
+  git clone https://github.com/vhvcorp/go-framework.git
+  cd go-framework
 end note
 
 :Run interactive setup script;

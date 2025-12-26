@@ -6,7 +6,7 @@
 
 ## Overview
 
-This document summarizes the comprehensive upgrade and improvements made to the go-devtools repository. The upgrade focuses on modernization, documentation, code quality, and developer experience.
+This document summarizes the comprehensive upgrade and improvements made to the go-framework repository. The upgrade focuses on modernization, documentation, code quality, and developer experience.
 
 ---
 
@@ -88,7 +88,7 @@ Enhanced header comments in:
 
 #### 2. Component Relationships (`component-relationships.puml`)
 - **Type**: Component Diagram
-- **Purpose**: Shows relationships between all devtools components
+- **Purpose**: Shows relationships between all framework components
 - **Covers**:
   - Core tools (Makefile, CLI)
   - Shell script categories (8 folders)
@@ -463,7 +463,7 @@ This upgrade is **fully backward compatible**. All existing:
 
 ## 15. Acknowledgments
 
-This comprehensive upgrade brings go-devtools to production-ready status with:
+This comprehensive upgrade brings go-framework to production-ready status with:
 - ✅ Modern Go version (1.25+)
 - ✅ Updated dependencies
 - ✅ Comprehensive documentation

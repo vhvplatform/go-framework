@@ -511,7 +511,7 @@ docker exec auth-service dig mongodb
 docker exec auth-service cat /etc/hosts
 
 # Verify Docker network
-docker network inspect go-devtools_saas-network
+docker network inspect go-framework_saas-network
 ```
 
 ---

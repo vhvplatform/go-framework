@@ -56,7 +56,7 @@ repos=(
     "go-notification-service"
     "go-system-config-service"
     "go-infrastructure"
-    "go-devtools"
+    "go-framework"
 )
 
 echo "Cloning from GitHub organization: ${GITHUB_ORG}"

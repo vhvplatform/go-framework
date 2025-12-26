@@ -31,7 +31,7 @@ Examples:
   saas test           # Run all tests
   saas deploy local   # Deploy to local Kubernetes
 
-For more information, visit: https://github.com/vhvcorp/go-devtools`,
+For more information, visit: https://github.com/vhvcorp/go-framework`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cmd.Help()
 	},

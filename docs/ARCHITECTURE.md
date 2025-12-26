@@ -1,6 +1,6 @@
 # Architecture Documentation
 
-Technical architecture and design documentation for the go-devtools repository and the SaaS platform it supports.
+Technical architecture and design documentation for the go-framework repository and the SaaS platform it supports.
 
 ## 📊 Visual Diagrams
 
@@ -51,7 +51,7 @@ See [diagrams/README.md](diagrams/README.md) for detailed instructions.
 
 ## Overview
 
-The go-devtools repository provides a comprehensive development environment for the SaaS Platform microservices. It follows a **tools-as-code** approach where all development operations are scripted, versioned, and automated.
+The go-framework repository provides a comprehensive development environment for the SaaS Platform microservices. It follows a **tools-as-code** approach where all development operations are scripted, versioned, and automated.
 
 ### Quick Start
 
@@ -59,8 +59,8 @@ Use our interactive setup script for easy installation:
 
 ```bash
 # Clone the repository
-git clone https://github.com/vhvcorp/go-devtools.git
-cd go-devtools
+git clone https://github.com/vhvcorp/go-framework.git
+cd go-framework
 
 # Run interactive setup (with prompts)
 ./scripts/setup/interactive-setup.sh
@@ -116,7 +116,7 @@ See [Installation Flow Diagram](diagrams/installation-flow.puml) for the complet
 ### Root Level
 
 ```
-go-devtools/
+go-framework/
 ├── Makefile                    # Primary interface - all commands
 ├── README.md                   # Quick start and overview
 ├── CONTRIBUTING.md             # Contribution guidelines
@@ -220,7 +220,7 @@ docker/
 
 ### 1. Progressive Enhancement
 
-The devtools support multiple levels of usage:
+The framework support multiple levels of usage:
 
 ```
 Beginner:  make start, make test, make logs
@@ -553,19 +553,19 @@ configs/vscode/
 
 ### CI/CD Integration
 
-The devtools can be used in CI/CD pipelines:
+The framework can be used in CI/CD pipelines:
 
 ```yaml
 # .github/workflows/test.yml
 - name: Setup dev environment
   run: |
-    cd devtools
+    cd framework
     make setup
     make start
 
 - name: Run tests
   run: |
-    cd devtools
+    cd framework
     make test
 ```
 
@@ -583,7 +583,7 @@ go-infrastructure/
     └── helm/                   # Helm charts
 ```
 
-Devtools deployment scripts use these manifests.
+Framework deployment scripts use these manifests.
 
 ---
 

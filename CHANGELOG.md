@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial devtools repository structure
+- Initial framework repository structure
 - Comprehensive Docker Compose setup with observability stack
 - 31 automation shell scripts for common development tasks
 - Complete Makefile with 40+ commands
@@ -114,14 +114,14 @@ This repository was migrated from the `longvhv` GitHub organization to `vhvcorp`
 **Action Required:**
 1. Update your Git remote URLs:
    ```bash
-   git remote set-url origin https://github.com/vhvcorp/go-devtools.git
+   git remote set-url origin https://github.com/vhvcorp/go-framework.git
    ```
 
 2. Re-clone repositories with new URLs:
    ```bash
    cd ~/workspace/go-platform
    rm -rf go-*  # Backup first if you have uncommitted changes!
-   cd go-devtools
+   cd go-framework
    make setup-repos  # Clones from vhvcorp organization
    ```
 
@@ -172,9 +172,9 @@ None (initial release)
 
 ## Links
 
-- [GitHub Repository](https://github.com/vhvcorp/go-devtools)
-- [Issue Tracker](https://github.com/vhvcorp/go-devtools/issues)
-- [Pull Requests](https://github.com/vhvcorp/go-devtools/pulls)
+- [GitHub Repository](https://github.com/vhvcorp/go-framework)
+- [Issue Tracker](https://github.com/vhvcorp/go-framework/issues)
+- [Pull Requests](https://github.com/vhvcorp/go-framework/pulls)
 - [Documentation](./docs/)
 - [Contributing Guide](./CONTRIBUTING.md)
 

@@ -1,6 +1,6 @@
 # Custom Tools Example
 
-This example demonstrates how to add custom tools and scripts to extend go-devtools.
+This example demonstrates how to add custom tools and scripts to extend go-framework.
 
 ## Adding a Custom Script
 

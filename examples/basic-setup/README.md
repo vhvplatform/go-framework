@@ -1,13 +1,13 @@
 # Basic Setup Example
 
-This example demonstrates a basic setup of the go-devtools development environment.
+This example demonstrates a basic setup of the go-framework development environment.
 
 ## Quick Start
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/vhvcorp/go-devtools.git
-cd go-devtools
+git clone https://github.com/vhvcorp/go-framework.git
+cd go-framework
 
 # 2. Run automated setup
 make setup
@@ -33,7 +33,7 @@ make status
 
 ```
 ~/workspace/go-platform/
-├── go-devtools/                # This repository
+├── go-framework/                # This repository
 ├── go-shared-go/               # Shared library
 ├── go-api-gateway/             # API Gateway
 ├── go-auth-service/            # Auth service
@@ -167,6 +167,6 @@ make restart-service SERVICE=auth-service
 
 ## Support
 
-- [GitHub Issues](https://github.com/vhvcorp/go-devtools/issues)
+- [GitHub Issues](https://github.com/vhvcorp/go-framework/issues)
 - [Documentation](../../docs/)
 - [Contributing Guide](../../CONTRIBUTING.md)

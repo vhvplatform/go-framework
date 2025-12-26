@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Script: interactive-setup.sh
-# Description: Interactive setup script for go-devtools development environment
+# Description: Interactive setup script for go-framework development environment
 # Usage: ./interactive-setup.sh [OPTIONS]
 #
 # Options:
@@ -139,7 +139,7 @@ done
 
 # Main script
 main() {
-    print_header "🚀 Go-DevTools Interactive Setup"
+    print_header "🚀 go-framework Interactive Setup"
     
     echo "This script will set up your complete development environment."
     echo "It will take approximately 10-15 minutes depending on your internet speed."
@@ -681,7 +681,7 @@ show_summary() {
     # Save summary to file
     local summary_file="$WORKSPACE_DIR/SETUP_SUMMARY.txt"
     cat > "$summary_file" << EOF
-Go-DevTools Setup Summary
+go-framework Setup Summary
 =========================
 
 Installation Date: $(date)
@@ -717,13 +717,13 @@ Documentation:
 - docs/ARCHITECTURE.md - System architecture
 
 Support:
-- GitHub Issues: https://github.com/vhvcorp/go-devtools/issues
-- Documentation: https://github.com/vhvcorp/go-devtools/tree/main/docs
+- GitHub Issues: https://github.com/vhvcorp/go-framework/issues
+- Documentation: https://github.com/vhvcorp/go-framework/tree/main/docs
 EOF
     
     log_info "Setup summary saved to: $summary_file"
     echo ""
-    echo "For help, visit: https://github.com/vhvcorp/go-devtools"
+    echo "For help, visit: https://github.com/vhvcorp/go-framework"
     echo ""
 }
 

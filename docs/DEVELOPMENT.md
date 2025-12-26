@@ -1,6 +1,6 @@
 # Development Guide
 
-Guide for developing and extending the go-devtools repository and the SaaS platform services.
+Guide for developing and extending the go-framework repository and the SaaS platform services.
 
 ## Table of Contents
 
@@ -19,12 +19,12 @@ Guide for developing and extending the go-devtools repository and the SaaS platf
 
 ### Prerequisites
 
-Before developing on go-devtools:
+Before developing on go-framework:
 
 ```bash
 # Clone the repository
-git clone https://github.com/vhvcorp/go-devtools.git
-cd go-devtools
+git clone https://github.com/vhvcorp/go-framework.git
+cd go-framework
 
 # Setup your environment
 make setup
@@ -32,7 +32,7 @@ make setup
 
 ### Development Tools
 
-Recommended tools for developing go-devtools:
+Recommended tools for developing go-framework:
 
 - **Text Editor/IDE:** VS Code, Vim, or your preferred editor
 - **Shell:** Bash 4.0+ (pre-installed on most systems)
@@ -769,7 +769,7 @@ chmod +x .git/hooks/pre-commit
 
 ```bash
 # 1. Start your day
-cd go-devtools
+cd go-framework
 make start
 
 # 2. Work on services
@@ -777,7 +777,7 @@ cd ../go-auth-service
 # ... make changes ...
 
 # 3. Test changes
-cd ../go-devtools
+cd ../go-framework
 make rebuild SERVICE=auth-service
 make test-integration
 
@@ -789,7 +789,7 @@ make shell SERVICE=auth-service
 make stop-keep-data  # Preserve data for tomorrow
 ```
 
-### Making Changes to Devtools
+### Making Changes to Framework
 
 ```bash
 # 1. Create feature branch

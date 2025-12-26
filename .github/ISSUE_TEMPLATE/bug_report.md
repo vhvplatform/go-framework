@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug or issue with go-devtools
+about: Report a bug or issue with go-framework
 title: '[BUG] '
 labels: bug
 assignees: ''
@@ -40,7 +40,7 @@ kubectl version --client --short
 helm version --short
 ```
 
-**Go-DevTools Version:**
+**go-framework Version:**
 ```bash
 # Run this command and paste output:
 git log -1 --oneline

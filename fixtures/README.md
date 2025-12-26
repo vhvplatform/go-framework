@@ -13,7 +13,7 @@ This directory contains test data for seeding databases and testing the SaaS Pla
 ### Load into MongoDB
 
 ```bash
-# From devtools directory
+# From framework directory
 make db-seed
 
 # Or directly

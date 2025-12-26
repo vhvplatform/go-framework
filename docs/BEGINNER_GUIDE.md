@@ -1,6 +1,6 @@
 # Beginner's Guide to Technologies
 
-This guide explains all the technologies used in go-devtools in simple terms with examples. Perfect for developers new to microservices, containers, or these specific tools.
+This guide explains all the technologies used in go-framework in simple terms with examples. Perfect for developers new to microservices, containers, or these specific tools.
 
 ## Table of Contents
 
@@ -1458,8 +1458,8 @@ Git is **version control** - like Google Docs history for your code. It tracks e
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/vhvcorp/go-devtools.git
-cd go-devtools
+git clone https://github.com/vhvcorp/go-framework.git
+cd go-framework
 
 # 2. Create branch for your feature
 git checkout -b feature/add-avatar-upload
@@ -1852,7 +1852,7 @@ fi
 
 ## Summary
 
-This guide covered all the technologies in go-devtools:
+This guide covered all the technologies in go-framework:
 
 1. **Docker** - Containers for consistent environments
 2. **Go** - Fast, simple programming language

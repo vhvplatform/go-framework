@@ -16,7 +16,7 @@ Before you begin, ensure you have:
 ### Automated Installation (Recommended)
 
 ```bash
-cd devtools
+cd framework
 make setup
 ```
 
@@ -77,9 +77,9 @@ sudo usermod -aG docker $USER
 mkdir -p ~/workspace/go-platform
 cd ~/workspace/go-platform
 
-# Clone devtools repository
-git clone https://github.com/vhvcorp/go-devtools.git
-cd go-devtools
+# Clone framework repository
+git clone https://github.com/vhvcorp/go-framework.git
+cd go-framework
 ```
 
 ## Step 3: Install Development Tools
@@ -115,7 +115,7 @@ This clones:
 - `go-notification-service` - Notification service
 - `go-system-config-service` - Configuration service
 - `go-infrastructure` - Infrastructure as code
-- `go-devtools` - This repository
+- `go-framework` - This repository
 
 ## Step 5: Configure Environment
 
@@ -233,7 +233,7 @@ Your workspace should now look like:
 
 ```
 ~/workspace/go-platform/
-├── go-devtools/           # This repository (tools & scripts)
+├── go-framework/           # This repository (tools & scripts)
 ├── go-shared-go/          # Shared library
 ├── go-api-gateway/        # API Gateway
 ├── go-auth-service/       # Auth service

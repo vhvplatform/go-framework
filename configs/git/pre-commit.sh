@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Git pre-commit hook for go-devtools
+# Git pre-commit hook for go-framework
 # This hook runs before each commit to ensure code quality
 #
 # Installation:

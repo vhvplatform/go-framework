@@ -1,6 +1,6 @@
 # CI/CD Integration Examples
 
-Examples of integrating go-devtools with various CI/CD platforms.
+Examples of integrating go-framework with various CI/CD platforms.
 
 ## GitHub Actions
 
@@ -31,27 +31,27 @@ jobs:
       
       - name: Install dependencies
         run: |
-          cd devtools
+          cd framework
           ./scripts/setup/install-tools.sh
       
       - name: Start services
         run: |
-          cd devtools
+          cd framework
           make start
       
       - name: Wait for services
         run: |
-          cd devtools
+          cd framework
           ./scripts/dev/wait-for-services.sh
       
       - name: Run unit tests
         run: |
-          cd devtools
+          cd framework
           make test-unit
       
       - name: Run integration tests
         run: |
-          cd devtools
+          cd framework
           make test-integration
       
       - name: Upload coverage
@@ -93,7 +93,7 @@ jobs:
       
       - name: Build and push
         run: |
-          cd devtools
+          cd framework
           make docker-build
           make docker-push
 ```
@@ -112,7 +112,7 @@ variables:
   GO_VERSION: "1.21"
 
 before_script:
-  - cd devtools
+  - cd framework
 
 test:
   stage: test
@@ -163,7 +163,7 @@ pipeline {
         stage('Setup') {
             steps {
                 sh '''
-                    cd devtools
+                    cd framework
                     ./scripts/setup/install-tools.sh
                 '''
             }
@@ -173,13 +173,13 @@ pipeline {
             parallel {
                 stage('Unit Tests') {
                     steps {
-                        sh 'cd devtools && make test-unit'
+                        sh 'cd framework && make test-unit'
                     }
                 }
                 stage('Integration Tests') {
                     steps {
                         sh '''
-                            cd devtools
+                            cd framework
                             make start
                             make test-integration
                         '''
@@ -193,7 +193,7 @@ pipeline {
                 branch 'main'
             }
             steps {
-                sh 'cd devtools && make docker-build'
+                sh 'cd framework && make docker-build'
             }
         }
         
@@ -202,14 +202,14 @@ pipeline {
                 branch 'main'
             }
             steps {
-                sh 'cd devtools && make deploy-dev'
+                sh 'cd framework && make deploy-dev'
             }
         }
     }
     
     post {
         always {
-            sh 'cd devtools && make clean'
+            sh 'cd framework && make clean'
         }
         success {
             echo 'Pipeline succeeded!'
@@ -240,17 +240,17 @@ jobs:
       - run:
           name: Install tools
           command: |
-            cd devtools
+            cd framework
             ./scripts/setup/install-tools.sh
       - run:
           name: Start services
           command: |
-            cd devtools
+            cd framework
             make start
       - run:
           name: Run tests
           command: |
-            cd devtools
+            cd framework
             make test
       - store_test_results:
           path: ./test-results
@@ -264,7 +264,7 @@ jobs:
       - run:
           name: Build images
           command: |
-            cd devtools
+            cd framework
             make docker-build
 
 workflows:
@@ -293,7 +293,7 @@ services:
   - docker
 
 before_install:
-  - cd devtools
+  - cd framework
   - ./scripts/setup/install-tools.sh
 
 script:
@@ -322,7 +322,7 @@ steps:
   - name: test
     image: golang:1.21
     commands:
-      - cd devtools
+      - cd framework
       - make setup-tools
       - make start
       - make test

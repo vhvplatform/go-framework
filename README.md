@@ -19,8 +19,8 @@ Get up and running in minutes:
 
 ```bash
 # Clone this repository
-git clone https://github.com/vhvcorp/go-devtools.git
-cd go-devtools
+git clone https://github.com/vhvcorp/go-framework.git
+cd go-framework
 
 # Setup development environment (installs tools, clones repos)
 make setup
@@ -134,7 +134,7 @@ make start-dev
 ## 🛠️ Directory Structure
 
 ```
-go-devtools/
+go-framework/
 ├── docker/                    # Docker Compose configurations
 │   ├── docker-compose.yml     # Main stack
 │   ├── docker-compose.dev.yml # Development overrides
@@ -365,7 +365,7 @@ make docker-build
 # Backup database
 make db-backup
 
-# Backup is saved to: devtools/backups/
+# Backup is saved to: framework/backups/
 ```
 
 ## 🔧 Available Tools & Scripts

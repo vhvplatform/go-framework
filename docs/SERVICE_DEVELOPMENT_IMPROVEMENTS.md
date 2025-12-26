@@ -1,6 +1,6 @@
 # Service Development Improvements
 
-This document outlines the improvements made to simplify service development for the go-devtools platform.
+This document outlines the improvements made to simplify service development for the go-framework platform.
 
 ## 🎯 Improvements Overview
 
@@ -343,7 +343,7 @@ The combination of automated code generation, comprehensive documentation in mul
 
 - **Documentation:** [docs/NEW_SERVICE_GUIDE.md](docs/NEW_SERVICE_GUIDE.md)
 - **Vietnamese Docs:** [docs/vi/README.md](docs/vi/README.md)
-- **Issues:** https://github.com/vhvcorp/go-devtools/issues
+- **Issues:** https://github.com/vhvcorp/go-framework/issues
 - **Examples:** Check generated services in `../services/`
 
 ---

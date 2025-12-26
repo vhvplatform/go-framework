@@ -1,6 +1,6 @@
 # System Architecture Diagrams
 
-This directory contains PlantUML diagrams for visualizing the go-devtools system architecture and workflows.
+This directory contains PlantUML diagrams for visualizing the go-framework system architecture and workflows.
 
 ## 📊 Available Diagrams
 
@@ -41,7 +41,7 @@ Comprehensive activity diagram showing the daily developer workflow:
 - Common utility commands reference
 
 ### 5. Component Relationships (`component-relationships.puml`)
-Component diagram illustrating relationships between all go-devtools components:
+Component diagram illustrating relationships between all go-framework components:
 - Core tools (Makefile, CLI)
 - Shell script categories (setup, dev, database, testing, build, deployment, monitoring, utilities)
 - Configuration and data files

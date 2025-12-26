@@ -32,7 +32,7 @@ Ensure you have completed the initial setup:
 
 ```
 ~/workspace/go-platform/
-├── go-devtools/                # This repository (development tools)
+├── go-framework/                # This repository (development tools)
 ├── go-shared-go/               # Shared library
 ├── go-api-gateway/             # API Gateway service
 ├── go-auth-service/            # Authentication service
@@ -50,8 +50,8 @@ Ensure you have completed the initial setup:
 ### Starting Your Day
 
 ```bash
-# 1. Navigate to devtools
-cd ~/workspace/go-platform/go-devtools
+# 1. Navigate to framework
+cd ~/workspace/go-platform/go-framework
 
 # 2. Pull latest changes
 git pull
@@ -96,7 +96,7 @@ git checkout -b feature/add-oauth-support
 vim internal/handlers/auth_handler.go
 
 # 4. Rebuild and restart service
-cd ~/workspace/go-platform/go-devtools
+cd ~/workspace/go-platform/go-framework
 make rebuild SERVICE=auth-service
 
 # 5. Test your changes
@@ -125,7 +125,7 @@ git push origin feature/add-oauth-support
 
 ```bash
 # Option 1: Stop everything (preserves data)
-cd ~/workspace/go-platform/go-devtools
+cd ~/workspace/go-platform/go-framework
 make stop-keep-data
 
 # Option 2: Stop and clean up (removes data)
@@ -720,8 +720,8 @@ code ~/workspace/go-platform
 
 ```bash
 # Restart specific service quickly
-alias authrs="cd ~/workspace/go-platform/go-devtools && make restart-service SERVICE=auth-service"
-alias authlogs="cd ~/workspace/go-platform/go-devtools && make logs-service SERVICE=auth-service"
+alias authrs="cd ~/workspace/go-platform/go-framework && make restart-service SERVICE=auth-service"
+alias authlogs="cd ~/workspace/go-platform/go-framework && make logs-service SERVICE=auth-service"
 
 # Add to ~/.bashrc or ~/.zshrc
 ```
@@ -820,7 +820,7 @@ Add to `~/.bashrc` or `~/.zshrc`:
 
 ```bash
 # DevTools shortcuts
-alias dt='cd ~/workspace/go-platform/go-devtools'
+alias dt='cd ~/workspace/go-platform/go-framework'
 alias dstart='dt && make start'
 alias dstop='dt && make stop'
 alias dstatus='dt && make status'

@@ -1,6 +1,6 @@
 # Developer Tools Repository Extraction Guide
 
-This guide explains how to extract the `devtools/` directory from the monorepo into its own separate repository (`go-devtools`).
+This guide explains how to extract the `framework/` directory from the monorepo into its own separate repository (`go-framework`).
 
 ## Why Extract?
 
@@ -35,7 +35,7 @@ pip3 install git-filter-repo
 ## Step 2: Create New Repository on GitHub
 
 1. Go to https://github.com/new
-2. Repository name: `go-devtools`
+2. Repository name: `go-framework`
 3. Description: "Developer tools and utilities for Go Platform"
 4. Visibility: Public (or Private if preferred)
 5. Don't initialize with README (we're bringing history)
@@ -45,18 +45,18 @@ pip3 install git-filter-repo
 
 ```bash
 # Clone fresh copy of monorepo
-git clone https://github.com/vhvcorp/go-framework-go.git go-devtools-temp
-cd go-devtools-temp
+git clone https://github.com/vhvcorp/go-framework-go.git go-framework-temp
+cd go-framework-temp
 ```
 
-## Step 4: Extract devtools Directory
+## Step 4: Extract framework Directory
 
 ```bash
-# Filter repository to only include devtools/ directory
-git filter-repo --path devtools/ --path-rename devtools/:
+# Filter repository to only include framework/ directory
+git filter-repo --path framework/ --path-rename framework/:
 
-# This rewrites Git history to only include commits touching devtools/
-# The --path-rename moves files from devtools/ to root
+# This rewrites Git history to only include commits touching framework/
+# The --path-rename moves files from framework/ to root
 ```
 
 **Warning:** This command rewrites Git history. Only do this on a fresh clone, not your working repository!
@@ -67,8 +67,8 @@ git filter-repo --path devtools/ --path-rename devtools/:
 # Remove old remote
 git remote remove origin
 
-# Add new remote for go-devtools repository
-git remote add origin https://github.com/vhvcorp/go-devtools.git
+# Add new remote for go-framework repository
+git remote add origin https://github.com/vhvcorp/go-framework.git
 ```
 
 ## Step 6: Push to New Repository
@@ -117,11 +117,11 @@ Update references to repository structure:
    ```bash
    # Old
    git clone https://github.com/vhvcorp/go-framework-go.git
-   cd go-framework-go/devtools
+   cd go-framework-go/framework
    
    # New
-   git clone https://github.com/vhvcorp/go-devtools.git
-   cd go-devtools
+   git clone https://github.com/vhvcorp/go-framework.git
+   cd go-framework
    ```
 
 2. **scripts/setup/clone-repos.sh** - Already clones repos separately, no changes needed
@@ -132,7 +132,7 @@ Update references to repository structure:
 
 ```bash
 # From extracted repository
-cd go-devtools
+cd go-framework
 
 # Setup should work
 make setup
@@ -149,37 +149,37 @@ make test
 
 ## Step 10: Update Original Monorepo
 
-In the original monorepo, update README to point to new devtools repo:
+In the original monorepo, update README to point to new framework repo:
 
 ```markdown
 ## Developer Tools
 
 Developer tools have been extracted to a separate repository for easier maintenance.
 
-**Repository:** https://github.com/vhvcorp/go-devtools
+**Repository:** https://github.com/vhvcorp/go-framework
 
 **Quick Start:**
 \```bash
-git clone https://github.com/vhvcorp/go-devtools.git
-cd go-devtools
+git clone https://github.com/vhvcorp/go-framework.git
+cd go-framework
 make setup
 make start
 \```
 
-See the [devtools README](https://github.com/vhvcorp/go-devtools) for complete documentation.
+See the [framework README](https://github.com/vhvcorp/go-framework) for complete documentation.
 ```
 
-## Step 11: Archive devtools in Monorepo (Optional)
+## Step 11: Archive framework in Monorepo (Optional)
 
-Optionally remove devtools/ from monorepo after extraction:
+Optionally remove framework/ from monorepo after extraction:
 
 ```bash
 cd go-framework-go
-git rm -r devtools/
-git commit -m "docs: extract devtools to separate repository
+git rm -r framework/
+git commit -m "docs: extract framework to separate repository
 
-Devtools have been extracted to:
-https://github.com/vhvcorp/go-devtools
+Framework have been extracted to:
+https://github.com/vhvcorp/go-framework
 
 See that repository for development tools and scripts."
 git push
@@ -207,7 +207,7 @@ If extraction fails:
 
 ```bash
 # Simply delete the temp directory
-rm -rf go-devtools-temp
+rm -rf go-framework-temp
 
 # And try again from Step 3
 ```
@@ -228,7 +228,7 @@ The original monorepo is untouched.
 ### Updating Tools
 
 ```bash
-cd go-devtools
+cd go-framework
 git checkout -b feature/new-tool
 # Make changes
 git commit -m "feat(tools): add new utility script"
@@ -238,7 +238,7 @@ git push origin feature/new-tool
 
 ### Syncing Changes
 
-If you make changes in monorepo devtools/ before extraction, you can:
+If you make changes in monorepo framework/ before extraction, you can:
 
 1. Copy changes to extracted repo
 2. Or re-run extraction (loses extracted repo history)
@@ -247,7 +247,7 @@ If you make changes in monorepo devtools/ before extraction, you can:
 
 ```bash
 # In any project
-git clone https://github.com/vhvcorp/go-devtools.git tools
+git clone https://github.com/vhvcorp/go-framework.git tools
 cd tools
 make setup
 # Customize for your project

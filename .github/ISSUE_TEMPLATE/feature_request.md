@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest a new feature or enhancement for go-devtools
+about: Suggest a new feature or enhancement for go-framework
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''

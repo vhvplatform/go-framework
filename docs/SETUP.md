@@ -1,6 +1,6 @@
 # Setup and Installation Guide
 
-Complete guide for setting up the go-devtools development environment from scratch.
+Complete guide for setting up the go-framework development environment from scratch.
 
 ## Table of Contents
 
@@ -48,8 +48,8 @@ For users who want to get started quickly:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/vhvcorp/go-devtools.git
-cd go-devtools
+git clone https://github.com/vhvcorp/go-framework.git
+cd go-framework
 
 # 2. Run automated setup (installs everything)
 make setup
@@ -181,9 +181,9 @@ wsl --install
 mkdir -p ~/workspace/go-platform
 cd ~/workspace/go-platform
 
-# Clone go-devtools repository
-git clone https://github.com/vhvcorp/go-devtools.git
-cd go-devtools
+# Clone go-framework repository
+git clone https://github.com/vhvcorp/go-framework.git
+cd go-framework
 ```
 
 ### Step 3: Install Go Development Tools
@@ -363,7 +363,7 @@ tree -L 1 ~/workspace/go-platform/
 Expected output:
 ```
 ~/workspace/go-platform/
-├── go-devtools/
+├── go-framework/
 ├── go-shared-go/
 ├── go-api-gateway/
 ├── go-auth-service/
@@ -377,7 +377,7 @@ Expected output:
 ### Start and Verify Services
 
 ```bash
-cd ~/workspace/go-platform/go-devtools
+cd ~/workspace/go-platform/go-framework
 
 # Start all services
 make start
@@ -720,5 +720,5 @@ If you encounter issues:
 ---
 
 **Setup Time:** 15-30 minutes  
-**Support:** [GitHub Issues](https://github.com/vhvcorp/go-devtools/issues)  
+**Support:** [GitHub Issues](https://github.com/vhvcorp/go-framework/issues)  
 **Last Updated:** 2024-01-15

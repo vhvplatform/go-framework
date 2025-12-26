@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-Common issues and solutions for the go-devtools development environment.
+Common issues and solutions for the go-framework development environment.
 
 ## Table of Contents
 
@@ -139,7 +139,7 @@ docker volume prune
 # Complete cleanup (WARNING: removes everything)
 docker system prune -a --volumes
 
-# Or use devtools cleanup
+# Or use framework cleanup
 make clean
 make clean-all  # Includes volumes
 ```
@@ -363,7 +363,7 @@ docker restart mongodb
 
 # Reset MongoDB (WARNING: deletes data)
 docker-compose down
-docker volume rm go-devtools_mongodb-data
+docker volume rm go-framework_mongodb-data
 docker-compose up -d mongodb
 ```
 
@@ -527,7 +527,7 @@ Name or service not known
 ```bash
 # Check Docker network
 docker network ls
-docker network inspect go-devtools_saas-network
+docker network inspect go-framework_saas-network
 
 # Restart Docker networking
 docker-compose down
@@ -975,7 +975,7 @@ services:
       - 8.8.4.4
 
 # Check Docker network driver
-docker network inspect go-devtools_saas-network
+docker network inspect go-framework_saas-network
 ```
 
 ---
@@ -1005,7 +1005,7 @@ docker network inspect go-devtools_saas-network
    ```
 
 4. **Search Existing Issues**
-   - [GitHub Issues](https://github.com/vhvcorp/go-devtools/issues)
+   - [GitHub Issues](https://github.com/vhvcorp/go-framework/issues)
 
 ### Reporting Issues
 
@@ -1097,4 +1097,4 @@ Any other relevant information
 ---
 
 **Last Updated:** 2024-01-15  
-**Need more help?** Open an issue on [GitHub](https://github.com/vhvcorp/go-devtools/issues)
+**Need more help?** Open an issue on [GitHub](https://github.com/vhvcorp/go-framework/issues)

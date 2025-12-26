@@ -1,6 +1,6 @@
 # Comprehensive Examples
 
-Real-world examples and scenarios for using the go-devtools and SaaS platform.
+Real-world examples and scenarios for using the go-framework and SaaS platform.
 
 ## Table of Contents
 
@@ -25,8 +25,8 @@ Real-world examples and scenarios for using the go-devtools and SaaS platform.
 # Day 1: Initial Setup (30 minutes)
 
 # 1. Clone repository
-git clone https://github.com/vhvcorp/go-devtools.git
-cd go-devtools
+git clone https://github.com/vhvcorp/go-framework.git
+cd go-framework
 
 # 2. Run automated setup
 make setup
@@ -107,7 +107,7 @@ cd ~/workspace/go-platform/go-user-service
 git checkout -b feature/avatar-upload
 
 # Step 2: Start development mode (hot reload)
-cd ~/workspace/go-platform/go-devtools
+cd ~/workspace/go-platform/go-framework
 make start-dev
 
 # Step 3: Make code changes
@@ -229,8 +229,8 @@ func TestUserHandler_UploadAvatar(t *testing.T) {
 cd ~/workspace/go-platform/go-user-service
 go test ./internal/handlers -v
 
-# Step 7: Run all tests from devtools
-cd ~/workspace/go-platform/go-devtools
+# Step 7: Run all tests from framework
+cd ~/workspace/go-platform/go-framework
 make test-unit
 
 # Step 8: Commit changes
@@ -367,7 +367,7 @@ Performance improvement: 25-30x faster
 Fixes #789"
 
 # Step 8: Update documentation
-cd ~/workspace/go-platform/go-devtools
+cd ~/workspace/go-platform/go-framework
 ```
 
 ---
@@ -486,7 +486,7 @@ func TestAuthenticationFlow(t *testing.T) {
 **Running the Tests:**
 
 ```bash
-cd ~/workspace/go-platform/go-devtools
+cd ~/workspace/go-platform/go-framework
 
 # Ensure services are running
 make start
@@ -609,7 +609,7 @@ hey -n 50000 -c 500 -m GET \
 minikube start --cpus=4 --memory=8192
 
 # Step 2: Build Docker images
-cd ~/workspace/go-platform/go-devtools
+cd ~/workspace/go-platform/go-framework
 make docker-build
 
 # Output:

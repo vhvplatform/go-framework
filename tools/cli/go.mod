@@ -1,4 +1,4 @@
-module github.com/vhvcorp/go-devtools/tools/cli
+module github.com/vhvcorp/go-framework/tools/cli
 
 go 1.25
 

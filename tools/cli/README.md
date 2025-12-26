@@ -15,7 +15,7 @@ sudo mv saas /usr/local/bin/
 ### Quick Install
 
 ```bash
-# From devtools directory
+# From framework directory
 make build-cli
 ```
 

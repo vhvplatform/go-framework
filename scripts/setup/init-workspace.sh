@@ -37,18 +37,18 @@ echo "🔧 Initializing workspace..."
 mkdir -p "${WORKSPACE_DIR}"
 cd "${WORKSPACE_DIR}"
 
-# Check if devtools exists
-if [ ! -d "go-devtools" ]; then
-    echo "⚠️  go-devtools not found. Run 'make setup-repos' first."
+# Check if framework exists
+if [ ! -d "go-framework" ]; then
+    echo "⚠️  go-framework not found. Run 'make setup-repos' first."
     exit 1
 fi
 
 # Create .env file from example
 echo "⚙️  Setting up environment configuration..."
-if [ ! -f "go-devtools/docker/.env" ]; then
-    cp "go-devtools/docker/.env.example" "go-devtools/docker/.env"
+if [ ! -f "go-framework/docker/.env" ]; then
+    cp "go-framework/docker/.env.example" "go-framework/docker/.env"
     echo "✅ Created .env file from template"
-    echo "   Please edit go-devtools/docker/.env with your configuration"
+    echo "   Please edit go-framework/docker/.env with your configuration"
 else
     echo "✅ .env file already exists"
 fi
@@ -70,9 +70,9 @@ done
 # Create helpful symlinks
 echo ""
 echo "🔗 Creating helpful symlinks..."
-if [ ! -L "devtools" ]; then
-    ln -s go-devtools devtools
-    echo "✅ Created 'devtools' symlink"
+if [ ! -L "framework" ]; then
+    ln -s go-framework framework
+    echo "✅ Created 'framework' symlink"
 fi
 
 # Create workspace go.work if it doesn't exist
@@ -95,7 +95,7 @@ echo ""
 echo "Workspace location: ${WORKSPACE_DIR}"
 echo ""
 echo "Next steps:"
-echo "  1. Edit devtools/docker/.env with your configuration"
-echo "  2. Start services: cd devtools && make start"
-echo "  3. Check status: cd devtools && make status"
+echo "  1. Edit framework/docker/.env with your configuration"
+echo "  2. Start services: cd framework && make start"
+echo "  3. Check status: cd framework && make status"
 echo ""

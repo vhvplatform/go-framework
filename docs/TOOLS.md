@@ -1,6 +1,6 @@
 # Tools Reference
 
-Complete documentation for all tools and scripts in the go-devtools repository.
+Complete documentation for all tools and scripts in the go-framework repository.
 
 ## Table of Contents
 
@@ -241,7 +241,7 @@ make rebuild SERVICE=auth-service
 # After making code changes
 cd ../go-auth-service
 # ... edit code ...
-cd go-devtools
+cd go-framework
 make rebuild SERVICE=auth-service
 ```
 
