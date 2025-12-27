@@ -57,21 +57,14 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
-	// Pre-allocate commands slice for better performance
-	commands := []*cobra.Command{
-		versionCmd,
-		setupCmd,
-		startCmd,
-		stopCmd,
-		logsCmd,
-		testCmd,
-		statusCmd,
-		deployCmd,
-	}
-	
-	for _, cmd := range commands {
-		rootCmd.AddCommand(cmd)
-	}
+	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(setupCmd)
+	rootCmd.AddCommand(startCmd)
+	rootCmd.AddCommand(stopCmd)
+	rootCmd.AddCommand(logsCmd)
+	rootCmd.AddCommand(testCmd)
+	rootCmd.AddCommand(statusCmd)
+	rootCmd.AddCommand(deployCmd)
 }
 
 func main() {

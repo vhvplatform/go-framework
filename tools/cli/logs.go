@@ -7,10 +7,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	follow bool
-)
-
 var logsCmd = &cobra.Command{
 	Use:   "logs [service]",
 	Short: "View service logs",
@@ -18,8 +14,7 @@ var logsCmd = &cobra.Command{
 
 Examples:
   saas logs              # View all logs
-  saas logs auth         # View auth service logs
-  saas logs -f auth      # Follow auth service logs`,
+  saas logs auth         # View auth service logs`,
 	Run: func(cmd *cobra.Command, args []string) {
 		target := "logs"
 
@@ -38,8 +33,4 @@ Examples:
 			os.Exit(1)
 		}
 	},
-}
-
-func init() {
-	logsCmd.Flags().BoolVarP(&follow, "follow", "f", false, "Follow log output")
 }
