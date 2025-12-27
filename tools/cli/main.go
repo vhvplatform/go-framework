@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 
 	"github.com/spf13/cobra"
 )
@@ -10,6 +11,15 @@ import (
 var (
 	version = "1.0.0"
 )
+
+// runCommand executes a command with the given arguments and pipes output to stdout/stderr.
+// Returns an error if the command fails.
+func runCommand(name string, args ...string) error {
+	cmd := exec.Command(name, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "saas",

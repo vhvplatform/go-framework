@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/spf13/cobra"
 )
@@ -32,11 +31,7 @@ Examples:
 				fmt.Println("   (development mode with hot-reload)")
 			}
 
-			makeCmd := exec.Command("make", target)
-			makeCmd.Stdout = os.Stdout
-			makeCmd.Stderr = os.Stderr
-
-			if err := makeCmd.Run(); err != nil {
+			if err := runCommand("make", target); err != nil {
 				fmt.Fprintf(os.Stderr, "❌ Failed to start services: %v\n", err)
 				os.Exit(1)
 			}
@@ -45,11 +40,7 @@ Examples:
 			service := args[0]
 			fmt.Printf("🚀 Starting %s...\n", service)
 
-			makeCmd := exec.Command("make", "restart-service", fmt.Sprintf("SERVICE=%s-service", service))
-			makeCmd.Stdout = os.Stdout
-			makeCmd.Stderr = os.Stderr
-
-			if err := makeCmd.Run(); err != nil {
+			if err := runCommand("make", "restart-service", "SERVICE="+service+"-service"); err != nil {
 				fmt.Fprintf(os.Stderr, "❌ Failed to start %s: %v\n", service, err)
 				os.Exit(1)
 			}

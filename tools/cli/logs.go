@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/spf13/cobra"
 )
@@ -22,24 +21,19 @@ Examples:
   saas logs auth         # View auth service logs
   saas logs -f auth      # Follow auth service logs`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var target string
+		target := "logs"
 
-		if len(args) == 0 {
-			// All logs
-			fmt.Println("📋 Viewing all service logs...")
-			target = "logs"
-		} else {
+		if len(args) > 0 {
 			// Specific service
 			service := args[0]
 			fmt.Printf("📋 Viewing %s logs...\n", service)
-			target = fmt.Sprintf("logs-service SERVICE=%s-service", service)
+			target = "logs-service SERVICE=" + service + "-service"
+		} else {
+			// All logs
+			fmt.Println("📋 Viewing all service logs...")
 		}
 
-		makeCmd := exec.Command("make", target)
-		makeCmd.Stdout = os.Stdout
-		makeCmd.Stderr = os.Stderr
-
-		if err := makeCmd.Run(); err != nil {
+		if err := runCommand("make", target); err != nil {
 			fmt.Fprintf(os.Stderr, "❌ Failed to view logs: %v\n", err)
 			os.Exit(1)
 		}

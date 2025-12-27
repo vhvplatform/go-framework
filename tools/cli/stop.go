@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/spf13/cobra"
 )
@@ -21,11 +20,7 @@ Examples:
 			// Stop all services
 			fmt.Println("⏸️  Stopping all services...")
 
-			makeCmd := exec.Command("make", "stop")
-			makeCmd.Stdout = os.Stdout
-			makeCmd.Stderr = os.Stderr
-
-			if err := makeCmd.Run(); err != nil {
+			if err := runCommand("make", "stop"); err != nil {
 				fmt.Fprintf(os.Stderr, "❌ Failed to stop services: %v\n", err)
 				os.Exit(1)
 			}
@@ -34,12 +29,7 @@ Examples:
 			service := args[0]
 			fmt.Printf("⏸️  Stopping %s...\n", service)
 
-			// Use docker-compose stop
-			dockerCmd := exec.Command("docker-compose", "-f", "docker/docker-compose.yml", "stop", fmt.Sprintf("%s-service", service))
-			dockerCmd.Stdout = os.Stdout
-			dockerCmd.Stderr = os.Stderr
-
-			if err := dockerCmd.Run(); err != nil {
+			if err := runCommand("docker-compose", "-f", "docker/docker-compose.yml", "stop", service+"-service"); err != nil {
 				fmt.Fprintf(os.Stderr, "❌ Failed to stop %s: %v\n", service, err)
 				os.Exit(1)
 			}

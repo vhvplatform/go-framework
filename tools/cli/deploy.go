@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/spf13/cobra"
 )
@@ -38,11 +37,7 @@ Examples:
 			os.Exit(1)
 		}
 
-		makeCmd := exec.Command("make", target)
-		makeCmd.Stdout = os.Stdout
-		makeCmd.Stderr = os.Stderr
-
-		if err := makeCmd.Run(); err != nil {
+		if err := runCommand("make", target); err != nil {
 			fmt.Fprintf(os.Stderr, "❌ Deployment failed: %v\n", err)
 			os.Exit(1)
 		}

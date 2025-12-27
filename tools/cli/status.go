@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/spf13/cobra"
 )
@@ -21,12 +20,7 @@ This command will:
 		fmt.Println("🏥 Checking service status...")
 		fmt.Println()
 
-		// Run make status
-		makeCmd := exec.Command("make", "status")
-		makeCmd.Stdout = os.Stdout
-		makeCmd.Stderr = os.Stderr
-
-		if err := makeCmd.Run(); err != nil {
+		if err := runCommand("make", "status"); err != nil {
 			fmt.Fprintf(os.Stderr, "❌ Status check failed: %v\n", err)
 			os.Exit(1)
 		}
