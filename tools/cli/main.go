@@ -8,7 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
+const (
+	// version is the CLI version
 	version = "1.0.0"
 )
 
@@ -56,14 +57,21 @@ var versionCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(setupCmd)
-	rootCmd.AddCommand(startCmd)
-	rootCmd.AddCommand(stopCmd)
-	rootCmd.AddCommand(logsCmd)
-	rootCmd.AddCommand(testCmd)
-	rootCmd.AddCommand(statusCmd)
-	rootCmd.AddCommand(deployCmd)
+	// Pre-allocate commands slice for better performance
+	commands := []*cobra.Command{
+		versionCmd,
+		setupCmd,
+		startCmd,
+		stopCmd,
+		logsCmd,
+		testCmd,
+		statusCmd,
+		deployCmd,
+	}
+	
+	for _, cmd := range commands {
+		rootCmd.AddCommand(cmd)
+	}
 }
 
 func main() {
