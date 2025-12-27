@@ -25,7 +25,7 @@ Examples:
   saas test --type=load   # Run load tests`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var target string
-		
+
 		switch testType {
 		case "unit":
 			fmt.Println("🧪 Running unit tests...")
@@ -43,16 +43,16 @@ Examples:
 			fmt.Println("🧪 Running all tests...")
 			target = "test"
 		}
-		
+
 		makeCmd := exec.Command("make", target)
 		makeCmd.Stdout = os.Stdout
 		makeCmd.Stderr = os.Stderr
-		
+
 		if err := makeCmd.Run(); err != nil {
 			fmt.Fprintf(os.Stderr, "❌ Tests failed: %v\n", err)
 			os.Exit(1)
 		}
-		
+
 		fmt.Println("✅ Tests complete!")
 	},
 }

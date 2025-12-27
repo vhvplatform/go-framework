@@ -23,7 +23,7 @@ Examples:
   saas logs -f auth      # Follow auth service logs`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var target string
-		
+
 		if len(args) == 0 {
 			// All logs
 			fmt.Println("📋 Viewing all service logs...")
@@ -34,11 +34,11 @@ Examples:
 			fmt.Printf("📋 Viewing %s logs...\n", service)
 			target = fmt.Sprintf("logs-service SERVICE=%s-service", service)
 		}
-		
+
 		makeCmd := exec.Command("make", target)
 		makeCmd.Stdout = os.Stdout
 		makeCmd.Stderr = os.Stderr
-		
+
 		if err := makeCmd.Run(); err != nil {
 			fmt.Fprintf(os.Stderr, "❌ Failed to view logs: %v\n", err)
 			os.Exit(1)
