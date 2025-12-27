@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/spf13/cobra"
 )
@@ -23,7 +22,7 @@ Examples:
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		env := args[0]
-		
+
 		var target string
 		switch env {
 		case "local":
@@ -37,16 +36,12 @@ Examples:
 			fmt.Println("Available environments: local, dev")
 			os.Exit(1)
 		}
-		
-		makeCmd := exec.Command("make", target)
-		makeCmd.Stdout = os.Stdout
-		makeCmd.Stderr = os.Stderr
-		
-		if err := makeCmd.Run(); err != nil {
+
+		if err := runCommand("make", target); err != nil {
 			fmt.Fprintf(os.Stderr, "❌ Deployment failed: %v\n", err)
 			os.Exit(1)
 		}
-		
+
 		fmt.Println("✅ Deployment complete!")
 	},
 }

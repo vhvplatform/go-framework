@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/spf13/cobra"
 )
@@ -24,8 +23,8 @@ Examples:
   saas test --type=e2e    # Run end-to-end tests
   saas test --type=load   # Run load tests`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var target string
-		
+		target := "test"
+
 		switch testType {
 		case "unit":
 			fmt.Println("🧪 Running unit tests...")
@@ -41,18 +40,13 @@ Examples:
 			target = "test-load"
 		default:
 			fmt.Println("🧪 Running all tests...")
-			target = "test"
 		}
-		
-		makeCmd := exec.Command("make", target)
-		makeCmd.Stdout = os.Stdout
-		makeCmd.Stderr = os.Stderr
-		
-		if err := makeCmd.Run(); err != nil {
+
+		if err := runCommand("make", target); err != nil {
 			fmt.Fprintf(os.Stderr, "❌ Tests failed: %v\n", err)
 			os.Exit(1)
 		}
-		
+
 		fmt.Println("✅ Tests complete!")
 	},
 }

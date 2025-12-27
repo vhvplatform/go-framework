@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/spf13/cobra"
 )
@@ -20,17 +19,12 @@ This command will:
   4. Initialize workspace configuration`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("🚀 Setting up development environment...")
-		
-		// Run make setup
-		makeCmd := exec.Command("make", "setup")
-		makeCmd.Stdout = os.Stdout
-		makeCmd.Stderr = os.Stderr
-		
-		if err := makeCmd.Run(); err != nil {
+
+		if err := runCommand("make", "setup"); err != nil {
 			fmt.Fprintf(os.Stderr, "❌ Setup failed: %v\n", err)
 			os.Exit(1)
 		}
-		
+
 		fmt.Println("✅ Setup complete!")
 		fmt.Println("\nNext steps:")
 		fmt.Println("  saas start    # Start all services")
