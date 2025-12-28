@@ -416,7 +416,7 @@ function Install-GoTools {
                 Write-ColorOutput "Failed to install $tool" "Warning"
             }
         } catch {
-            Write-ColorOutput "Error installing $tool: $_" "Warning"
+            Write-ColorOutput "Error installing ${tool}: $_" "Warning"
         }
     }
     
