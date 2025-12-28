@@ -64,6 +64,7 @@ That's it! Your complete SaaS platform is now running locally.
 
 - [Getting Started](docs/GETTING_STARTED.md) - Detailed setup guide
 - [Windows Setup Guide](docs/WINDOWS_SETUP.md) - Windows-specific setup instructions
+- [Kubernetes Deployment](docs/KUBERNETES_DEPLOYMENT.md) - Deploy to Kubernetes cluster
 - [Local Development](docs/LOCAL_DEVELOPMENT.md) - Development workflow
 - [Testing Guide](docs/TESTING.md) - How to run tests
 - [Debugging](docs/DEBUGGING.md) - Debugging tips and tricks
@@ -280,6 +281,32 @@ make open-jaeger       # Distributed tracing
 - Queue sizes
 
 ## 🚢 Deployment
+
+### Kubernetes (Production & Staging)
+
+For detailed instructions on deploying to a Kubernetes cluster, see the comprehensive guide:
+
+📖 **[Kubernetes Deployment Guide](docs/KUBERNETES_DEPLOYMENT.md)**
+
+The guide includes:
+- Prerequisites and requirements
+- Step-by-step deployment instructions
+- Configuration management
+- Health checks and verification
+- Troubleshooting common issues
+- Best practices for production
+
+Quick start:
+```bash
+# Deploy all resources to Kubernetes
+kubectl apply -f k8s/base/
+
+# Check deployment status
+kubectl get pods -n go-platform
+
+# Port-forward to access services
+kubectl port-forward -n go-platform svc/api-gateway 8080:8080
+```
 
 ### Local Kubernetes
 
