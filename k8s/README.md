@@ -1,36 +1,59 @@
 # Kubernetes Deployment Manifests
 
-This directory contains Kubernetes manifests for deploying the Go Framework platform.
+This directory contains Kubernetes manifest **templates** and examples for deploying the Go Framework platform.
 
-## Directory Structure
+## ⚠️ Important Note
+
+This directory provides:
+- ✅ **Included**: Sample manifests (namespace, configmap, secrets, api-gateway)
+- 📝 **To Create**: Additional service manifests following the provided examples
+
+You'll need to create the missing manifest files for infrastructure and microservices by following the examples in the [Kubernetes Deployment Guide](../docs/KUBERNETES_DEPLOYMENT.md).
+
+## Directory Structure (Target)
 
 ```
 k8s/
-├── base/               # Base Kubernetes manifests
-│   ├── namespace.yaml
-│   ├── configmap.yaml
-│   ├── secrets.yaml
-│   ├── mongodb.yaml
-│   ├── redis.yaml
-│   ├── rabbitmq.yaml
-│   ├── auth-service.yaml
-│   ├── user-service.yaml
-│   ├── tenant-service.yaml
-│   ├── notification-service.yaml
-│   ├── system-config-service.yaml
-│   ├── api-gateway.yaml
-│   └── ingress.yaml (optional)
+├── base/                        # Base Kubernetes manifests
+│   ├── namespace.yaml          ✅ Provided
+│   ├── configmap.yaml          ✅ Provided
+│   ├── secrets.yaml            ✅ Provided (template)
+│   ├── api-gateway.yaml        ✅ Provided (example)
+│   ├── mongodb.yaml            📝 To create (see guide)
+│   ├── redis.yaml              📝 To create (see guide)
+│   ├── rabbitmq.yaml           📝 To create (see guide)
+│   ├── auth-service.yaml       📝 To create (following api-gateway example)
+│   ├── user-service.yaml       📝 To create (following api-gateway example)
+│   ├── tenant-service.yaml     📝 To create (following api-gateway example)
+│   ├── notification-service.yaml  📝 To create (following api-gateway example)
+│   ├── system-config-service.yaml 📝 To create (following api-gateway example)
+│   └── ingress.yaml            📝 Optional (see guide)
 ├── overlays/
-│   ├── dev/          # Development environment overrides
-│   └── prod/         # Production environment overrides
-└── README.md         # This file
+│   ├── dev/                    # Development environment overrides
+│   └── prod/                   # Production environment overrides
+└── README.md                   # This file
 ```
 
 ## Quick Start
 
-For detailed deployment instructions, please see: [Kubernetes Deployment Guide](../docs/KUBERNETES_DEPLOYMENT.md)
+**Before deploying**, create the missing manifest files by following the detailed examples in the [Kubernetes Deployment Guide](../docs/KUBERNETES_DEPLOYMENT.md).
 
-### Basic Deployment
+### What's Provided
+
+This directory includes:
+1. **namespace.yaml** - Namespace definition (ready to use)
+2. **configmap.yaml** - Configuration template (customize for your environment)
+3. **secrets.yaml** - Secrets template (⚠️ replace with your actual secrets)
+4. **api-gateway.yaml** - Complete deployment example (use as template for other services)
+
+### What You Need to Create
+
+Using the guide and the api-gateway.yaml example, create manifests for:
+- Infrastructure: mongodb.yaml, redis.yaml, rabbitmq.yaml
+- Microservices: auth-service.yaml, user-service.yaml, tenant-service.yaml, notification-service.yaml, system-config-service.yaml
+- Optional: ingress.yaml (if using Ingress)
+
+### Basic Deployment (After Creating All Files)
 
 ```bash
 # 1. Create namespace
@@ -40,14 +63,22 @@ kubectl apply -f base/namespace.yaml
 kubectl apply -f base/configmap.yaml
 kubectl apply -f base/secrets.yaml
 
-# 3. Deploy infrastructure
+# 3. Deploy infrastructure (create these files first using the guide)
 kubectl apply -f base/mongodb.yaml
 kubectl apply -f base/redis.yaml
 kubectl apply -f base/rabbitmq.yaml
 
-# 4. Deploy microservices
+# 4. Deploy microservices (create these files first following api-gateway.yaml example)
 kubectl apply -f base/auth-service.yaml
 kubectl apply -f base/user-service.yaml
+kubectl apply -f base/tenant-service.yaml
+kubectl apply -f base/notification-service.yaml
+kubectl apply -f base/system-config-service.yaml
+kubectl apply -f base/api-gateway.yaml
+
+# Or deploy everything at once (after creating all files)
+kubectl apply -f base/
+```
 kubectl apply -f base/tenant-service.yaml
 kubectl apply -f base/notification-service.yaml
 kubectl apply -f base/system-config-service.yaml

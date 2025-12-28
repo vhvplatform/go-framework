@@ -4,6 +4,8 @@ Tài liệu này cung cấp hướng dẫn chi tiết để triển khai dự á
 
 *This document provides detailed instructions for deploying the Go Framework project to an existing Kubernetes (K8s) cluster.*
 
+> **📝 Lưu ý (Note):** Tài liệu này cung cấp các template và ví dụ YAML. Bạn sẽ cần tạo các file manifest đầy đủ cho tất cả các services bằng cách làm theo các ví dụ được cung cấp. / *This guide provides YAML templates and examples. You'll need to create complete manifest files for all services by following the provided examples.*
+
 ---
 
 ## Mục Lục (Table of Contents)
@@ -339,16 +341,18 @@ kubectl get secret go-platform-secrets -n go-platform
 
 Triển khai các dịch vụ hạ tầng cần thiết (MongoDB, Redis, RabbitMQ).
 
-**Lưu ý:** Xem các file example YAML đầy đủ trong thư mục `k8s/base/`. Dưới đây là các bước triển khai:
+**📝 Tạo các file manifest:** Sử dụng các ví dụ YAML được cung cấp trong hướng dẫn này để tạo các file `mongodb.yaml`, `redis.yaml`, và `rabbitmq.yaml` trong thư mục `k8s/base/`. Xem các ví dụ chi tiết trong phần trước của tài liệu này.
+
+*Create the manifest files: Use the YAML examples provided in this guide to create `mongodb.yaml`, `redis.yaml`, and `rabbitmq.yaml` files in the `k8s/base/` directory. See detailed examples in the previous sections of this document.*
 
 ```bash
-# Triển khai MongoDB với Persistent Volume
+# Triển khai MongoDB với Persistent Volume (sau khi tạo file)
 kubectl apply -f k8s/base/mongodb.yaml
 
-# Triển khai Redis
+# Triển khai Redis (sau khi tạo file)
 kubectl apply -f k8s/base/redis.yaml
 
-# Triển khai RabbitMQ
+# Triển khai RabbitMQ (sau khi tạo file)
 kubectl apply -f k8s/base/rabbitmq.yaml
 
 # Kiểm tra trạng thái
@@ -360,8 +364,12 @@ kubectl get services -n go-platform
 
 Triển khai tất cả microservices của ứng dụng.
 
+**📝 Tạo các file manifest:** Sử dụng file `api-gateway.yaml` có sẵn làm template để tạo các file tương tự cho các services khác (auth-service.yaml, user-service.yaml, v.v.). Thay đổi tên service, image, ports, và environment variables cho phù hợp với từng service.
+
+*Create the manifest files: Use the provided `api-gateway.yaml` as a template to create similar files for other services (auth-service.yaml, user-service.yaml, etc.). Change the service name, image, ports, and environment variables as appropriate for each service.*
+
 ```bash
-# Triển khai từng service
+# Triển khai từng service (sau khi tạo các file manifest)
 kubectl apply -f k8s/base/auth-service.yaml
 kubectl apply -f k8s/base/user-service.yaml
 kubectl apply -f k8s/base/tenant-service.yaml
@@ -369,7 +377,7 @@ kubectl apply -f k8s/base/notification-service.yaml
 kubectl apply -f k8s/base/system-config-service.yaml
 kubectl apply -f k8s/base/api-gateway.yaml
 
-# Hoặc áp dụng tất cả cùng lúc
+# Hoặc áp dụng tất cả cùng lúc (nếu tất cả file đã được tạo)
 kubectl apply -f k8s/base/
 
 # Kiểm tra deployment
