@@ -35,6 +35,8 @@ make status
 make info
 ```
 
+**Windows Users:** See the [Windows Setup Guide](docs/WINDOWS_SETUP.md) for automated setup using PowerShell.
+
 That's it! Your complete SaaS platform is now running locally.
 
 ## 📦 What's Included
@@ -61,6 +63,7 @@ That's it! Your complete SaaS platform is now running locally.
 ## 📚 Documentation
 
 - [Getting Started](docs/GETTING_STARTED.md) - Detailed setup guide
+- [Windows Setup Guide](docs/WINDOWS_SETUP.md) - Windows-specific setup instructions
 - [Local Development](docs/LOCAL_DEVELOPMENT.md) - Development workflow
 - [Testing Guide](docs/TESTING.md) - How to run tests
 - [Debugging](docs/DEBUGGING.md) - Debugging tips and tricks
@@ -82,7 +85,7 @@ That's it! Your complete SaaS platform is now running locally.
 ### Operating Systems
 - ✅ macOS (Intel & Apple Silicon)
 - ✅ Linux (Ubuntu, Debian, Fedora, etc.)
-- ✅ Windows (with WSL2)
+- ✅ Windows 10/11 (with WSL2) - See [Windows Setup Guide](docs/WINDOWS_SETUP.md)
 
 ## 🎯 Key Features
 
