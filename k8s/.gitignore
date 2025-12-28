@@ -1,0 +1,17 @@
+# Ignore files with actual secrets
+# The base/secrets.yaml is a template and should be tracked
+# But any customized versions should not be committed
+
+# Environment-specific secrets
+overlays/*/secrets.yaml
+
+# Customized manifests with real values
+*.local.yaml
+*.custom.yaml
+
+# Backup files
+*.backup
+*.bak
+
+# Temporary files
+*.tmp
