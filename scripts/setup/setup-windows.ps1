@@ -572,7 +572,7 @@ function Show-Summary {
     
     Write-Host ""
     foreach ($key in $Results.Keys) {
-        $status = if ($Results[$key]) { "✓" } else { "✗" }
+        $status = if ($Results[$key]) { "[OK]" } else { "[FAIL]" }
         $color = if ($Results[$key]) { "Green" } else { "Red" }
         Write-Host "  $status $key" -ForegroundColor $color
     }
