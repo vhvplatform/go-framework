@@ -1,4 +1,4 @@
-#
+﻿#
 # Script: setup-windows.ps1
 # Description: Automated setup script for Windows development environment
 # Usage: .\setup-windows.ps1
@@ -533,16 +533,16 @@ function Invoke-Tests {
         Write-ColorOutput "Skipping tests (--SkipTests specified)" "Info"
         return $true
     }
-    
+
     $cliDir = Join-Path $PSScriptRoot "..\..\tools\cli"
-    
+
     if (Test-Path $cliDir) {
         Write-ColorOutput "Running unit tests..." "Info"
-        
+
         Push-Location $cliDir
         try {
             & go test -v ./...
-            
+
             if ($LASTEXITCODE -eq 0) {
                 Write-ColorOutput "All tests passed" "Success"
                 return $true
