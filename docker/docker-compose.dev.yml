@@ -1,4 +1,3 @@
-version: '3.8'
 
 # Development override file
 # Use with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
@@ -7,44 +6,44 @@ services:
   # Override services to use local volumes for hot-reload
   auth-service:
     volumes:
-      - ../../services/auth-service:/app/services/auth-service
+      - ../../go-auth-service:/app
     environment:
       - GO_ENV=development
       - HOT_RELOAD=true
     # Uncomment if you have air installed for hot reload
-    # command: air -c services/auth-service/.air.toml
+    # command: air
 
   user-service:
     volumes:
-      - ../../services/user-service:/app/services/user-service
+      - ../../go-user-service:/app
     environment:
       - GO_ENV=development
       - HOT_RELOAD=true
 
   tenant-service:
     volumes:
-      - ../../services/tenant-service:/app/services/tenant-service
+      - ../../go-tenant-service:/app
     environment:
       - GO_ENV=development
       - HOT_RELOAD=true
 
   notification-service:
     volumes:
-      - ../../services/notification-service:/app/services/notification-service
+      - ../../go-notification-service:/app
     environment:
       - GO_ENV=development
       - HOT_RELOAD=true
 
   system-config-service:
     volumes:
-      - ../../services/system-config-service:/app/services/system-config-service
+      - ../../go-system-config-service:/app
     environment:
       - GO_ENV=development
       - HOT_RELOAD=true
 
   api-gateway:
     volumes:
-      - ../../services/api-gateway:/app/services/api-gateway
+      - ../../go-api-gateway:/app
     environment:
       - GO_ENV=development
       - HOT_RELOAD=true

@@ -2,10 +2,34 @@
 
 This directory contains Docker Compose configurations for local development of the SaaS Platform.
 
+## Prerequisites
+
+Before starting services, ensure you have:
+
+1. **Cloned service repositories**: The Docker Compose configuration expects service repositories to be cloned in the workspace directory. Run `make setup-repos` from the go-framework directory to clone all required services.
+
+2. **Workspace structure**: Your workspace should be organized as follows:
+   ```
+   ~/workspace/go-platform/          # Workspace directory
+   ├── go-framework/                 # This repository
+   │   └── docker/                   # Docker configs (you are here)
+   ├── go-api-gateway/              # Cloned service repo
+   ├── go-auth-service/             # Cloned service repo
+   ├── go-user-service/             # Cloned service repo
+   ├── go-tenant-service/           # Cloned service repo
+   ├── go-notification-service/     # Cloned service repo
+   └── go-system-config-service/    # Cloned service repo
+   ```
+
 ## Quick Start
 
 ```bash
+# From the workspace root, clone all service repositories (first time only)
+cd ~/workspace/go-platform/go-framework
+make setup-repos
+
 # Copy environment template
+cd docker
 cp .env.example .env
 
 # Start all services

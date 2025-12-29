@@ -1,5 +1,3 @@
-version: '3.8'
-
 x-common-variables: &common-variables
   ENVIRONMENT: development
   LOG_LEVEL: debug
@@ -64,8 +62,8 @@ services:
   # Microservices (using local builds by default, can be overridden)
   api-gateway:
     build:
-      context: ../..
-      dockerfile: services/api-gateway/Dockerfile
+      context: ../../go-api-gateway
+      dockerfile: Dockerfile
     container_name: go-api-gateway
     ports:
       - "8080:8080"
@@ -89,8 +87,8 @@ services:
 
   auth-service:
     build:
-      context: ../..
-      dockerfile: services/auth-service/Dockerfile
+      context: ../../go-auth-service
+      dockerfile: Dockerfile
     container_name: go-auth-service
     ports:
       - "50051:50051"
@@ -109,8 +107,8 @@ services:
 
   user-service:
     build:
-      context: ../..
-      dockerfile: services/user-service/Dockerfile
+      context: ../../go-user-service
+      dockerfile: Dockerfile
     container_name: go-user-service
     ports:
       - "50052:50052"
@@ -125,8 +123,8 @@ services:
 
   tenant-service:
     build:
-      context: ../..
-      dockerfile: services/tenant-service/Dockerfile
+      context: ../../go-tenant-service
+      dockerfile: Dockerfile
     container_name: go-tenant-service
     ports:
       - "50053:50053"
@@ -141,8 +139,8 @@ services:
 
   notification-service:
     build:
-      context: ../..
-      dockerfile: services/notification-service/Dockerfile
+      context: ../../go-notification-service
+      dockerfile: Dockerfile
     container_name: go-notification-service
     ports:
       - "50054:50054"
@@ -162,8 +160,8 @@ services:
 
   system-config-service:
     build:
-      context: ../..
-      dockerfile: services/system-config-service/Dockerfile
+      context: ../../go-system-config-service
+      dockerfile: Dockerfile
     container_name: go-system-config-service
     ports:
       - "50055:50055"
