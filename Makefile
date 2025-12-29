@@ -323,7 +323,8 @@ build-cli: ## Build developer CLI tool
 	@echo "${GREEN}🔨 Building CLI tool...${RESET}"
 	@cd tools/cli && go build -o ../../bin/saas .
 	@echo "${GREEN}✅ CLI built: bin/saas${RESET}"
-	@echo "${YELLOW}Install with: sudo mv bin/saas /usr/local/bin/${RESET}"
+	@echo "${YELLOW}Tip: Install globally with 'sudo mv bin/saas /usr/local/bin/' (Linux/macOS)${RESET}"
+	@echo "${YELLOW}Tip: On Windows, add 'bin' directory to PATH or copy saas.exe to a PATH location${RESET}"
 
 install-cli: build-cli ## Build and install CLI tool
 	@echo "${GREEN}📦 Installing CLI tool...${RESET}"
