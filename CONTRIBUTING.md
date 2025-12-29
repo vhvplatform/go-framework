@@ -58,19 +58,46 @@ git remote add upstream https://github.com/vhvplatform/go-framework.git
 make setup
 ```
 
+### Line Endings (Important for Windows Users)
+
+This repository uses a `.gitattributes` file to ensure all shell scripts, Go files, Makefiles, and other text files always use Unix-style line endings (LF) instead of Windows-style line endings (CRLF). This is critical for shell scripts to execute properly on Unix-like systems.
+
+**On Windows/WSL:**
+- Git automatically handles line ending conversion based on `.gitattributes`
+- Shell scripts checked out from the repository will have LF line endings
+- If you encounter "cannot execute: required file not found" errors, it usually means the file has CRLF line endings
+
+**To fix line ending issues:**
+```bash
+# Re-checkout files with correct line endings
+git rm --cached -r .
+git reset --hard
+
+# Or convert individual files if needed
+dos2unix scripts/dev/wait-for-services.sh
+```
+
+**Git Configuration:**
+The repository's `.gitattributes` file automatically manages this, but for reference:
+- `*.sh text eol=lf` - Forces LF for shell scripts
+- `*.go text eol=lf` - Forces LF for Go files
+- `Makefile text eol=lf` - Forces LF for Makefiles
+
 ## Coding Standards
 
 ### Shell Scripts
 
 #### Basic Requirements
 
-- Use `#!/bin/bash` shebang
+- Use `#!/bin/bash` shebang (must be the first line with no leading whitespace)
+- Set executable permissions: `chmod +x script.sh` (Git will track this)
 - Use `set -e` for error handling  
 - Use `set -u` to catch undefined variables
 - Use `set -o pipefail` for pipeline failures
 - Add comprehensive header comments
 - Include usage examples in headers
 - Make scripts idempotent when possible
+- Always use Unix line endings (LF) - `.gitattributes` enforces this
 
 #### Script Header Template
 
@@ -254,13 +281,21 @@ fi
 #### Testing Scripts
 
 ```bash
+# 0. Check executable permissions and line endings
+ls -la script.sh  # Should show -rwxr-xr-x
+file script.sh    # Should show "Bourne-Again shell script" without "CRLF"
+
 # 1. Syntax check
 bash -n script.sh
 
 # 2. ShellCheck (install with: brew install shellcheck)
 shellcheck script.sh
 
-# 3. Manual testing
+# 3. Set executable if needed
+chmod +x script.sh
+git add script.sh  # Git tracks the executable bit
+
+# 4. Manual testing
 ./script.sh
 ./script.sh --help
 ./script.sh --invalid  # Test error handling
