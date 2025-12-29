@@ -105,7 +105,11 @@ tree -L 2 "${WORKSPACE_DIR}" 2>/dev/null || {
     echo "├── go-framework/"
     echo "├── go-infrastructure/"
     echo "└── go/"
-    ls -1 "${GO_DIR}" 2>/dev/null | sed 's/^/    ├── /' || echo "    (empty)"
+    if [ -d "${GO_DIR}" ] && [ "$(ls -A "${GO_DIR}" 2>/dev/null)" ]; then
+        ls -1 "${GO_DIR}" | awk 'NR > 1 {print prev} {prev = "    ├── " $0} END {print "    └── " substr(prev, 9)}'
+    else
+        echo "    (empty)"
+    fi
 }
 echo ""
 echo "To navigate to workspace: cd ${WORKSPACE_DIR}"
