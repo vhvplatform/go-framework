@@ -41,33 +41,53 @@ set -e
 
 GITHUB_ORG="${GITHUB_ORG:-vhvplatform}"
 WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/workspace/go-platform}"
+GO_DIR="${WORKSPACE_DIR}/go"
 
 echo "📂 Cloning repositories to ${WORKSPACE_DIR}..."
 mkdir -p "${WORKSPACE_DIR}"
-cd "${WORKSPACE_DIR}"
+mkdir -p "${GO_DIR}"
 
-# List of all service repositories
-repos=(
-    "go-shared-go"
+# Clone go-framework at workspace root if not already there
+if [ ! -d "${WORKSPACE_DIR}/go-framework" ]; then
+    echo "📥 Cloning go-framework to ${WORKSPACE_DIR}..."
+    cd "${WORKSPACE_DIR}"
+    git clone "https://github.com/${GITHUB_ORG}/go-framework.git" || {
+        echo "⚠️  Failed to clone go-framework"
+    }
+fi
+
+# Clone infrastructure repo at workspace root if not already there
+if [ ! -d "${WORKSPACE_DIR}/go-infrastructure" ]; then
+    echo "📥 Cloning go-infrastructure to ${WORKSPACE_DIR}..."
+    cd "${WORKSPACE_DIR}"
+    git clone "https://github.com/${GITHUB_ORG}/go-infrastructure.git" || {
+        echo "⚠️  Failed to clone go-infrastructure"
+    }
+fi
+
+# List of service repositories to clone into go/ subdirectory
+service_repos=(
+    "go-shared"
     "go-api-gateway"
     "go-auth-service"
     "go-user-service"
     "go-tenant-service"
     "go-notification-service"
     "go-system-config-service"
-    "go-infrastructure"
-    "go-framework"
 )
 
-echo "Cloning from GitHub organization: ${GITHUB_ORG}"
+echo "Cloning service repositories to ${GO_DIR}..."
+echo "GitHub organization: ${GITHUB_ORG}"
 echo ""
 
-for repo in "${repos[@]}"; do
+cd "${GO_DIR}"
+
+for repo in "${service_repos[@]}"; do
     if [ -d "$repo" ]; then
         echo "⏭️  ${repo} already exists, skipping..."
         cd "${repo}"
         echo "   📍 $(git remote get-url origin)"
-        cd ..
+        cd "${GO_DIR}"
     else
         echo "📥 Cloning ${repo}..."
         git clone "https://github.com/${GITHUB_ORG}/${repo}.git" || {
@@ -80,6 +100,12 @@ echo ""
 echo "✅ Repository cloning complete!"
 echo ""
 echo "Workspace structure:"
-tree -L 1 "${WORKSPACE_DIR}" 2>/dev/null || ls -la "${WORKSPACE_DIR}"
+echo "${WORKSPACE_DIR}/"
+tree -L 2 "${WORKSPACE_DIR}" 2>/dev/null || {
+    echo "├── go-framework/"
+    echo "├── go-infrastructure/"
+    echo "└── go/"
+    ls -1 "${GO_DIR}" 2>/dev/null | sed 's/^/    ├── /' || echo "    (empty)"
+}
 echo ""
 echo "To navigate to workspace: cd ${WORKSPACE_DIR}"

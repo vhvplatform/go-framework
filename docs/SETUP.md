@@ -357,21 +357,22 @@ air -v
 
 ```bash
 # Your workspace should look like:
-tree -L 1 ~/workspace/go-platform/
+tree -L 2 ~/workspace/go-platform/
 ```
 
 Expected output:
 ```
 ~/workspace/go-platform/
-├── go-framework/
-├── go-shared-go/
-├── go-api-gateway/
-├── go-auth-service/
-├── go-user-service/
-├── go-tenant-service/
-├── go-notification-service/
-├── go-system-config-service/
-└── go-infrastructure/
+├── go-framework/            # Main repository
+├── go-infrastructure/       # Infrastructure code
+└── go/                      # Services directory
+    ├── go-shared/           # Shared library
+    ├── go-api-gateway/
+    ├── go-auth-service/
+    ├── go-user-service/
+    ├── go-tenant-service/
+    ├── go-notification-service/
+    └── go-system-config-service/
 ```
 
 ### Start and Verify Services

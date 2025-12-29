@@ -13,12 +13,14 @@ Before starting services, ensure you have:
    ~/workspace/go-platform/          # Workspace directory
    ├── go-framework/                 # This repository
    │   └── docker/                   # Docker configs (you are here)
-   ├── go-api-gateway/              # Cloned service repo
-   ├── go-auth-service/             # Cloned service repo
-   ├── go-user-service/             # Cloned service repo
-   ├── go-tenant-service/           # Cloned service repo
-   ├── go-notification-service/     # Cloned service repo
-   └── go-system-config-service/    # Cloned service repo
+   └── go/                           # Services directory
+       ├── go-api-gateway/           # Cloned service repo
+       ├── go-auth-service/          # Cloned service repo
+       ├── go-user-service/          # Cloned service repo
+       ├── go-tenant-service/        # Cloned service repo
+       ├── go-notification-service/  # Cloned service repo
+       ├── go-system-config-service/ # Cloned service repo
+       └── go-shared/                # Shared library
    ```
 
 ## Quick Start

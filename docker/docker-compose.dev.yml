@@ -6,7 +6,7 @@ services:
   # Override services to use local volumes for hot-reload
   auth-service:
     volumes:
-      - ../../go-auth-service:/app
+      - ../../go/go-auth-service:/app
     environment:
       - GO_ENV=development
       - HOT_RELOAD=true
@@ -15,35 +15,35 @@ services:
 
   user-service:
     volumes:
-      - ../../go-user-service:/app
+      - ../../go/go-user-service:/app
     environment:
       - GO_ENV=development
       - HOT_RELOAD=true
 
   tenant-service:
     volumes:
-      - ../../go-tenant-service:/app
+      - ../../go/go-tenant-service:/app
     environment:
       - GO_ENV=development
       - HOT_RELOAD=true
 
   notification-service:
     volumes:
-      - ../../go-notification-service:/app
+      - ../../go/go-notification-service:/app
     environment:
       - GO_ENV=development
       - HOT_RELOAD=true
 
   system-config-service:
     volumes:
-      - ../../go-system-config-service:/app
+      - ../../go/go-system-config-service:/app
     environment:
       - GO_ENV=development
       - HOT_RELOAD=true
 
   api-gateway:
     volumes:
-      - ../../go-api-gateway:/app
+      - ../../go/go-api-gateway:/app
     environment:
       - GO_ENV=development
       - HOT_RELOAD=true
