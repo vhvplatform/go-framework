@@ -56,6 +56,8 @@ Main configuration file with:
 - All microservices (API Gateway, Auth, User, Tenant, Notification, System Config)
 - Observability stack (Prometheus, Grafana, Jaeger)
 
+**Build Context:** Each microservice uses its own repository as the build context (e.g., `../../go-user-service`), which allows Dockerfiles to use standard patterns like `COPY go.mod go.sum ./` without needing to specify subdirectories. This requires all service repositories to be cloned as siblings to the `go-framework` repository.
+
 ### docker-compose.dev.yml
 Development overrides with:
 - Volume mounts for hot-reload
@@ -151,6 +153,36 @@ Access Grafana at `http://localhost:3000` with credentials:
 - Password: value from `GRAFANA_PASSWORD` env var (default: `admin`)
 
 ## Troubleshooting
+
+### Build fails with "go.mod: not found" or "go.sum: not found"
+This error occurs when service repositories are not cloned or are in the wrong location.
+
+**Solution:**
+```bash
+# Ensure all service repositories are cloned as siblings to go-framework
+cd /path/to/parent/directory  # e.g., ~/workspace/go-platform/go or E:\go
+ls -la
+
+# You should see:
+# go-framework/
+# go-api-gateway/
+# go-auth-service/
+# go-user-service/
+# go-tenant-service/
+# go-notification-service/
+# go-system-config-service/
+
+# If repositories are missing, clone them:
+cd go-framework
+make setup-repos
+
+# Or clone manually:
+cd ..
+git clone https://github.com/vhvplatform/go-user-service.git
+# etc.
+```
+
+The docker-compose.yml uses each service's directory as the build context (e.g., `../../go-user-service`), so all service repositories must be at the same directory level as `go-framework`.
 
 ### Services won't start
 ```bash
