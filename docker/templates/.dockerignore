@@ -1,0 +1,87 @@
+# .dockerignore for Go microservices
+# Place this file in your service repository root
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+LICENSE
+CHANGELOG.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Development tools
+.editorconfig
+.prettierrc
+.eslintrc
+
+# Test files (if not needed for integration tests)
+*_test.go
+testdata/
+
+# Build artifacts
+bin/
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Dependencies (these are downloaded during build)
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Docker
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Kubernetes
+k8s/
+*.yaml
+*.yml
+
+# Scripts
+scripts/
+Makefile
+
+# Examples and fixtures
+examples/
+fixtures/
+
+# Coverage and test results
+coverage.txt
+coverage.out
+*.coverprofile
+*.test

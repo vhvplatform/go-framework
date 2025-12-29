@@ -5,7 +5,7 @@
 # Usage: ./clone-repos.sh
 #
 # This script clones all required repositories for the SaaS Platform:
-#   - go-shared-go: Shared library code
+#   - go-shared-go (cloned as go-shared): Shared library code
 #   - go-api-gateway: API Gateway service
 #   - go-auth-service: Authentication service
 #   - go-user-service: User management service
@@ -47,8 +47,9 @@ mkdir -p "${WORKSPACE_DIR}"
 cd "${WORKSPACE_DIR}"
 
 # List of all service repositories
+# Format: "github-repo-name:local-directory-name" (or just "repo-name" if they match)
 repos=(
-    "go-shared-go"
+    "go-shared-go:go-shared"
     "go-api-gateway"
     "go-auth-service"
     "go-user-service"
@@ -62,17 +63,32 @@ repos=(
 echo "Cloning from GitHub organization: ${GITHUB_ORG}"
 echo ""
 
-for repo in "${repos[@]}"; do
-    if [ -d "$repo" ]; then
-        echo "⏭️  ${repo} already exists, skipping..."
-        cd "${repo}"
+for repo_entry in "${repos[@]}"; do
+    # Parse repo entry (handle both "repo" and "github-repo:local-dir" formats)
+    if [[ "$repo_entry" == *":"* ]]; then
+        github_repo="${repo_entry%%:*}"
+        local_dir="${repo_entry##*:}"
+    else
+        github_repo="$repo_entry"
+        local_dir="$repo_entry"
+    fi
+    
+    if [ -d "$local_dir" ]; then
+        echo "⏭️  ${local_dir} already exists, skipping..."
+        cd "${local_dir}"
         echo "   📍 $(git remote get-url origin)"
         cd ..
     else
-        echo "📥 Cloning ${repo}..."
-        git clone "https://github.com/${GITHUB_ORG}/${repo}.git" || {
-            echo "⚠️  Failed to clone ${repo}, it might not exist yet"
-        }
+        echo "📥 Cloning ${github_repo}..."
+        if [ "$github_repo" != "$local_dir" ]; then
+            git clone "https://github.com/${GITHUB_ORG}/${github_repo}.git" "$local_dir" || {
+                echo "⚠️  Failed to clone ${github_repo}, it might not exist yet"
+            }
+        else
+            git clone "https://github.com/${GITHUB_ORG}/${github_repo}.git" || {
+                echo "⚠️  Failed to clone ${github_repo}, it might not exist yet"
+            }
+        fi
     fi
 done
 

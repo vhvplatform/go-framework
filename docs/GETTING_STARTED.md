@@ -107,7 +107,7 @@ make setup-repos
 ```
 
 This clones:
-- `go-shared-go` - Shared library
+- `go-shared` - Shared library
 - `go-api-gateway` - API Gateway service
 - `go-auth-service` - Authentication service
 - `go-user-service` - User management service
@@ -234,7 +234,7 @@ Your workspace should now look like:
 ```
 ~/workspace/go-platform/
 ├── go-framework/           # This repository (tools & scripts)
-├── go-shared-go/          # Shared library
+├── go-shared/          # Shared library
 ├── go-api-gateway/        # API Gateway
 ├── go-auth-service/       # Auth service
 ├── go-user-service/       # User service

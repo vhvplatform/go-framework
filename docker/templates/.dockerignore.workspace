@@ -1,0 +1,108 @@
+# .dockerignore for workspace-level builds
+# Place this file in the workspace root directory: ~/workspace/go-platform/.dockerignore
+#
+# This file is used when building with workspace-level context (for services with go-shared)
+# Example: docker build -f go-auth-service/Dockerfile -t auth-service .
+
+# Git repositories (we only need the source code, not git history)
+**/.git
+**/.gitignore
+**/.gitattributes
+
+# Documentation
+**/*.md
+**/docs/
+**/LICENSE
+**/CHANGELOG.md
+**/README.md
+
+# CI/CD
+**/.github/
+**/.gitlab-ci.yml
+**/.travis.yml
+**/Jenkinsfile
+**/.circleci/
+
+# IDE and editor files
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+**/*~
+**/.DS_Store
+**/.editorconfig
+
+# Test files and test data
+**/*_test.go
+**/testdata/
+**/fixtures/
+**/test/
+**/tests/
+
+# Build artifacts and binaries
+**/bin/
+**/dist/
+**/build/
+**/*.exe
+**/*.dll
+**/*.so
+**/*.dylib
+
+# Dependencies (downloaded during build)
+**/vendor/
+
+# Environment and configuration files
+**/.env
+**/.env.*
+**/*.env
+**/config.local.*
+
+# Logs
+**/*.log
+**/logs/
+
+# Temporary files
+**/tmp/
+**/temp/
+**/*.tmp
+
+# Docker files (not needed inside the image)
+**/docker-compose*.yml
+**/Dockerfile*
+**/.dockerignore
+
+# Kubernetes and deployment files
+**/k8s/
+**/helm/
+**/*.yaml
+**/*.yml
+# Exception: Keep go.mod and go.sum which are .yml-ish but yaml config
+!**/go.mod
+!**/go.sum
+
+# Scripts and tools
+**/scripts/
+**/tools/
+**/Makefile
+
+# Examples
+**/examples/
+
+# Coverage and test results
+**/coverage.txt
+**/coverage.out
+**/*.coverprofile
+**/*.test
+
+# Infrastructure and deployment repos (if in workspace)
+go-infrastructure/
+go-framework/
+
+# Service-specific excludes
+# Exclude everything except the services we're building
+**/__pycache__/
+**/node_modules/
+**/.cache/
+
+# Build cache
+**/.cache/

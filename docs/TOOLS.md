@@ -103,7 +103,7 @@ make setup-repos
 - `WORKSPACE_DIR` - Target directory (default: `$HOME/workspace/go-platform`)
 
 **Cloned Repositories:**
-- `go-shared-go` - Shared library code
+- `go-shared` - Shared library code
 - `go-api-gateway` - API Gateway service
 - `go-auth-service` - Authentication service
 - `go-user-service` - User management service

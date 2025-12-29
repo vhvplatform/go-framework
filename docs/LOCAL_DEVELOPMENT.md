@@ -33,7 +33,7 @@ Ensure you have completed the initial setup:
 ```
 ~/workspace/go-platform/
 ├── go-framework/                # This repository (development tools)
-├── go-shared-go/               # Shared library
+├── go-shared/               # Shared library
 ├── go-api-gateway/             # API Gateway service
 ├── go-auth-service/            # Authentication service
 ├── go-user-service/            # User management

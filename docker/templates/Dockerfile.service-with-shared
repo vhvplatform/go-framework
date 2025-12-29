@@ -1,0 +1,61 @@
+# Dockerfile for services that depend on go-shared library
+# This Dockerfile expects to be run from the workspace root directory
+# 
+# Build context should be: ../../ (workspace root)
+# Dockerfile location: <service-repo>/Dockerfile
+#
+# Usage in docker-compose.yml:
+#   build:
+#     context: ../..
+#     dockerfile: go-auth-service/Dockerfile
+#
+# Or build directly:
+#   cd /path/to/workspace
+#   docker build -f go-auth-service/Dockerfile -t auth-service .
+
+# Build stage
+FROM golang:1.21-alpine AS builder
+
+WORKDIR /build
+
+# Copy go-shared library first (dependency)
+COPY go-shared/go.mod go-shared/go.sum ./go-shared/
+WORKDIR /build/go-shared
+RUN go mod download
+
+# Copy service go.mod files
+WORKDIR /build
+COPY go-auth-service/go.mod go-auth-service/go.sum ./go-auth-service/
+WORKDIR /build/go-auth-service
+RUN go mod download
+
+# Copy go-shared source code
+WORKDIR /build
+COPY go-shared/ ./go-shared/
+
+# Copy service source code
+COPY go-auth-service/ ./go-auth-service/
+
+# Build the service
+WORKDIR /build/go-auth-service
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/server ./cmd/server
+
+# Final stage
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates tzdata
+
+WORKDIR /app
+
+# Copy binary from builder
+COPY --from=builder /app/server .
+
+# Expose ports (gRPC and HTTP)
+EXPOSE 50051 8081
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8081/health || exit 1
+
+# Run the binary
+CMD ["./server"]

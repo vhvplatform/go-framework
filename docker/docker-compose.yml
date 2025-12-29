@@ -62,8 +62,8 @@ services:
   # Microservices (using local builds by default, can be overridden)
   api-gateway:
     build:
-      context: ../../go-api-gateway
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: go-api-gateway/Dockerfile
     container_name: go-api-gateway
     ports:
       - "8080:8080"
@@ -87,8 +87,8 @@ services:
 
   auth-service:
     build:
-      context: ../../go-auth-service
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: go-auth-service/Dockerfile
     container_name: go-auth-service
     ports:
       - "50051:50051"
@@ -107,8 +107,8 @@ services:
 
   user-service:
     build:
-      context: ../../go-user-service
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: go-user-service/Dockerfile
     container_name: go-user-service
     ports:
       - "50052:50052"
@@ -123,8 +123,8 @@ services:
 
   tenant-service:
     build:
-      context: ../../go-tenant-service
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: go-tenant-service/Dockerfile
     container_name: go-tenant-service
     ports:
       - "50053:50053"
@@ -139,8 +139,8 @@ services:
 
   notification-service:
     build:
-      context: ../../go-notification-service
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: go-notification-service/Dockerfile
     container_name: go-notification-service
     ports:
       - "50054:50054"
@@ -160,8 +160,8 @@ services:
 
   system-config-service:
     build:
-      context: ../../go-system-config-service
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: go-system-config-service/Dockerfile
     container_name: go-system-config-service
     ports:
       - "50055:50055"

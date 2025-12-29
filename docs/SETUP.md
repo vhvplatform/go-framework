@@ -364,7 +364,7 @@ Expected output:
 ```
 ~/workspace/go-platform/
 ├── go-framework/
-├── go-shared-go/
+├── go-shared/
 ├── go-api-gateway/
 ├── go-auth-service/
 ├── go-user-service/
