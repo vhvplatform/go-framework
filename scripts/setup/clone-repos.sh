@@ -5,7 +5,7 @@
 # Usage: ./clone-repos.sh
 #
 # This script clones all required repositories for the SaaS Platform:
-#   - go-shared-go: Shared library code
+#   - go-shared: Shared library code
 #   - go-api-gateway: API Gateway service
 #   - go-auth-service: Authentication service
 #   - go-user-service: User management service
@@ -13,6 +13,17 @@
 #   - go-notification-service: Notification service
 #   - go-system-config-service: System configuration service
 #   - go-infrastructure: Infrastructure as code
+#   - go-framework: Development tools and scripts
+#
+# Directory Structure:
+#   Service repositories are cloned into a go/ subdirectory:
+#   workspace/
+#   ├── go-framework/
+#   ├── go-infrastructure/
+#   └── go/
+#       ├── go-shared/
+#       ├── go-api-gateway/
+#       └── ... (other services)
 #
 # Environment Variables:
 #   WORKSPACE_DIR - Target directory (default: $HOME/workspace/go-platform)
@@ -30,11 +41,11 @@
 #
 # Notes:
 #   - Skips repositories that already exist
-#   - Creates WORKSPACE_DIR if it doesn't exist
+#   - Creates WORKSPACE_DIR and go/ subdirectory if they don't exist
 #   - Clones from vhvplatform GitHub organization
 #
 # Author: VHV Corp
-# Last Modified: 2024-01-15
+# Last Modified: 2024-12-29
 #
 
 set -e
