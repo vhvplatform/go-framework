@@ -923,6 +923,80 @@ Cannot connect to Docker daemon
 
 ---
 
+### Shell Scripts Cannot Execute
+
+**Symptoms:**
+```bash
+./scripts/dev/wait-for-services.sh
+bash: ./scripts/dev/wait-for-services.sh: cannot execute: required file not found
+
+# Or when checking the file:
+bash: /bin/bash: bad interpreter: No such file or directory
+```
+
+**Root Cause:**
+
+This error occurs when shell scripts have Windows-style line endings (CRLF) instead of Unix-style line endings (LF). The shebang line `#!/bin/bash` becomes `#!/bin/bash\r` which points to a non-existent interpreter.
+
+**Solutions:**
+
+1. **Prevention (Recommended):** The repository includes a `.gitattributes` file that automatically enforces LF line endings for all shell scripts. Ensure you have the latest changes:
+
+```bash
+# Pull latest changes including .gitattributes
+git pull origin main
+
+# Re-checkout all files with correct line endings
+git rm --cached -r .
+git reset --hard
+```
+
+2. **Fix individual scripts** if you're working with an older clone:
+
+```bash
+# Check line endings
+file scripts/dev/wait-for-services.sh
+# Should show "Unix text" not "DOS text"
+
+# Convert from CRLF to LF (if dos2unix is available)
+dos2unix scripts/dev/wait-for-services.sh
+
+# Or using sed (if dos2unix not available)
+sed -i 's/\r$//' scripts/dev/wait-for-services.sh
+
+# Verify the fix
+file scripts/dev/wait-for-services.sh
+./scripts/dev/wait-for-services.sh
+```
+
+3. **Check executable permissions:**
+
+```bash
+# Verify executable bit is set
+ls -la scripts/dev/wait-for-services.sh
+# Should show: -rwxr-xr-x
+
+# Set executable permission if needed
+chmod +x scripts/dev/wait-for-services.sh
+```
+
+4. **Configure Git to prevent future issues:**
+
+```bash
+# Ensure Git respects .gitattributes
+git config --global core.autocrlf false
+git config --global core.eol lf
+```
+
+**Prevention:**
+
+- Always clone repositories within WSL2 file system (not /mnt/c/)
+- Keep the `.gitattributes` file in your repository
+- Avoid editing shell scripts in Windows editors that don't support LF line endings
+- If using Windows editors, configure them to use LF for `.sh` files
+
+---
+
 ### File Permission Issues
 
 **Symptoms:**
