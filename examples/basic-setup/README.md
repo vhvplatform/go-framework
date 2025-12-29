@@ -33,9 +33,9 @@ make status
 
 ```
 ~/workspace/go-platform/
-├── go-framework/                # This repository
-├── go-infrastructure/           # Infrastructure code
-└── go/                          # Services directory
+└── go/                          # All repositories directory
+    ├── go-framework/            # This repository
+    ├── go-infrastructure/       # Infrastructure code
     ├── go-shared/               # Shared library
     ├── go-api-gateway/          # API Gateway
     ├── go-auth-service/         # Auth service

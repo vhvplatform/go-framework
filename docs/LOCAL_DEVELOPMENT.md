@@ -32,9 +32,9 @@ Ensure you have completed the initial setup:
 
 ```
 ~/workspace/go-platform/
-├── go-framework/                # This repository (development tools)
-├── go-infrastructure/           # Infrastructure code
-└── go/                          # Services directory
+└── go/                          # All repositories directory
+    ├── go-framework/            # This repository (development tools)
+    ├── go-infrastructure/       # Infrastructure code
     ├── go-shared/               # Shared library
     ├── go-api-gateway/          # API Gateway service
     ├── go-auth-service/         # Authentication service

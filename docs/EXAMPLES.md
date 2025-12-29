@@ -107,7 +107,7 @@ cd ~/workspace/go-platform/go/go-user-service
 git checkout -b feature/avatar-upload
 
 # Step 2: Start development mode (hot reload)
-cd ~/workspace/go-platform/go-framework
+cd ~/workspace/go-platform/go/go-framework
 make start-dev
 
 # Step 3: Make code changes
@@ -230,7 +230,7 @@ cd ~/workspace/go-platform/go/go-user-service
 go test ./internal/handlers -v
 
 # Step 7: Run all tests from framework
-cd ~/workspace/go-platform/go-framework
+cd ~/workspace/go-platform/go/go-framework
 make test-unit
 
 # Step 8: Commit changes

@@ -363,10 +363,10 @@ tree -L 2 ~/workspace/go-platform/
 Expected output:
 ```
 ~/workspace/go-platform/
-├── go-framework/            # Main repository
-├── go-infrastructure/       # Infrastructure code
-└── go/                      # Services directory
-    ├── go-shared/           # Shared library
+└── go/                          # All repositories directory
+    ├── go-framework/            # Main repository
+    ├── go-infrastructure/       # Infrastructure code
+    ├── go-shared/               # Shared library
     ├── go-api-gateway/
     ├── go-auth-service/
     ├── go-user-service/

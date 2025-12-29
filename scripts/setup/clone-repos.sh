@@ -1,10 +1,13 @@
 #!/bin/bash
 #
 # Script: clone-repos.sh
-# Description: Clone all microservice repositories to workspace
+# Description: Clone all repositories to workspace/go directory
 # Usage: ./clone-repos.sh
 #
-# This script clones all required repositories for the SaaS Platform:
+# This script clones all required repositories for the SaaS Platform into
+# a single go/ directory:
+#   - go-framework: Development tools and scripts
+#   - go-infrastructure: Infrastructure as code
 #   - go-shared: Shared library code
 #   - go-api-gateway: API Gateway service
 #   - go-auth-service: Authentication service
@@ -12,17 +15,16 @@
 #   - go-tenant-service: Multi-tenancy service
 #   - go-notification-service: Notification service
 #   - go-system-config-service: System configuration service
-#   - go-infrastructure: Infrastructure as code
-#   - go-framework: Development tools and scripts
 #
 # Directory Structure:
-#   Service repositories are cloned into a go/ subdirectory:
+#   All repositories are cloned into go/ subdirectory:
 #   workspace/
-#   ├── go-framework/
-#   ├── go-infrastructure/
 #   └── go/
+#       ├── go-framework/
+#       ├── go-infrastructure/
 #       ├── go-shared/
 #       ├── go-api-gateway/
+#       ├── go-auth-service/
 #       └── ... (other services)
 #
 # Environment Variables:
@@ -43,6 +45,7 @@
 #   - Skips repositories that already exist
 #   - Creates WORKSPACE_DIR and go/ subdirectory if they don't exist
 #   - Clones from vhvplatform GitHub organization
+#   - All repositories are cloned at the same level inside go/
 #
 # Author: VHV Corp
 # Last Modified: 2024-12-29
@@ -54,30 +57,14 @@ GITHUB_ORG="${GITHUB_ORG:-vhvplatform}"
 WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/workspace/go-platform}"
 GO_DIR="${WORKSPACE_DIR}/go"
 
-echo "📂 Cloning repositories to ${WORKSPACE_DIR}..."
-mkdir -p "${WORKSPACE_DIR}"
+echo "📂 Cloning repositories to ${GO_DIR}..."
 mkdir -p "${GO_DIR}"
+cd "${GO_DIR}"
 
-# Clone go-framework at workspace root if not already there
-if [ ! -d "${WORKSPACE_DIR}/go-framework" ]; then
-    echo "📥 Cloning go-framework to ${WORKSPACE_DIR}..."
-    cd "${WORKSPACE_DIR}"
-    git clone "https://github.com/${GITHUB_ORG}/go-framework.git" || {
-        echo "⚠️  Failed to clone go-framework"
-    }
-fi
-
-# Clone infrastructure repo at workspace root if not already there
-if [ ! -d "${WORKSPACE_DIR}/go-infrastructure" ]; then
-    echo "📥 Cloning go-infrastructure to ${WORKSPACE_DIR}..."
-    cd "${WORKSPACE_DIR}"
-    git clone "https://github.com/${GITHUB_ORG}/go-infrastructure.git" || {
-        echo "⚠️  Failed to clone go-infrastructure"
-    }
-fi
-
-# List of service repositories to clone into go/ subdirectory
-service_repos=(
+# List of all repositories to clone into go/ directory
+repos=(
+    "go-framework"
+    "go-infrastructure"
     "go-shared"
     "go-api-gateway"
     "go-auth-service"
@@ -87,13 +74,11 @@ service_repos=(
     "go-system-config-service"
 )
 
-echo "Cloning service repositories to ${GO_DIR}..."
+echo "Cloning repositories to ${GO_DIR}..."
 echo "GitHub organization: ${GITHUB_ORG}"
 echo ""
 
-cd "${GO_DIR}"
-
-for repo in "${service_repos[@]}"; do
+for repo in "${repos[@]}"; do
     if [ -d "$repo" ]; then
         echo "⏭️  ${repo} already exists, skipping..."
         cd "${repo}"
@@ -112,10 +97,8 @@ echo "✅ Repository cloning complete!"
 echo ""
 echo "Workspace structure:"
 echo "${WORKSPACE_DIR}/"
-tree -L 2 "${WORKSPACE_DIR}" 2>/dev/null || {
-    echo "├── go-framework/"
-    echo "├── go-infrastructure/"
-    echo "└── go/"
+echo "└── go/"
+tree -L 1 "${GO_DIR}" 2>/dev/null || {
     if [ -d "${GO_DIR}" ] && [ "$(ls -A "${GO_DIR}" 2>/dev/null)" ]; then
         # Format directory listing as tree structure:
         # - All items except last get "├──" prefix

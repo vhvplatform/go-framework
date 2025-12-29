@@ -232,15 +232,15 @@ Your workspace should now look like:
 
 ```
 ~/workspace/go-platform/
-├── go-framework/           # This repository (tools & scripts)
-├── go-infrastructure/      # Infrastructure code
-└── go/                     # Services directory
-    ├── go-shared/          # Shared library
-    ├── go-api-gateway/     # API Gateway
-    ├── go-auth-service/    # Auth service
-    ├── go-user-service/    # User service
-    ├── go-tenant-service/  # Tenant service
-    ├── go-notification-service/  # Notification service
+└── go/                          # All repositories directory
+    ├── go-framework/            # This repository (tools & scripts)
+    ├── go-infrastructure/       # Infrastructure code
+    ├── go-shared/               # Shared library
+    ├── go-api-gateway/          # API Gateway
+    ├── go-auth-service/         # Auth service
+    ├── go-user-service/         # User service
+    ├── go-tenant-service/       # Tenant service
+    ├── go-notification-service/ # Notification service
     └── go-system-config-service/ # Config service
 ```
 
