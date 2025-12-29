@@ -107,7 +107,7 @@ make setup-repos
 ```
 
 This clones:
-- `go-shared-go` - Shared library
+- `go-shared` - Shared library
 - `go-api-gateway` - API Gateway service
 - `go-auth-service` - Authentication service
 - `go-user-service` - User management service
@@ -115,7 +115,6 @@ This clones:
 - `go-notification-service` - Notification service
 - `go-system-config-service` - Configuration service
 - `go-infrastructure` - Infrastructure as code
-- `go-framework` - This repository
 
 ## Step 5: Configure Environment
 
@@ -233,16 +232,16 @@ Your workspace should now look like:
 
 ```
 ~/workspace/go-platform/
-├── go-framework/           # This repository (tools & scripts)
-├── go-shared-go/          # Shared library
-├── go-api-gateway/        # API Gateway
-├── go-auth-service/       # Auth service
-├── go-user-service/       # User service
-├── go-tenant-service/     # Tenant service
-├── go-notification-service/  # Notification service
-├── go-system-config-service/ # Config service
-├── go-infrastructure/     # Infrastructure code
-└── bin/                     # Compiled binaries (created on build)
+└── go/                          # All repositories directory
+    ├── go-framework/            # This repository (tools & scripts)
+    ├── go-infrastructure/       # Infrastructure code
+    ├── go-shared/               # Shared library
+    ├── go-api-gateway/          # API Gateway
+    ├── go-auth-service/         # Auth service
+    ├── go-user-service/         # User service
+    ├── go-tenant-service/       # Tenant service
+    ├── go-notification-service/ # Notification service
+    └── go-system-config-service/ # Config service
 ```
 
 ## Common Issues

@@ -279,7 +279,7 @@ go install github.com/go-delve/delve/cmd/dlv@latest
 
 ```bash
 # Start service with debugger
-cd ~/workspace/go-platform/go-auth-service
+cd ~/workspace/go-platform/go/go-auth-service
 dlv debug cmd/server/main.go
 
 # In dlv prompt:

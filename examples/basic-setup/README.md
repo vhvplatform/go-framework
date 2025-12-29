@@ -33,15 +33,16 @@ make status
 
 ```
 ~/workspace/go-platform/
-├── go-framework/                # This repository
-├── go-shared-go/               # Shared library
-├── go-api-gateway/             # API Gateway
-├── go-auth-service/            # Auth service
-├── go-user-service/            # User service
-├── go-tenant-service/          # Tenant service
-├── go-notification-service/    # Notification service
-├── go-system-config-service/   # Config service
-└── go-infrastructure/          # Infrastructure code
+└── go/                          # All repositories directory
+    ├── go-framework/            # This repository
+    ├── go-infrastructure/       # Infrastructure code
+    ├── go-shared/               # Shared library
+    ├── go-api-gateway/          # API Gateway
+    ├── go-auth-service/         # Auth service
+    ├── go-user-service/         # User service
+    ├── go-tenant-service/       # Tenant service
+    ├── go-notification-service/ # Notification service
+    └── go-system-config-service/ # Config service
 ```
 
 ## Environment Configuration

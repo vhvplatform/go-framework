@@ -103,15 +103,15 @@ make open-jaeger   # Opens http://localhost:16686
 
 ```bash
 # Step 1: Create feature branch
-cd ~/workspace/go-platform/go-user-service
+cd ~/workspace/go-platform/go/go-user-service
 git checkout -b feature/avatar-upload
 
 # Step 2: Start development mode (hot reload)
-cd ~/workspace/go-platform/go-framework
+cd ~/workspace/go-platform/go/go-framework
 make start-dev
 
 # Step 3: Make code changes
-cd ~/workspace/go-platform/go-user-service
+cd ~/workspace/go-platform/go/go-user-service
 ```
 
 ```go
@@ -226,15 +226,15 @@ func TestUserHandler_UploadAvatar(t *testing.T) {
 
 ```bash
 # Run tests
-cd ~/workspace/go-platform/go-user-service
+cd ~/workspace/go-platform/go/go-user-service
 go test ./internal/handlers -v
 
 # Step 7: Run all tests from framework
-cd ~/workspace/go-platform/go-framework
+cd ~/workspace/go-platform/go/go-framework
 make test-unit
 
 # Step 8: Commit changes
-cd ~/workspace/go-platform/go-user-service
+cd ~/workspace/go-platform/go/go-user-service
 git add .
 git commit -m "feat(users): add avatar upload functionality
 
@@ -336,7 +336,7 @@ make open-grafana
 # p99: 95ms  <-- Back to normal!
 
 # Step 7: Add index to migration script
-cd ~/workspace/go-platform/go-user-service
+cd ~/workspace/go-platform/go/go-user-service
 ```
 
 ```javascript
