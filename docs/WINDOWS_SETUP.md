@@ -46,6 +46,11 @@ The following software will be installed or checked by the automated setup scrip
 
 The fastest way to get started on Windows:
 
+### 📌 Complete Example for E:\go\go-framework
+
+**Looking for a step-by-step example using `E:\go\go-framework`?**
+See our [**Complete E: Drive Installation Example**](WINDOWS_E_DRIVE_EXAMPLE.md) for a detailed walkthrough.
+
 ### Option 1: Using PowerShell Script (Recommended)
 
 1. **Open PowerShell as Administrator**
@@ -59,13 +64,25 @@ The fastest way to get started on Windows:
 
 3. **Clone the repository**:
    ```powershell
+   # Option 1: Clone to default location (recommended for WSL2)
    git clone https://github.com/vhvplatform/go-framework.git
    cd go-framework
+   
+   # Option 2: Clone to custom directory (e.g., E:\go\go-framework)
+   git clone https://github.com/vhvplatform/go-framework.git E:\go\go-framework
+   cd E:\go\go-framework
    ```
 
 4. **Run the automated setup script**:
    ```powershell
+   # For default location (current directory)
    .\scripts\setup\setup-windows.ps1
+   
+   # For custom installation path (e.g., E:\go\go-framework)
+   .\scripts\setup\setup-windows.ps1 -InstallPath "E:\go\go-framework"
+   
+   # With additional options
+   .\scripts\setup\setup-windows.ps1 -InstallPath "E:\go\go-framework" -SkipTests
    ```
 
 5. **Follow the on-screen instructions**
@@ -253,30 +270,57 @@ git config --global user.email "your.email@example.com"
 
 ### Step 5: Clone Repository
 
+You can clone the repository to any location on your Windows system. Below are examples for common scenarios:
+
 ```powershell
-# Create workspace directory
+# Option 1: Default location in user home directory
 mkdir -p $HOME\workspace\go-platform
 cd $HOME\workspace\go-platform
-
-# Clone go-framework repository
 git clone https://github.com/vhvplatform/go-framework.git
 cd go-framework
+
+# Option 2: Custom drive location (e.g., E: drive for more space)
+# Ensure the E: drive exists and is accessible
+New-Item -ItemType Directory -Force -Path E:\go
+cd E:\go
+git clone https://github.com/vhvplatform/go-framework.git
+cd go-framework
+
+# Option 3: Specific path like E:\go\go-framework
+git clone https://github.com/vhvplatform/go-framework.git E:\go\go-framework
+cd E:\go\go-framework
 ```
+
+**Note:** When using a custom path, ensure:
+- The drive (e.g., E:) is available and has sufficient space (minimum 20GB recommended)
+- You have write permissions to the directory
+- The path does not contain spaces or special characters that might cause issues
+- When using WSL2, access the path via `/mnt/e/go/go-framework`
 
 ### Step 6: Install Go Development Tools
 
 ```powershell
-# Option 1: Using the provided script (in WSL2)
+# Option 1: Using the provided script (in WSL2) - Recommended
 wsl
+# Navigate to your installation directory
+# For default path:
 cd /mnt/c/Users/YourUsername/workspace/go-platform/go-framework
+# For custom path on E: drive:
+cd /mnt/e/go/go-framework
+
 ./scripts/setup/install-tools.sh
 exit
 
-# Option 2: Manual installation
+# Option 2: Manual installation (in PowerShell)
 go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
 go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 ```
+
+**Path Mapping Between Windows and WSL2:**
+- Windows: `C:\Users\YourUsername\workspace\` → WSL2: `/mnt/c/Users/YourUsername/workspace/`
+- Windows: `E:\go\go-framework` → WSL2: `/mnt/e/go/go-framework`
+- Windows: `D:\projects\` → WSL2: `/mnt/d/projects/`
 
 ### Step 7: Configure Environment Variables
 
@@ -298,7 +342,11 @@ go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 ```powershell
 # In WSL2 (recommended for Docker operations)
 wsl
+# Navigate to your installation directory
+# For C: drive installation:
 cd /mnt/c/Users/YourUsername/workspace/go-platform/go-framework
+# For E: drive installation:
+cd /mnt/e/go/go-framework
 
 # Download Go module dependencies
 cd tools/cli
@@ -309,12 +357,21 @@ cd ../..
 find . -name "go.mod" -execdir go mod download \;
 ```
 
+**Important Notes for Custom Paths:**
+- Always use forward slashes (/) in WSL2 paths
+- Drive letters are accessed via `/mnt/` prefix (e.g., E: becomes /mnt/e)
+- Paths are case-sensitive in WSL2
+- Use `pwd` command in WSL2 to verify your current directory
+
 ### Step 9: Build the Project
 
 ```powershell
-# In WSL2
+# Option 1: In WSL2 (Recommended)
 wsl
-cd /mnt/c/Users/YourUsername/workspace/go-platform/go-framework
+# Navigate to your installation directory
+cd /mnt/c/Users/YourUsername/workspace/go-platform/go-framework  # For C: drive
+# OR
+cd /mnt/e/go/go-framework  # For E: drive
 
 # Build the CLI tool
 cd tools/cli
@@ -323,7 +380,27 @@ cd ../..
 
 # Verify build
 ./bin/saas.exe --help
+
+# Option 2: In PowerShell (Native Windows build)
+# Navigate to your installation directory
+cd C:\Users\YourUsername\workspace\go-platform\go-framework  # For C: drive
+# OR
+cd E:\go\go-framework  # For E: drive
+
+# Build the CLI tool
+cd tools\cli
+go build -o ..\..\bin\saas.exe .
+cd ..\..
+
+# Verify build
+.\bin\saas.exe --help
 ```
+
+**Build Troubleshooting:**
+- If build fails, ensure Go is properly installed: `go version`
+- Check that all dependencies are downloaded: `go mod download`
+- Verify you're in the correct directory: `pwd` (WSL2) or `echo %cd%` (PowerShell)
+- For E: drive builds, ensure the drive is accessible and has sufficient permissions
 
 ---
 
@@ -380,7 +457,10 @@ Available Commands:
 ```powershell
 # In WSL2
 wsl
-cd /mnt/c/Users/YourUsername/workspace/go-platform/go-framework
+# Navigate to your installation directory
+cd /mnt/c/Users/YourUsername/workspace/go-platform/go-framework  # For C: drive
+# OR
+cd /mnt/e/go/go-framework  # For E: drive
 
 # Try to start services
 make start
@@ -391,6 +471,11 @@ make status
 # Stop services
 make stop
 ```
+
+**Notes:**
+- Docker operations should always be run from WSL2 for best performance
+- Ensure Docker Desktop is running before executing these commands
+- The first `make start` may take several minutes to download images
 
 ### 5. Run Tests (Optional)
 
@@ -508,8 +593,19 @@ go test -v ./...
    - Configure Git to use LF:
    ```powershell
    git config --global core.autocrlf false
+   git config --global core.eol lf
    ```
    - Then re-clone the repository
+
+4. **For E: drive or custom paths**:
+   ```bash
+   # In WSL2, check mount options
+   mount | grep /mnt/e
+   
+   # If needed, remount with exec permissions
+   sudo umount /mnt/e
+   sudo mount -t drvfs E: /mnt/e -o metadata,uid=1000,gid=1000,umask=22,fmask=11
+   ```
 
 #### Issue: Port Already in Use
 
@@ -601,6 +697,97 @@ go test -v ./...
 3. **Disable Windows Defender real-time scanning for WSL2 folders**:
    - Add exclusion for: `%LOCALAPPDATA%\Packages\CanonicalGroupLimited*`
 
+4. **For custom paths on different drives (e.g., E:)**:
+   - Performance may vary depending on drive type (SSD vs HDD)
+   - SSD drives will provide significantly better performance
+   - If using an external drive, ensure it's connected via USB 3.0+ or Thunderbolt
+
+#### Issue: Working with Custom Installation Paths (e.g., E:\go\go-framework)
+
+**Scenario:**
+You've installed the framework to a custom path like `E:\go\go-framework` and need to access it properly from both Windows and WSL2.
+
+**Solutions:**
+
+1. **Accessing from PowerShell**:
+   ```powershell
+   # Navigate to custom path
+   cd E:\go\go-framework
+   
+   # Verify location
+   Get-Location
+   
+   # Build CLI tool
+   cd tools\cli
+   go build -o ..\..\bin\saas.exe .
+   ```
+
+2. **Accessing from WSL2**:
+   ```bash
+   # Navigate using /mnt/ prefix
+   cd /mnt/e/go/go-framework
+   
+   # Verify location
+   pwd
+   
+   # Run make commands
+   make build-cli
+   make start
+   ```
+
+3. **Setting up WSL2 for optimal performance with E: drive**:
+   ```bash
+   # Check current mount options
+   mount | grep /mnt/e
+   
+   # If needed, add to /etc/wsl.conf for persistent configuration
+   sudo tee -a /etc/wsl.conf > /dev/null <<EOF
+   [automount]
+   enabled = true
+   options = "metadata,umask=22,fmask=11"
+   mountFsTab = true
+   EOF
+   
+   # Restart WSL2 to apply changes
+   exit
+   # In PowerShell: wsl --shutdown
+   # Then start WSL2 again: wsl
+   ```
+
+4. **Creating shortcuts for easier access**:
+   ```bash
+   # Add to your ~/.bashrc or ~/.zshrc
+   echo 'alias gf="cd /mnt/e/go/go-framework"' >> ~/.bashrc
+   source ~/.bashrc
+   
+   # Now you can quickly navigate
+   gf  # Jumps to /mnt/e/go/go-framework
+   ```
+
+5. **Common path issues and fixes**:
+   ```bash
+   # Issue: "No such file or directory" when path exists in Windows
+   # Solution: Verify drive is mounted
+   ls /mnt/e/
+   
+   # Issue: "Permission denied" errors
+   # Solution: Fix permissions
+   cd /mnt/e/go/go-framework
+   chmod +x scripts/**/*.sh
+   
+   # Issue: Line ending problems (CRLF vs LF)
+   # Solution: Configure Git before cloning
+   git config --global core.autocrlf false
+   git config --global core.eol lf
+   ```
+
+6. **Best practices for custom paths**:
+   - Use paths without spaces or special characters
+   - Prefer short, simple paths (e.g., `E:\go\go-framework` over `E:\My Projects\go framework\`)
+   - Ensure the drive has sufficient free space (minimum 20GB)
+   - Use SSD drives for better performance
+   - Regularly backup your custom installation location
+
 #### Issue: Go Module Download Fails
 
 **Symptoms:**
@@ -661,6 +848,11 @@ Once your environment is set up:
 
 3. **Start the services**:
    ```bash
+   # Navigate to your installation directory first
+   cd /mnt/c/Users/YourUsername/workspace/go-platform/go-framework  # For C: drive
+   # OR
+   cd /mnt/e/go/go-framework  # For E: drive
+   
    make start
    ```
 
@@ -676,7 +868,11 @@ Once your environment is set up:
 
 6. **Try the CLI tool**:
    ```powershell
-   # In PowerShell
+   # In PowerShell - navigate to your installation directory
+   cd C:\Users\YourUsername\workspace\go-platform\go-framework  # For C: drive
+   # OR
+   cd E:\go\go-framework  # For E: drive
+   
    .\bin\saas.exe --help
    .\bin\saas.exe status
    ```
@@ -712,6 +908,10 @@ Once your environment is set up:
 - [Docker Desktop for Windows](https://docs.docker.com/desktop/windows/)
 - [Go Documentation](https://go.dev/doc/)
 - [Git for Windows](https://git-scm.com/download/win)
+
+### Validation and Testing
+
+- [Windows Installation Validation Checklist](WINDOWS_VALIDATION_CHECKLIST.md) - **Use this to verify your installation**
 
 ### Community Resources
 

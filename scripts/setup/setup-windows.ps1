@@ -28,6 +28,8 @@
 #   .\setup-windows.ps1
 #   .\setup-windows.ps1 -SkipTests
 #   .\setup-windows.ps1 -Verbose
+#   .\setup-windows.ps1 -InstallPath "E:\go\go-framework"
+#   .\setup-windows.ps1 -InstallPath "C:\Projects\go-framework" -SkipTests
 #
 # Author: VHV Corp
 # Last Modified: 2024-12-28
@@ -37,7 +39,8 @@
 param(
     [switch]$SkipTests,
     [switch]$SkipBuild,
-    [switch]$Force
+    [switch]$Force,
+    [string]$InstallPath = ""
 )
 
 # Configuration
@@ -49,6 +52,7 @@ $Script:RecommendedGoVersion = "1.25.0"
 $Script:RequiredGitVersion = "2.0.0"
 $Script:RequiredDockerVersion = "20.0.0"
 $Script:MinWindowsBuild = 19041
+$Script:InstallPath = ""
 
 # Colors for output
 function Write-ColorOutput {
@@ -423,11 +427,30 @@ function Install-GoTools {
     return $true
 }
 
+# Get project root directory
+function Get-ProjectRoot {
+    if ($Script:InstallPath -and (Test-Path $Script:InstallPath)) {
+        return $Script:InstallPath
+    }
+    
+    # Try to detect based on script location
+    $scriptPath = $PSScriptRoot
+    if ($scriptPath -match "scripts[\\/]setup") {
+        return Split-Path (Split-Path $scriptPath -Parent) -Parent
+    }
+    
+    # Fallback to current directory
+    return Get-Location
+}
+
 # Setup environment configuration
 function Set-ProjectEnvironment {
     Write-SectionHeader "Setting Up Project Environment"
     
-    $dockerDir = Join-Path $PSScriptRoot "..\..\docker"
+    $projectRoot = Get-ProjectRoot
+    Write-ColorOutput "Project root: $projectRoot" "Info"
+    
+    $dockerDir = Join-Path $projectRoot "docker"
     $envFile = Join-Path $dockerDir ".env"
     $envExample = Join-Path $dockerDir ".env.example"
     
@@ -451,7 +474,8 @@ function Set-ProjectEnvironment {
 function Install-Dependencies {
     Write-SectionHeader "Installing Project Dependencies"
     
-    $cliDir = Join-Path $PSScriptRoot "..\..\tools\cli"
+    $projectRoot = Get-ProjectRoot
+    $cliDir = Join-Path $projectRoot "tools\cli"
     
     if (Test-Path $cliDir) {
         Write-ColorOutput "Downloading Go module dependencies..." "Info"
@@ -475,7 +499,7 @@ function Install-Dependencies {
             Pop-Location
         }
     } else {
-        Write-ColorOutput "CLI directory not found, skipping dependency installation" "Warning"
+        Write-ColorOutput "CLI directory not found at $cliDir, skipping dependency installation" "Warning"
     }
     
     return $true
@@ -490,8 +514,9 @@ function Build-Project {
         return $true
     }
     
-    $cliDir = Join-Path $PSScriptRoot "..\..\tools\cli"
-    $binDir = Join-Path $PSScriptRoot "..\..\bin"
+    $projectRoot = Get-ProjectRoot
+    $cliDir = Join-Path $projectRoot "tools\cli"
+    $binDir = Join-Path $projectRoot "bin"
     
     if (-not (Test-Path $binDir)) {
         New-Item -ItemType Directory -Path $binDir | Out-Null
@@ -499,6 +524,8 @@ function Build-Project {
     
     if (Test-Path $cliDir) {
         Write-ColorOutput "Building CLI tool..." "Info"
+        Write-ColorOutput "CLI directory: $cliDir" "Info"
+        Write-ColorOutput "Output directory: $binDir" "Info"
         
         Push-Location $cliDir
         try {
@@ -520,7 +547,7 @@ function Build-Project {
             Pop-Location
         }
     } else {
-        Write-ColorOutput "CLI directory not found, skipping build" "Warning"
+        Write-ColorOutput "CLI directory not found at $cliDir, skipping build" "Warning"
         return $false
     }
 }
@@ -534,7 +561,8 @@ function Invoke-Tests {
         return $true
     }
 
-    $cliDir = Join-Path $PSScriptRoot "..\..\tools\cli"
+    $projectRoot = Get-ProjectRoot
+    $cliDir = Join-Path $projectRoot "tools\cli"
 
     if (Test-Path $cliDir) {
         Write-ColorOutput "Running unit tests..." "Info"
@@ -557,7 +585,7 @@ function Invoke-Tests {
             Pop-Location
         }
     } else {
-        Write-ColorOutput "CLI directory not found, skipping tests" "Warning"
+        Write-ColorOutput "CLI directory not found at $cliDir, skipping tests" "Warning"
         return $true
     }
 }
@@ -569,6 +597,9 @@ function Show-Summary {
     )
     
     Write-SectionHeader "Setup Summary"
+    
+    $projectRoot = Get-ProjectRoot
+    Write-ColorOutput "Installation location: $projectRoot" "Info"
     
     Write-Host ""
     foreach ($key in $Results.Keys) {
@@ -592,10 +623,20 @@ function Show-Summary {
         Write-ColorOutput "Next steps:" "Info"
         Write-Host "  1. Read the documentation: docs\WINDOWS_SETUP.md" -ForegroundColor Yellow
         Write-Host "  2. Start using WSL2 for development: wsl" -ForegroundColor Yellow
-        Write-Host "  3. Navigate to project: cd /mnt/c/Users/$env:USERNAME/..." -ForegroundColor Yellow
+        
+        # Provide path-specific instructions
+        $wslPath = $projectRoot -replace '\\', '/' -replace '^([A-Za-z]):', '/mnt/$1' -replace '/mnt/([A-Za-z])', { '/mnt/' + $_.Groups[1].Value.ToLower() }
+        Write-Host "  3. Navigate to project in WSL2: cd $wslPath" -ForegroundColor Yellow
         Write-Host "  4. Run services: make start" -ForegroundColor Yellow
         Write-Host "  5. Check status: make status" -ForegroundColor Yellow
         Write-Host ""
+        
+        if ($projectRoot -match '^[D-Z]:') {
+            Write-ColorOutput "Note: You're using a custom drive ($($projectRoot[0]):). Ensure:" "Info"
+            Write-Host "  - The drive is always available when working" -ForegroundColor Cyan
+            Write-Host "  - WSL2 can access it via $wslPath" -ForegroundColor Cyan
+            Write-Host ""
+        }
     } else {
         Write-ColorOutput "⚠ Setup completed with some issues" "Warning"
         Write-Host ""
@@ -619,6 +660,37 @@ function Main {
     
     Write-ColorOutput "This script will set up your development environment" "Info"
     Write-ColorOutput "Estimated time: 20-45 minutes" "Info"
+    
+    # Display installation path
+    if ($InstallPath) {
+        Write-ColorOutput "Custom installation path: $InstallPath" "Info"
+        
+        # Validate the path
+        if (-not (Test-Path $InstallPath)) {
+            Write-ColorOutput "Warning: Installation path does not exist" "Warning"
+            $create = Read-Host "Create directory? (y/n)"
+            if ($create -eq 'y' -or $create -eq 'Y') {
+                try {
+                    New-Item -ItemType Directory -Path $InstallPath -Force | Out-Null
+                    Write-ColorOutput "Directory created successfully" "Success"
+                } catch {
+                    Write-ColorOutput "Failed to create directory: $_" "Error"
+                    return
+                }
+            } else {
+                Write-ColorOutput "Cannot continue without valid installation path" "Error"
+                return
+            }
+        }
+        
+        # Store for use in functions
+        $Script:InstallPath = $InstallPath
+    } else {
+        $currentPath = Get-Location
+        Write-ColorOutput "Using current directory: $currentPath" "Info"
+        $Script:InstallPath = $currentPath
+    }
+    
     Write-Host ""
     
     # Check if running as admin

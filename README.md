@@ -35,7 +35,7 @@ make status
 make info
 ```
 
-**Windows Users:** See the [Windows Setup Guide](docs/WINDOWS_SETUP.md) for automated setup using PowerShell.
+**Windows Users:** See the [Windows Setup Guide](docs/WINDOWS_SETUP.md) for automated setup using PowerShell. Supports custom installation paths (e.g., `E:\go\go-framework`).
 
 That's it! Your complete SaaS platform is now running locally.
 
