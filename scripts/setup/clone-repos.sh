@@ -58,6 +58,8 @@ WORKSPACE_DIR="${WORKSPACE_DIR:-$HOME/workspace/go-platform}"
 GO_DIR="${WORKSPACE_DIR}/go"
 
 echo "📂 Cloning repositories to ${GO_DIR}..."
+echo "GitHub organization: ${GITHUB_ORG}"
+echo ""
 mkdir -p "${GO_DIR}"
 cd "${GO_DIR}"
 
@@ -73,10 +75,6 @@ repos=(
     "go-notification-service"
     "go-system-config-service"
 )
-
-echo "Cloning repositories to ${GO_DIR}..."
-echo "GitHub organization: ${GITHUB_ORG}"
-echo ""
 
 for repo in "${repos[@]}"; do
     if [ -d "$repo" ]; then
@@ -100,18 +98,8 @@ echo "${WORKSPACE_DIR}/"
 echo "└── go/"
 tree -L 1 "${GO_DIR}" 2>/dev/null || {
     if [ -d "${GO_DIR}" ] && [ "$(ls -A "${GO_DIR}" 2>/dev/null)" ]; then
-        # Format directory listing as tree structure:
-        # - All items except last get "├──" prefix
-        # - Last item gets "└──" prefix
-        # awk logic: buffer current line, print previous line with ├──,
-        # in END block print last line with └──
-        ls -1 "${GO_DIR}" | awk '{
-            if (NR > 1) print prev
-            prev = "    ├── " $0
-        }
-        END {
-            if (prev != "") print "    └── " substr(prev, 9)
-        }'
+        # Format directory listing as tree: all items get ├── except last gets └──
+        ls -1 "${GO_DIR}" | sed 's/^/    ├── /' | sed '$ s/├──/└──/'
     else
         echo "    (empty)"
     fi
