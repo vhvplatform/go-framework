@@ -965,6 +965,35 @@ VS Code works great with WSL2:
 - Use WSL2 terminal for all development commands
 - Use Windows tools (VS Code, browsers) for UI
 
+### Environment Variables for Custom Paths
+
+If you've installed to a custom path like `E:\go\go-framework`, you may want to set environment variables:
+
+**In WSL2 (add to ~/.bashrc):**
+```bash
+# Add to the end of ~/.bashrc
+export WORKSPACE_DIR="/mnt/e/go"
+export GO_FRAMEWORK_DIR="/mnt/e/go/go-framework"
+
+# Reload
+source ~/.bashrc
+```
+
+**In PowerShell (add to profile):**
+```powershell
+# Edit profile
+notepad $PROFILE
+
+# Add these lines:
+$env:WORKSPACE_DIR = "E:\go"
+$env:GO_FRAMEWORK_DIR = "E:\go\go-framework"
+
+# Reload
+. $PROFILE
+```
+
+**Note:** Most make commands work from the current directory and don't require these environment variables, but they can be useful for custom scripts.
+
 ---
 
 **Need Help?**

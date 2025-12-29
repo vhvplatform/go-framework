@@ -64,6 +64,7 @@ That's it! Your complete SaaS platform is now running locally.
 
 - [Getting Started](docs/GETTING_STARTED.md) - Detailed setup guide
 - [Windows Setup Guide](docs/WINDOWS_SETUP.md) - Windows-specific setup instructions
+- [Windows Testing Guide](docs/WINDOWS_TESTING_GUIDE.md) - Testing Windows installations
 - [Kubernetes Deployment](docs/KUBERNETES_DEPLOYMENT.md) - Deploy to Kubernetes cluster
 - [Local Development](docs/LOCAL_DEVELOPMENT.md) - Development workflow
 - [Testing Guide](docs/TESTING.md) - How to run tests
