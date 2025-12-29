@@ -106,7 +106,13 @@ tree -L 2 "${WORKSPACE_DIR}" 2>/dev/null || {
     echo "├── go-infrastructure/"
     echo "└── go/"
     if [ -d "${GO_DIR}" ] && [ "$(ls -A "${GO_DIR}" 2>/dev/null)" ]; then
-        ls -1 "${GO_DIR}" | awk 'NR > 1 {print prev} {prev = "    ├── " $0} END {print "    └── " substr(prev, 9)}'
+        ls -1 "${GO_DIR}" | awk '{
+            if (NR > 1) print prev
+            prev = "    ├── " $0
+        }
+        END {
+            if (prev != "") print "    └── " substr(prev, 9)
+        }'
     else
         echo "    (empty)"
     fi
