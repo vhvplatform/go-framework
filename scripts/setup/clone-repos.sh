@@ -117,6 +117,11 @@ tree -L 2 "${WORKSPACE_DIR}" 2>/dev/null || {
     echo "├── go-infrastructure/"
     echo "└── go/"
     if [ -d "${GO_DIR}" ] && [ "$(ls -A "${GO_DIR}" 2>/dev/null)" ]; then
+        # Format directory listing as tree structure:
+        # - All items except last get "├──" prefix
+        # - Last item gets "└──" prefix
+        # awk logic: buffer current line, print previous line with ├──,
+        # in END block print last line with └──
         ls -1 "${GO_DIR}" | awk '{
             if (NR > 1) print prev
             prev = "    ├── " $0
