@@ -146,6 +146,72 @@ make clean-all  # Includes volumes
 
 ---
 
+### Docker Build Fails: "go.mod not found" or "go.sum not found"
+
+**Symptoms:**
+```
+=> ERROR [builder 4/7] COPY go.mod go.sum ./
+failed to compute cache key: "/go.sum": not found
+```
+
+**Cause:**
+Service repositories are not cloned or are in the wrong directory structure.
+
+**Solution:**
+
+1. **Verify workspace structure:**
+```bash
+# Navigate to parent directory (e.g., ~/workspace/go-platform/go or E:\go)
+cd /path/to/parent
+
+# List directories - you should see all service repos as siblings
+ls -la
+# Expected output:
+# go-framework/
+# go-api-gateway/
+# go-auth-service/
+# go-user-service/
+# go-tenant-service/
+# go-notification-service/
+# go-system-config-service/
+# go-infrastructure/
+# go-shared/
+```
+
+2. **Clone missing repositories:**
+```bash
+# Option 1: Use automated script
+cd go-framework
+make setup-repos
+
+# Option 2: Clone manually
+cd ..  # Go to parent directory
+git clone https://github.com/vhvplatform/go-user-service.git
+git clone https://github.com/vhvplatform/go-tenant-service.git
+git clone https://github.com/vhvplatform/go-notification-service.git
+git clone https://github.com/vhvplatform/go-api-gateway.git
+git clone https://github.com/vhvplatform/go-auth-service.git
+git clone https://github.com/vhvplatform/go-system-config-service.git
+```
+
+3. **Verify Dockerfile exists in each service:**
+```bash
+# Check if Dockerfiles exist
+ls -la go-user-service/Dockerfile
+ls -la go-tenant-service/Dockerfile
+# etc.
+```
+
+4. **Retry Docker build:**
+```bash
+cd go-framework
+make start
+```
+
+**Note:** The docker-compose.yml uses each service repository as the build context (e.g., `context: ../../go-user-service`). This means Docker looks for files relative to that service's root directory. All service repositories must be cloned at the same directory level as `go-framework`.
+
+---
+
 ### Docker Containers Keep Restarting
 
 **Symptoms:**
