@@ -2,40 +2,16 @@
 
 This directory contains Docker Compose configurations for local development of the SaaS Platform.
 
-## Prerequisites
+## Quick Start (Default: Mock Services)
 
-Before starting services, ensure you have:
-
-1. **Cloned service repositories**: The Docker Compose configuration expects service repositories to be cloned in the workspace directory. Run `make setup-repos` from the go-framework directory to clone all required services.
-
-2. **Workspace structure**: Your workspace should be organized as follows:
-   ```
-   ~/workspace/go-platform/          # Workspace directory
-   └── go/                           # All repositories directory
-       ├── go-framework/             # This repository
-       │   └── docker/               # Docker configs (you are here)
-       ├── go-infrastructure/        # Infrastructure code
-       ├── go-shared/                # Shared library
-       ├── go-api-gateway/           # Cloned service repo
-       ├── go-auth-service/          # Cloned service repo
-       ├── go-user-service/          # Cloned service repo
-       ├── go-tenant-service/        # Cloned service repo
-       ├── go-notification-service/  # Cloned service repo
-       └── go-system-config-service/ # Cloned service repo
-   ```
-
-## Quick Start
+The docker-compose.yml now uses lightweight mock services by default, allowing you to start the framework immediately without cloning individual service repositories:
 
 ```bash
-# From the workspace root, clone all service repositories (first time only)
-cd ~/workspace/go-platform/go-framework
-make setup-repos
-
 # Copy environment template
 cd docker
 cp .env.example .env
 
-# Start all services
+# Start all services (uses mock services)
 docker-compose up -d
 
 # Check service status
@@ -48,6 +24,70 @@ docker-compose logs -f
 docker-compose down
 ```
 
+## Using Full Service Implementations
+
+For development with full service implementations, you have two options:
+
+### Option 1: Use docker-compose.override.yml (Recommended)
+
+Create a `docker-compose.override.yml` file to point to full service repositories:
+
+```yaml
+services:
+  api-gateway:
+    build:
+      context: ../../go-api-gateway
+  auth-service:
+    build:
+      context: ../../go-auth-service
+  # ... repeat for other services
+```
+
+Then clone the service repositories and start:
+
+```bash
+# Clone all service repositories
+cd ~/workspace/go-platform/go-framework
+make setup-repos
+
+# Start services (automatically uses override if it exists)
+cd docker
+docker-compose up -d
+```
+
+### Option 2: Modify docker-compose.yml
+
+Directly modify the build contexts in docker-compose.yml to point to full service directories.
+
+## Workspace Structure
+
+### Default (Mock Services)
+```
+go-framework/
+├── docker/              # Docker configs
+└── mocks/              # Mock service implementations
+    ├── api-gateway/
+    ├── auth-service/
+    └── ...
+```
+
+### With Full Services
+```
+~/workspace/go-platform/          # Workspace directory
+└── go/                           # All repositories directory
+    ├── go-framework/             # This repository
+    │   ├── docker/               # Docker configs
+    │   └── mocks/                # Mock services (fallback)
+    ├── go-infrastructure/        # Infrastructure code
+    ├── go-shared/                # Shared library
+    ├── go-api-gateway/           # Full service repo
+    ├── go-auth-service/          # Full service repo
+    ├── go-user-service/          # Full service repo
+    ├── go-tenant-service/        # Full service repo
+    ├── go-notification-service/  # Full service repo
+    └── go-system-config-service/ # Full service repo
+```
+
 ## Configurations
 
 ### docker-compose.yml
@@ -56,7 +96,7 @@ Main configuration file with:
 - All microservices (API Gateway, Auth, User, Tenant, Notification, System Config)
 - Observability stack (Prometheus, Grafana, Jaeger)
 
-**Build Context:** Each microservice uses its own repository as the build context (e.g., `../../go-user-service`), which allows Dockerfiles to use standard patterns like `COPY go.mod go.sum ./` without needing to specify subdirectories. This requires all service repositories to be cloned as siblings to the `go-framework` repository.
+**Build Context:** By default, each microservice uses mock implementations from `../mocks/<service-name>`. These can be overridden to use full service repositories.
 
 ### docker-compose.dev.yml
 Development overrides with:
@@ -154,10 +194,25 @@ Access Grafana at `http://localhost:3000` with credentials:
 
 ## Troubleshooting
 
-### Build fails with "go.mod: not found" or "go.sum: not found"
-This error occurs when service repositories are not cloned or are in the wrong location.
+### Services Using Mock vs Full Implementations
 
-**Solution:**
+By default, docker-compose.yml uses lightweight mock services that respond to health checks but don't implement full business logic. 
+
+**To use full service implementations:**
+1. Clone service repositories: `make setup-repos`
+2. Create `docker-compose.override.yml` with full service build contexts
+3. Restart: `docker-compose up -d --build`
+
+**To verify which services are running:**
+```bash
+docker-compose ps
+docker-compose logs api-gateway  # Check if it's mock or full implementation
+```
+
+### Build fails with "go.mod: not found" or "go.sum: not found"
+This error only occurs when using full service implementations. The mock services are self-contained.
+
+**Solution (for full services):**
 ```bash
 # Ensure all service repositories are cloned as siblings to go-framework
 cd /path/to/parent/directory  # e.g., ~/workspace/go-platform/go or E:\go
@@ -175,14 +230,7 @@ ls -la
 # If repositories are missing, clone them:
 cd go-framework
 make setup-repos
-
-# Or clone manually:
-cd ..
-git clone https://github.com/vhvplatform/go-user-service.git
-# etc.
 ```
-
-The docker-compose.yml uses each service's directory as the build context (e.g., `../../go-user-service`), so all service repositories must be at the same directory level as `go-framework`.
 
 ### Services won't start
 ```bash
