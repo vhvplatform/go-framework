@@ -6,12 +6,12 @@ bin/
 *.dylib
 
 # Mock service binaries
-mocks/*/api-gateway
-mocks/*/auth-service
-mocks/*/user-service
-mocks/*/tenant-service
-mocks/*/notification-service
-mocks/*/system-config-service
+mocks/api-gateway/api-gateway
+mocks/auth-service/auth-service
+mocks/user-service/user-service
+mocks/tenant-service/tenant-service
+mocks/notification-service/notification-service
+mocks/system-config-service/system-config-service
 
 # Backups
 backups/

@@ -71,30 +71,30 @@ create-service: ## Create new service (SERVICE=name, see docs/NEW_SERVICE_GUIDE.
 
 start: ## Start all services
 	@echo "${GREEN}🚀 Starting all services...${RESET}"
-	@cd docker && docker-compose up -d
+	@cd docker && docker compose up -d
 	@./scripts/dev/wait-for-services.sh
 	@echo "${GREEN}✅ All services started!${RESET}"
 	@make status
 
 start-dev: ## Start with development overrides (hot-reload)
 	@echo "${GREEN}🚀 Starting services in development mode...${RESET}"
-	@cd docker && docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+	@cd docker && docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 	@./scripts/dev/wait-for-services.sh
 	@echo "${GREEN}✅ Development environment started!${RESET}"
 
 start-observability: ## Start only observability stack
 	@echo "${GREEN}📊 Starting observability stack...${RESET}"
-	@cd docker && docker-compose up -d prometheus grafana jaeger
+	@cd docker && docker compose up -d prometheus grafana jaeger
 	@echo "${GREEN}✅ Observability stack started!${RESET}"
 
 stop: ## Stop all services
 	@echo "${YELLOW}⏸️  Stopping all services...${RESET}"
-	@cd docker && docker-compose down
+	@cd docker && docker compose down
 	@echo "${GREEN}✅ All services stopped!${RESET}"
 
 stop-keep-data: ## Stop services but keep data volumes
 	@echo "${YELLOW}⏸️  Stopping services (keeping data)...${RESET}"
-	@cd docker && docker-compose stop
+	@cd docker && docker compose stop
 	@echo "${GREEN}✅ Services stopped!${RESET}"
 
 restart: stop start ## Restart all services
@@ -116,7 +116,7 @@ rebuild: ## Rebuild and restart specific service (SERVICE=name)
 	@./scripts/dev/rebuild.sh $(SERVICE)
 
 logs: ## View logs from all services
-	@cd docker && docker-compose logs -f
+	@cd docker && docker compose logs -f
 
 logs-service: ## View logs from specific service (SERVICE=name)
 	@if [ -z "$(SERVICE)" ]; then \
@@ -124,7 +124,7 @@ logs-service: ## View logs from specific service (SERVICE=name)
 		echo "Usage: make logs-service SERVICE=auth-service"; \
 		exit 1; \
 	fi
-	@cd docker && docker-compose logs -f $(SERVICE)
+	@cd docker && docker compose logs -f $(SERVICE)
 
 shell: ## Access service shell (SERVICE=name)
 	@if [ -z "$(SERVICE)" ]; then \
@@ -138,7 +138,7 @@ status: ## Check status of all services
 	@./scripts/utilities/check-health.sh
 
 ps: ## Show running containers
-	@cd docker && docker-compose ps
+	@cd docker && docker compose ps
 
 ## Database Commands
 db-seed: ## Seed database with test data
@@ -262,7 +262,7 @@ clean-all: ## Clean everything including volumes (WARNING: deletes data)
 	@read -p "Are you sure? [y/N] " -n 1 -r; \
 	echo; \
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		cd docker && docker-compose down -v; \
+		cd docker && docker compose down -v; \
 		echo "${GREEN}✅ Cleaned!${RESET}"; \
 	else \
 		echo "${YELLOW}Cancelled.${RESET}"; \
