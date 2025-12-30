@@ -59,10 +59,10 @@ services:
     networks:
       - go-network
 
-  # Microservices (using local builds by default, can be overridden)
+  # Microservices (using mock services by default, can be overridden)
   api-gateway:
     build:
-      context: ../../go-api-gateway
+      context: ../mocks/api-gateway
       dockerfile: Dockerfile
     container_name: go-api-gateway
     ports:
@@ -92,7 +92,7 @@ services:
 
   auth-service:
     build:
-      context: ../../go-auth-service
+      context: ../mocks/auth-service
       dockerfile: Dockerfile
     container_name: go-auth-service
     ports:
@@ -114,7 +114,7 @@ services:
 
   user-service:
     build:
-      context: ../../go-user-service
+      context: ../mocks/user-service
       dockerfile: Dockerfile
     container_name: go-user-service
     ports:
@@ -131,7 +131,7 @@ services:
 
   tenant-service:
     build:
-      context: ../../go-tenant-service
+      context: ../mocks/tenant-service
       dockerfile: Dockerfile
     container_name: go-tenant-service
     ports:
@@ -148,7 +148,7 @@ services:
 
   notification-service:
     build:
-      context: ../../go-notification-service
+      context: ../mocks/notification-service
       dockerfile: Dockerfile
     container_name: go-notification-service
     ports:
@@ -171,7 +171,7 @@ services:
 
   system-config-service:
     build:
-      context: ../../go-system-config-service
+      context: ../mocks/system-config-service
       dockerfile: Dockerfile
     container_name: go-system-config-service
     ports:
