@@ -4,28 +4,28 @@ Technical architecture and design documentation for the go-framework repository 
 
 ## 📊 Visual Diagrams
 
-For visual learners, we provide PlantUML diagrams showing the system architecture:
+For visual learners, we provide Mermaid diagrams showing the system architecture:
 
-- **[System Architecture Diagram](diagrams/system-architecture.puml)** - Complete microservices architecture
-- **[Installation Flow Diagram](diagrams/installation-flow.puml)** - Step-by-step setup process
-- **[Data Flow Diagram](diagrams/data-flow.puml)** - Request/response sequences
+- **[System Architecture Diagram](diagrams/system-architecture.mmd)** - Complete microservices architecture
+- **[Installation Flow Diagram](diagrams/installation-flow.mmd)** - Step-by-step setup process
+- **[Data Flow Diagram](diagrams/data-flow.mmd)** - Request/response sequences
 
-To view these diagrams:
+These diagrams are in Mermaid format and will render automatically on GitHub. To view them locally:
+
 ```bash
-# Install PlantUML
-brew install plantuml  # macOS
-sudo apt-get install plantuml  # Linux
+# Install Mermaid CLI
+npm install -g @mermaid-js/mermaid-cli
 
 # Generate images
 cd docs/diagrams
-plantuml *.puml
+for file in *.mmd; do mmdc -i "$file" -o "${file%.mmd}.png"; done
 
 # View the generated PNG files
 open *.png  # macOS
 xdg-open *.png  # Linux
 ```
 
-Or view online: Copy the `.puml` file content to [PlantUML Web Server](http://www.plantuml.com/plantuml/uml/)
+Or view online: Copy the `.mmd` file content to [Mermaid Live Editor](https://mermaid.live/)
 
 See [diagrams/README.md](diagrams/README.md) for detailed instructions.
 
@@ -75,7 +75,7 @@ cd go-framework
   --jwt-secret "my-custom-secret"
 ```
 
-See [Installation Flow Diagram](diagrams/installation-flow.puml) for the complete setup process visualization.
+See [Installation Flow Diagram](diagrams/installation-flow.mmd) for the complete setup process visualization.
 
 ### Core Principles
 

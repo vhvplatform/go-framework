@@ -1,0 +1,120 @@
+%% Developer Workflow Using go-framework
+%% Converted from PlantUML to Mermaid
+
+flowchart TD
+    Start([Start])
+    
+    %% Initial Setup Phase
+    Start --> Setup1[Clone go-framework repository]
+    
+    subgraph InitialSetup["Initial Setup (One-time)"]
+        direction TB
+        Setup1 --> Setup2[Run make setup<br/><br/>Installs:<br/>Docker Desktop<br/>Go 1.25+<br/>kubectl, Helm<br/>Development tools]
+        Setup2 --> Setup3[Clone service repositories<br/><br/>Workspace structure:<br/>~/workspace/go-platform/<br/>├── go-framework/<br/>├── auth-service/<br/>├── user-service/<br/>└── ...]
+        Setup3 --> Setup4[Configure environment variables<br/><br/>Edit docker/.env<br/>JWT_SECRET<br/>Database settings<br/>SMTP config]
+    end
+    
+    %% Daily Development Phase
+    Setup4 --> Daily1[Start all services with make start<br/><br/>Starts:<br/>All microservices<br/>MongoDB, Redis, RabbitMQ<br/>Prometheus, Grafana, Jaeger]
+    
+    subgraph DailyDev["Daily Development"]
+        direction TB
+        Daily1 --> Daily2[Check service status<br/>make status<br/>Shows health of all services]
+        Daily2 --> HealthCheck{All services healthy?}
+        HealthCheck -->|Yes| Daily3[Begin development work]
+        HealthCheck -->|No| Daily4[View logs: make logs-service SERVICE=xxx]
+        Daily4 --> Daily5[Debug and fix issues]
+        Daily5 --> Daily6[Restart service: make restart-service SERVICE=xxx]
+        Daily6 --> Daily3
+    end
+    
+    %% Development Cycle
+    Daily3 --> DevCycle1[Edit code in VS Code]
+    
+    subgraph DevCycle["Development Cycle"]
+        direction TB
+        DevCycle1 --> HotReload{Using hot-reload?}
+        HotReload -->|Yes| DevCycle2[Code changes auto-reload<br/>Start with: make start-dev]
+        HotReload -->|No| DevCycle3[Rebuild service<br/>make rebuild SERVICE=xxx]
+        DevCycle2 --> DevCycle4[Test locally]
+        DevCycle3 --> DevCycle4
+        
+        DevCycle4 --> APITest{API testing needed?}
+        APITest -->|Yes| DevCycle5[Use Postman collections<br/>Collections in postman/<br/>Or: make test-api]
+        APITest -->|No| DevCycle6
+        DevCycle5 --> DevCycle6[Run unit tests<br/>make test-unit]
+        
+        DevCycle6 --> TestsPass{Tests pass?}
+        TestsPass -->|No| DevCycle7[Fix code and tests]
+        DevCycle7 --> DevCycle1
+        TestsPass -->|Yes| FeatureComplete{Feature complete?}
+        FeatureComplete -->|No| DevCycle1
+    end
+    
+    %% Integration Testing Phase
+    FeatureComplete -->|Yes| IntTest1[Seed test data<br/>make db-seed]
+    
+    subgraph IntTesting["Integration Testing"]
+        direction TB
+        IntTest1 --> IntTest2[Run integration tests<br/>make test-integration]
+        IntTest2 --> IntTest3[Run E2E tests<br/>make test-e2e]
+        IntTest3 --> LoadTest{Need load testing?}
+        LoadTest -->|Yes| IntTest4[Run load tests<br/>make test-load]
+        LoadTest -->|No| IntTest5[Continue]
+        IntTest4 --> IntTest5
+    end
+    
+    %% Monitoring & Debugging
+    IntTest5 --> Monitor1{Issues detected?}
+    
+    subgraph Monitoring["Monitoring & Debugging"]
+        direction TB
+        Monitor1 -->|Yes| Monitor2[Open Grafana dashboards<br/>make open-grafana<br/>View metrics<br/>Check resource usage]
+        Monitor2 --> Monitor3[Check distributed tracing<br/>make open-jaeger<br/>Trace requests<br/>Find bottlenecks]
+        Monitor3 --> Monitor4[View service logs<br/>make logs-service SERVICE=xxx]
+        Monitor4 --> Monitor5[Access service shell if needed<br/>make shell SERVICE=xxx]
+        Monitor5 --> Monitor6[Continue]
+        Monitor1 -->|No| Monitor6
+    end
+    
+    %% Deployment Phase
+    Monitor6 --> Deploy1[Commit and push changes]
+    
+    subgraph Deployment["Deployment"]
+        direction TB
+        Deploy1 --> DeployLocal{Deploy to local K8s?}
+        DeployLocal -->|Yes| Deploy2[Deploy to local cluster<br/>make deploy-local<br/>Uses minikube/kind]
+        Deploy2 --> Deploy3[Setup port forwarding<br/>make port-forward]
+        Deploy3 --> DeployDev
+        DeployLocal -->|No| DeployDev{Deploy to dev environment?}
+        DeployDev -->|Yes| Deploy4[Deploy to development<br/>make deploy-dev]
+        DeployDev -->|No| Deploy5[Continue]
+        Deploy4 --> Deploy5
+    end
+    
+    %% Cleanup Phase
+    Deploy5 --> Cleanup1[Stop services<br/>make stop<br/>Keeps data volumes]
+    
+    subgraph Cleanup["Daily Cleanup"]
+        direction TB
+        Cleanup1 --> FreshStart{Need fresh start tomorrow?}
+        FreshStart -->|Yes| Cleanup2[Clean all data<br/>make clean-all<br/>Deletes volumes]
+        FreshStart -->|No| Cleanup3[Done]
+        Cleanup2 --> Cleanup3
+    end
+    
+    Cleanup3 --> End([End])
+    
+    %% Styling
+    classDef primaryStyle fill:#4A90E2,stroke:#333,stroke-width:2px,color:#fff
+    classDef secondaryStyle fill:#50C878,stroke:#333,stroke-width:2px,color:#fff
+    classDef tertiaryStyle fill:#FFB84D,stroke:#333,stroke-width:2px,color:#000
+    classDef infoStyle fill:#9B59B6,stroke:#333,stroke-width:2px,color:#fff
+    
+    class InitialSetup primaryStyle
+    class DailyDev secondaryStyle
+    class DevCycle tertiaryStyle
+    class IntTesting infoStyle
+    class Monitoring primaryStyle
+    class Deployment secondaryStyle
+    class Cleanup tertiaryStyle

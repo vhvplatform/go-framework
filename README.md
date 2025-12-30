@@ -483,7 +483,7 @@ saas deploy local   # Deploy to local Kubernetes
 1. Check [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
 2. View service logs: `make logs-service SERVICE=<name>`
 3. Check service health: `make status`
-4. Review [PlantUML diagrams](docs/diagrams/) for architecture understanding
+4. Review [Mermaid diagrams](docs/diagrams/) for architecture understanding
 5. Read the [comprehensive documentation](docs/)
 6. Open an issue on GitHub
 
