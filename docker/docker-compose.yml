@@ -76,11 +76,16 @@ services:
       SYSTEM_CONFIG_SERVICE_URL: system-config-service:50055
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
     depends_on:
-      - auth-service
-      - user-service
-      - tenant-service
-      - notification-service
-      - system-config-service
+      auth-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      tenant-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      system-config-service:
+        condition: service_started
     networks:
       - go-network
     restart: unless-stopped
@@ -99,8 +104,10 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - go-network
     restart: unless-stopped
@@ -116,7 +123,8 @@ services:
     environment:
       <<: *common-variables
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - go-network
     restart: unless-stopped
@@ -132,7 +140,8 @@ services:
     environment:
       <<: *common-variables
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - go-network
     restart: unless-stopped
@@ -152,8 +161,10 @@ services:
       SMTP_USERNAME: ${SMTP_USERNAME:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
     depends_on:
-      - mongodb
-      - rabbitmq
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - go-network
     restart: unless-stopped
@@ -171,8 +182,10 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
     depends_on:
-      - mongodb
-      - redis
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - go-network
     restart: unless-stopped
@@ -208,7 +221,8 @@ services:
       - ./configs/grafana/provisioning:/etc/grafana/provisioning
       - grafana_data:/var/lib/grafana
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_started
     networks:
       - go-network
     restart: unless-stopped

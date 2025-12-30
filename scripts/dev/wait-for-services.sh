@@ -41,9 +41,9 @@ MAX_WAIT=120  # Maximum wait time in seconds
 SLEEP_INTERVAL=5
 
 services=(
-    "mongodb:27017"
-    "redis:6379"
-    "rabbitmq:5672"
+    "localhost:27017"
+    "localhost:6379"
+    "localhost:5672"
 )
 
 wait_for_service() {
