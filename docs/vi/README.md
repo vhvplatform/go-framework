@@ -771,31 +771,45 @@ dlv debug cmd/server/main.go
 
 ## 📊 Sơ Đồ Hệ Thống
 
-### Xem Sơ Đồ PlantUML
+### Xem Sơ Đồ Mermaid
 
-Có 3 sơ đồ kiến trúc:
+Có 6 sơ đồ kiến trúc (được chuyển đổi từ PlantUML sang Mermaid format):
 
-1. **system-architecture.puml** - Kiến trúc tổng thể
-2. **installation-flow.puml** - Quy trình cài đặt
-3. **data-flow.puml** - Luồng dữ liệu
+1. **system-architecture.mmd** - Kiến trúc tổng thể
+2. **installation-flow.mmd** - Quy trình cài đặt
+3. **data-flow.mmd** - Luồng dữ liệu
+4. **developer-workflow.mmd** - Quy trình phát triển hàng ngày
+5. **component-relationships.mmd** - Mối quan hệ giữa các thành phần
+6. **cicd-process.mmd** - Quy trình CI/CD
 
 **Cách Xem:**
 
 ```bash
+# Xem trực tiếp trên GitHub (tự động render)
+# Các file .mmd sẽ được GitHub hiển thị tự động
+
 # Online (không cần cài đặt)
-# Mở http://www.plantuml.com/plantuml/uml/
-# Copy nội dung file .puml và paste
+# Mở https://mermaid.live/
+# Copy nội dung file .mmd và paste
 
 # VS Code (cài extension)
-# 1. Cài PlantUML extension
-# 2. Mở file .puml
-# 3. Nhấn Alt+D để xem preview
+# 1. Cài Markdown Preview Mermaid Support extension
+# 2. Mở file .mmd
+# 3. Nhấn Ctrl+Shift+V để xem preview
 
-# CLI (cần Java)
-plantuml docs/diagrams/system-architecture.puml
+# CLI (cần npm)
+npm install -g @mermaid-js/mermaid-cli
+mmdc -i docs/diagrams/system-architecture.mmd -o docs/diagrams/system-architecture.png
+
+# Tạo tất cả các diagram
+for file in docs/diagrams/*.mmd; do
+  mmdc -i "$file" -o "${file%.mmd}.png"
+done
 
 # Docker
-docker run -it --rm -v $(pwd):/data plantuml/plantuml docs/diagrams/*.puml
+docker run --rm -v $(pwd):/data minlag/mermaid-cli \
+  -i /data/docs/diagrams/system-architecture.mmd \
+  -o /data/docs/diagrams/system-architecture.png
 ```
 
 ---

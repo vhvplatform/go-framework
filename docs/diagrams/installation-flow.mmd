@@ -1,0 +1,107 @@
+%% Developer Setup Flow - Initial Installation
+%% Converted from PlantUML to Mermaid
+
+flowchart TD
+    Start([Start]) --> CloneRepo[Developer clones repository<br/>git clone https://github.com/vhvplatform/go-framework.git<br/>cd go-framework]
+    
+    CloneRepo --> RunSetup[Run interactive setup script<br/>./scripts/setup/interactive-setup.sh<br/><br/>Or with parameters:<br/>--workspace ~/my-workspace<br/>--skip-docker-check]
+    
+    %% System Detection
+    RunSetup --> DetectOS[Detect Operating System<br/>Supported: macOS Intel/Apple Silicon<br/>Linux Ubuntu/Debian/Fedora<br/>Windows WSL2]
+    
+    DetectOS --> OSSupported{OS Supported?}
+    OSSupported -->|No| ShowError[Show error message]
+    ShowError --> End1([End])
+    OSSupported -->|Yes| Continue[Continue]
+    
+    %% Prerequisites Check
+    Continue --> CheckDocker[Check Docker installed]
+    CheckDocker --> DockerExists{Docker exists?}
+    DockerExists -->|Yes| DockerFound[✓ Docker found]
+    DockerExists -->|No| InstallDocker[Install Docker<br/>macOS: brew install --cask docker<br/>Linux: via package manager<br/>Windows: Docker Desktop]
+    InstallDocker --> CheckDockerRunning
+    DockerFound --> CheckDockerRunning[Check Docker running]
+    
+    CheckDockerRunning --> DockerRunning{Docker running?}
+    DockerRunning -->|Yes| DockerOK[✓ Docker running]
+    DockerRunning -->|No| StartDocker[Start Docker & Wait]
+    StartDocker --> DockerOK
+    
+    DockerOK --> CheckGo[Check Go installed]
+    CheckGo --> GoExists{Go exists?}
+    GoExists -->|Yes| CheckGoVersion[Check version ≥ 1.21]
+    CheckGoVersion --> VersionOK{Version OK?}
+    VersionOK -->|Yes| GoVersionOK[✓ Go version OK]
+    VersionOK -->|No| UpgradeGo[Upgrade Go]
+    UpgradeGo --> GoVersionOK
+    GoExists -->|No| InstallGo[Install Go 1.21+]
+    InstallGo --> GoVersionOK
+    
+    %% Workspace Setup
+    GoVersionOK --> PromptWorkspace[Prompt for workspace location<br/>Default: ~/workspace/go-platform<br/>Or custom path]
+    PromptWorkspace --> CreateWorkspace[Create workspace directory]
+    CreateWorkspace --> CreateSubdirs[Create subdirectories<br/>bin/ logs/ data/ backups/]
+    
+    %% Dependencies Installation
+    CreateSubdirs --> InstallSysDeps[Install system dependencies<br/>kubectl Kubernetes CLI<br/>helm Package manager<br/>jq JSON processor<br/>protobuf compiler]
+    InstallSysDeps --> InstallGoDeps[Install Go development tools<br/>protoc-gen-go<br/>protoc-gen-go-grpc<br/>golangci-lint<br/>air hot reload<br/>mockgen]
+    
+    %% Repository Cloning
+    InstallGoDeps --> PromptRepos[Prompt for repositories to clone<br/>1. All repositories default<br/>2. Core services only<br/>3. Custom selection]
+    PromptRepos --> CloneRepos[Clone selected repositories<br/>go-shared-go<br/>go-api-gateway<br/>go-auth-service<br/>go-user-service<br/>go-tenant-service<br/>go-notification-service<br/>go-system-config-service<br/>go-infrastructure]
+    CloneRepos --> ShowCloneProgress[Show clone progress]
+    
+    %% Environment Configuration
+    ShowCloneProgress --> CreateEnvFile[Create .env file<br/>Copy from .env.example]
+    CreateEnvFile --> PromptConfig[Prompt for configuration<br/>Required: JWT_SECRET generate random<br/>Optional: SMTP settings, Custom ports, Database name]
+    PromptConfig --> GenerateJWT[Generate secure JWT secret<br/>Using: openssl rand -base64 32]
+    GenerateJWT --> SaveConfig[Save configuration]
+    
+    %% Service Startup
+    SaveConfig --> PullImages[Pull Docker images<br/>mongo:7.0<br/>redis:7-alpine<br/>rabbitmq:3.12-management-alpine<br/>prom/prometheus<br/>grafana/grafana<br/>jaegertracing/all-in-one]
+    PullImages --> StartCompose[Start Docker Compose<br/>docker-compose up -d]
+    StartCompose --> WaitHealthy[Wait for services healthy<br/>Health checks:<br/>MongoDB: mongosh ping<br/>Redis: redis-cli ping<br/>RabbitMQ: diagnostics ping<br/>Services: HTTP /health<br/>Timeout: 5 minutes]
+    
+    WaitHealthy --> AllHealthy{All healthy?}
+    AllHealthy -->|Yes| ServicesRunning[✓ All services running]
+    AllHealthy -->|No| ShowTroubleshooting[Show troubleshooting guide]
+    ShowTroubleshooting --> CheckLogs[Check service logs]
+    CheckLogs --> End2([End])
+    
+    %% Data Initialization
+    ServicesRunning --> PromptSeed[Prompt to seed database]
+    PromptSeed --> SeedDB{Seed database?}
+    SeedDB -->|Yes| LoadTestData[Load test data<br/>3 test users<br/>2 test tenants<br/>Sample notifications<br/>System configs]
+    LoadTestData --> ShowCredentials[Show test credentials<br/>Admin: admin@example.com / admin123<br/>User: user@example.com / user123]
+    ShowCredentials --> RunHealthChecks
+    SeedDB -->|No| SkipSeeding[Skip seeding]
+    SkipSeeding --> RunHealthChecks
+    
+    %% Verification
+    RunHealthChecks[Run health checks]
+    RunHealthChecks --> TestAPI[Test API endpoint<br/>curl http://localhost:8080/health<br/>Expected: status:healthy]
+    TestAPI --> APIResponds{API responds?}
+    APIResponds -->|Yes| APIHealthy[✓ API healthy]
+    APIResponds -->|No| ShowAPIError[Show error]
+    ShowAPIError --> End3([End])
+    
+    APIHealthy --> TestAuth[Test authentication<br/>Login with test credentials<br/>Verify JWT token generation]
+    
+    %% Post-Installation
+    TestAuth --> ShowURLs[Show service URLs<br/>API Gateway: http://localhost:8080<br/>Grafana: http://localhost:3000<br/>Jaeger: http://localhost:16686<br/>RabbitMQ Mgmt: http://localhost:15672]
+    ShowURLs --> ShowNextSteps[Show next steps<br/>1. Open Grafana dashboards<br/>2. Import Postman collection<br/>3. Read documentation<br/>4. Try example API calls]
+    ShowNextSteps --> CreateSummary[Create setup summary file<br/>Save to: ~/workspace/SETUP_SUMMARY.txt<br/><br/>Contains:<br/>Installation time<br/>Workspace location<br/>Service URLs<br/>Test credentials<br/>Quick commands]
+    
+    CreateSummary --> SetupComplete[Setup complete! ✓]
+    SetupComplete --> End4([End])
+    
+    %% Styling
+    classDef processStyle fill:#E3F2FD,stroke:#4A90E2,stroke-width:2px
+    classDef decisionStyle fill:#FFF3E0,stroke:#FFB84D,stroke-width:2px
+    classDef successStyle fill:#E8F5E9,stroke:#50C878,stroke-width:2px
+    classDef errorStyle fill:#FFEBEE,stroke:#FF6B6B,stroke-width:2px
+    
+    class CloneRepo,RunSetup,DetectOS,CheckDocker,CheckDockerRunning,CheckGo,CheckGoVersion,PromptWorkspace,CreateWorkspace,CreateSubdirs,InstallSysDeps,InstallGoDeps,PromptRepos,CloneRepos,ShowCloneProgress,CreateEnvFile,PromptConfig,GenerateJWT,SaveConfig,PullImages,StartCompose,WaitHealthy,PromptSeed,LoadTestData,ShowCredentials,RunHealthChecks,TestAPI,TestAuth,ShowURLs,ShowNextSteps,CreateSummary processStyle
+    class OSSupported,DockerExists,DockerRunning,GoExists,VersionOK,AllHealthy,SeedDB,APIResponds decisionStyle
+    class DockerFound,DockerOK,GoVersionOK,ServicesRunning,APIHealthy,SetupComplete successStyle
+    class ShowError,ShowTroubleshooting,CheckLogs,ShowAPIError errorStyle

@@ -1,0 +1,92 @@
+%% SaaS Platform - System Architecture
+%% Converted from PlantUML to Mermaid
+
+graph TB
+    %% External Actor
+    Client["Client/User"]:::primaryClass
+    
+    %% API Gateway Layer
+    subgraph APIGateway["API Gateway Layer"]
+        Gateway["API Gateway<br/>:8080<br/><br/>HTTP/REST API<br/>JWT Validation<br/>Rate Limiting<br/>Request Router"]:::primaryClass
+    end
+    
+    %% Microservices Layer
+    subgraph Microservices["Microservices Layer"]
+        Auth["Auth Service<br/>:8081 HTTP :50051 gRPC<br/><br/>Authentication<br/>Authorization<br/>Token Management"]:::secondaryClass
+        User["User Service<br/>:8082 HTTP :50052 gRPC<br/><br/>User Management<br/>Profile CRUD<br/>Role Assignment"]:::secondaryClass
+        Tenant["Tenant Service<br/>:8083 HTTP :50053 gRPC<br/><br/>Multi-tenancy<br/>Subscription Mgmt<br/>Feature Flags"]:::secondaryClass
+        Notification["Notification Service<br/>:8084 HTTP :50054 gRPC<br/><br/>Email Sending<br/>SMS Future<br/>Push Future"]:::secondaryClass
+        Config["System Config Service<br/>:8085 HTTP :50055 gRPC<br/><br/>Configuration<br/>Feature Toggles<br/>Settings Cache"]:::secondaryClass
+    end
+    
+    %% Data Layer
+    subgraph DataLayer["Data Layer"]
+        MongoDB["MongoDB<br/>:27017<br/><br/>Users Collection<br/>Tenants Collection<br/>Configs Collection<br/>Audit Logs"]:::tertiaryClass
+        Redis["Redis<br/>:6379<br/><br/>Session Cache<br/>Config Cache<br/>Rate Limit Data"]:::tertiaryClass
+        RabbitMQ["RabbitMQ<br/>:5672<br/><br/>Email Queue<br/>Event Queue<br/>Webhook Queue"]:::tertiaryClass
+    end
+    
+    %% Observability Layer
+    subgraph Observability["Observability Stack"]
+        Prometheus["Prometheus<br/>:9090<br/><br/>Metrics Collection<br/>Alerting Rules"]:::dangerClass
+        Grafana["Grafana<br/>:3000<br/><br/>Dashboards<br/>Visualization"]:::dangerClass
+        Jaeger["Jaeger<br/>:16686<br/><br/>Distributed Tracing<br/>Trace Visualization"]:::dangerClass
+    end
+    
+    %% Client to Gateway
+    Client -->|HTTPS/REST| Gateway
+    
+    %% Gateway to Services - gRPC
+    Gateway -->|gRPC| Auth
+    Gateway -->|gRPC| User
+    Gateway -->|gRPC| Tenant
+    Gateway -->|gRPC| Notification
+    Gateway -->|gRPC| Config
+    
+    %% Services to Data Layer
+    Auth -->|Read/Write Users, Sessions| MongoDB
+    Auth -->|Session Storage<br/>Token Blacklist| Redis
+    
+    User -->|Read/Write User Profiles| MongoDB
+    User -->|Profile Cache| Redis
+    
+    Tenant -->|Read/Write Tenant Data| MongoDB
+    Tenant -->|Tenant Cache| Redis
+    
+    Notification -->|Consume Events| RabbitMQ
+    Notification -->|Write Logs| MongoDB
+    
+    Config -->|Read Configs| MongoDB
+    Config -->|Config Cache| Redis
+    
+    %% Event Publishing - dotted lines
+    Auth -.->|Publish user.login| RabbitMQ
+    User -.->|Publish user.created| RabbitMQ
+    Tenant -.->|Publish tenant.created| RabbitMQ
+    
+    %% Observability Connections
+    Gateway -->|Export Metrics| Prometheus
+    Auth -->|Export Metrics| Prometheus
+    User -->|Export Metrics| Prometheus
+    Tenant -->|Export Metrics| Prometheus
+    Notification -->|Export Metrics| Prometheus
+    Config -->|Export Metrics| Prometheus
+    
+    Prometheus -->|Data Source| Grafana
+    
+    Gateway -->|Send Traces| Jaeger
+    Auth -->|Send Traces| Jaeger
+    User -->|Send Traces| Jaeger
+    Tenant -->|Send Traces| Jaeger
+    
+    %% Styling
+    classDef primaryClass fill:#4A90E2,stroke:#333,stroke-width:2px,color:#fff
+    classDef secondaryClass fill:#50C878,stroke:#333,stroke-width:2px,color:#fff
+    classDef tertiaryClass fill:#FFB84D,stroke:#333,stroke-width:2px,color:#000
+    classDef dangerClass fill:#FF6B6B,stroke:#333,stroke-width:2px,color:#fff
+    
+    %% Notes
+    %% Gateway: Single entry point for all client requests. Protocol translation: HTTP/REST → gRPC
+    %% MongoDB: Primary data store. Collections organized by domain. Indexes on: email (unique), tenant_id, created_at
+    %% Redis: Fast caching layer. TTL Strategy: Sessions 24h, Configs 30min, Rate limits 1min
+    %% RabbitMQ: Async messaging. Queues: notifications.email, notifications.sms, events.audit

@@ -30,7 +30,7 @@ This document summarizes the comprehensive upgrade and improvements made to the 
 - `tools/cli/go.sum` - Dependency checksums
 - `README.md` - Requirements section
 - `scripts/setup/install-deps.sh` - Installation script
-- `docs/diagrams/*.puml` - Diagram documentation
+- `docs/diagrams/*.mmd` - Diagram documentation (converted from PlantUML to Mermaid format)
 
 ---
 
@@ -69,12 +69,14 @@ Enhanced header comments in:
 
 ---
 
-## 3. PlantUML Diagrams ✅
+## 3. Architecture Diagrams ✅
+
+> **Note:** All diagrams were converted from PlantUML to Mermaid format on 2024-12-30 for better GitHub/GitLab integration and native rendering support.
 
 ### New Diagrams Added (3 diagrams)
 
-#### 1. Developer Workflow (`developer-workflow.puml`)
-- **Type**: Activity Diagram
+#### 1. Developer Workflow (`developer-workflow.mmd`)
+- **Type**: Flowchart Diagram
 - **Purpose**: Visualizes daily developer workflow
 - **Covers**:
   - Initial setup phase (one-time)
@@ -86,8 +88,8 @@ Enhanced header comments in:
   - Daily cleanup procedures
   - Utility commands reference
 
-#### 2. Component Relationships (`component-relationships.puml`)
-- **Type**: Component Diagram
+#### 2. Component Relationships (`component-relationships.mmd`)
+- **Type**: Graph Diagram
 - **Purpose**: Shows relationships between all framework components
 - **Covers**:
   - Core tools (Makefile, CLI)
@@ -97,7 +99,7 @@ Enhanced header comments in:
   - External dependencies
   - Developer interaction patterns
 
-#### 3. CI/CD Process (`cicd-process.puml`)
+#### 3. CI/CD Process (`cicd-process.mmd`)
 - **Type**: Sequence Diagram
 - **Purpose**: Complete CI/CD pipeline visualization
 - **Covers**:
@@ -111,13 +113,14 @@ Enhanced header comments in:
   - Monitoring and rollback procedures
 
 ### Existing Diagrams
-- `system-architecture.puml` - Microservices architecture
-- `installation-flow.puml` - Setup process
-- `data-flow.puml` - Request/response flow
+- `system-architecture.mmd` - Microservices architecture
+- `installation-flow.mmd` - Setup process
+- `data-flow.mmd` - Request/response flow
 
 ### Documentation
 - Updated `docs/diagrams/README.md` with all 6 diagrams
-- Added viewing instructions
+- Added viewing instructions for Mermaid format
+- Included GitHub native rendering information
 - Added usage examples
 
 ---
@@ -256,7 +259,7 @@ go test -v -race         # Run with race detection
 - SARIF results upload to GitHub Security
 
 **5. Documentation Job**
-- PlantUML diagram generation (PNG & SVG)
+- Mermaid diagram generation (PNG & SVG)
 - Diagram artifact upload (90-day retention)
 - Only runs on main branch
 
@@ -293,9 +296,9 @@ go test -v -race         # Run with race detection
 1. `.golangci.yml` - Linting configuration
 2. `configs/git/pre-commit.sh` - Pre-commit hooks
 3. `tools/cli/main_test.go` - Unit tests
-4. `docs/diagrams/developer-workflow.puml` - Workflow diagram
-5. `docs/diagrams/component-relationships.puml` - Component diagram
-6. `docs/diagrams/cicd-process.puml` - CI/CD diagram
+4. `docs/diagrams/developer-workflow.mmd` - Workflow diagram (converted from PlantUML)
+5. `docs/diagrams/component-relationships.mmd` - Component diagram (converted from PlantUML)
+6. `docs/diagrams/cicd-process.mmd` - CI/CD diagram (converted from PlantUML)
 7. `.github/workflows/ci.yml` - CI/CD pipeline
 
 ### Files Modified (7)
@@ -400,7 +403,7 @@ go test -v
 - Test coverage: 9.5% (baseline) ✅
 - Linting: golangci-lint + shellcheck ✅
 - Pre-commit hooks: Comprehensive ✅
-- PlantUML diagrams: 6 ✅
+- Mermaid diagrams: 6 ✅ (converted from PlantUML)
 - CI/CD: Full pipeline ✅
 - Shell script quality: Production-ready ✅
 - Security scanning: CodeQL + Trivy ✅
@@ -451,7 +454,7 @@ This upgrade is **fully backward compatible**. All existing:
 ### Tools
 - [golangci-lint docs](https://golangci-lint.run/)
 - [shellcheck wiki](https://github.com/koalaman/shellcheck/wiki)
-- [PlantUML guide](https://plantuml.com/guide)
+- [Mermaid documentation](https://mermaid.js.org/)
 - [GitHub Actions docs](https://docs.github.com/en/actions)
 
 ### Contact

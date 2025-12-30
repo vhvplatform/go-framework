@@ -1,0 +1,120 @@
+%% Request Flow - User Login Example
+%% Converted from PlantUML to Mermaid
+
+sequenceDiagram
+    participant Client
+    participant Gateway as API Gateway<br/>:8080
+    participant Auth as Auth Service<br/>:8081
+    participant MongoDB
+    participant Redis
+    participant RabbitMQ
+    participant Notification as Notification<br/>Service
+    
+    %% Authentication Request
+    rect rgb(240, 248, 255)
+        Note over Client,Gateway: Authentication Request
+        Client->>Gateway: POST /api/auth/login<br/>{<br/>  "email": "user@example.com",<br/>  "password": "password123"<br/>}
+        activate Gateway
+        Gateway->>Gateway: Validate request format
+        Gateway->>Gateway: Extract credentials
+        
+        Gateway->>Auth: LoginRequest (gRPC)<br/>{<br/>  email: "user@example.com"<br/>  password: "password123"<br/>}
+        activate Auth
+    end
+    
+    %% Database Query
+    rect rgb(245, 255, 250)
+        Note over Auth,MongoDB: Database Query
+        Auth->>MongoDB: Find user by email
+        activate MongoDB
+        Note right of MongoDB: db.users.findOne({<br/>  email: "user@example.com"<br/>})<br/><br/>Uses index: email_unique_idx<br/>Query time: ~5ms
+        
+        MongoDB-->>Auth: User document
+        deactivate MongoDB
+        
+        Note left of Auth: User {<br/>  id: "user-123"<br/>  email: "user@example.com"<br/>  password_hash: "$2a$10$..."<br/>  tenant_id: "tenant-456"<br/>  roles: ["user", "editor"]<br/>}
+    end
+    
+    %% Password Verification
+    rect rgb(255, 250, 240)
+        Note over Auth: Password Verification
+        Auth->>Auth: Verify password with bcrypt
+        Note right of Auth: bcrypt.Compare(<br/>  hashedPassword,<br/>  providedPassword<br/>)<br/><br/>Time: ~100ms (intentionally slow)
+    end
+    
+    alt Password Valid
+        %% Session Creation
+        rect rgb(240, 248, 255)
+            Note over Auth,Redis: Session Creation
+            Auth->>Auth: Generate JWT token
+            Note right of Auth: Token payload:<br/>{<br/>  user_id: "user-123"<br/>  tenant_id: "tenant-456"<br/>  roles: ["user", "editor"]<br/>  exp: 1640000000<br/>}<br/><br/>Signed with: JWT_SECRET
+            
+            Auth->>Redis: Store session
+            activate Redis
+            Note right of Redis: Key: session:user-123:abc123<br/>Value: {<br/>  user_id: "user-123"<br/>  tenant_id: "tenant-456"<br/>  login_time: "2024-01-15T10:30:00Z"<br/>  ip: "192.168.1.100"<br/>}<br/>TTL: 24 hours
+            Redis-->>Auth: OK
+            deactivate Redis
+        end
+        
+        %% Audit Logging
+        rect rgb(245, 255, 250)
+            Note over Auth,Notification: Audit Logging
+            Auth->>RabbitMQ: Publish login event
+            activate RabbitMQ
+            Note right of RabbitMQ: Exchange: events<br/>Routing key: auth.login<br/><br/>Message:<br/>{<br/>  event: "user.login"<br/>  user_id: "user-123"<br/>  tenant_id: "tenant-456"<br/>  timestamp: "2024-01-15T10:30:00Z"<br/>  ip: "192.168.1.100"<br/>}
+            
+            RabbitMQ->>Notification: Consume event
+            activate Notification
+            Notification->>Notification: Check security alerts
+            Notification->>Notification: Log to audit trail
+            deactivate Notification
+            deactivate RabbitMQ
+        end
+        
+        %% Success Response
+        rect rgb(240, 248, 255)
+            Note over Auth,Client: Success Response
+            Auth-->>Gateway: LoginResponse
+            Note left of Auth: {<br/>  success: true<br/>  token: "eyJhbGc..."<br/>  user: {<br/>    id: "user-123"<br/>    email: "user@example.com"<br/>    name: "User Name"<br/>  }<br/>  expires_at: "2024-01-16T10:30:00Z"<br/>}
+            deactivate Auth
+            
+            Gateway->>Gateway: Transform to HTTP response
+            Gateway-->>Client: HTTP 200 OK
+            Note left of Gateway: {<br/>  "token": "eyJhbGc...",<br/>  "user": {<br/>    "id": "user-123",<br/>    "email": "user@example.com",<br/>    "name": "User Name"<br/>  },<br/>  "expires_at": "2024-01-16T10:30:00Z"<br/>}
+        end
+    else Password Invalid
+        Auth-->>Gateway: LoginError
+        Note left of Auth: {<br/>  success: false<br/>  error: "Invalid credentials"<br/>}
+        deactivate Auth
+        
+        Gateway-->>Client: HTTP 401 Unauthorized
+        Note left of Gateway: {<br/>  "error": "Invalid credentials",<br/>  "message": "Email or password is incorrect"<br/>}
+    end
+    
+    deactivate Gateway
+    
+    %% Subsequent Authenticated Request
+    rect rgb(255, 250, 240)
+        Note over Client,Gateway: Subsequent Authenticated Request
+        Client->>Gateway: GET /api/users/profile
+        Note right of Client: Headers:<br/>Authorization: Bearer eyJhbGc...
+        
+        activate Gateway
+        Gateway->>Gateway: Extract JWT from header
+        Gateway->>Gateway: Verify JWT signature
+        Gateway->>Gateway: Check expiration
+        Gateway->>Gateway: Extract user_id from claims
+        
+        Gateway->>Redis: Check token blacklist
+        activate Redis
+        Redis-->>Gateway: Not blacklisted
+        deactivate Redis
+        
+        Gateway->>Gateway: Add user context to request
+        
+        Gateway->>Auth: Forward request with context
+        Auth-->>Gateway: User profile data
+        Gateway-->>Client: HTTP 200 OK
+        
+        deactivate Gateway
+    end

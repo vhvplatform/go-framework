@@ -1,10 +1,12 @@
 # System Architecture Diagrams
 
-This directory contains PlantUML diagrams for visualizing the go-framework system architecture and workflows.
+This directory contains Mermaid diagrams for visualizing the go-framework system architecture and workflows.
+
+> **Note:** These diagrams were converted from PlantUML to Mermaid format on 2024-12-30 to provide better integration with GitHub, GitLab, and modern documentation tools that natively support Mermaid rendering.
 
 ## 📊 Available Diagrams
 
-### 1. System Architecture (`system-architecture.puml`)
+### 1. System Architecture (`system-architecture.mmd`)
 Complete overview of the microservices architecture including:
 - API Gateway layer
 - 6 microservices (Auth, User, Tenant, Notification, System Config)
@@ -12,7 +14,7 @@ Complete overview of the microservices architecture including:
 - Observability stack (Prometheus, Grafana, Jaeger)
 - Service connections and data flows
 
-### 2. Installation Flow (`installation-flow.puml`)
+### 2. Installation Flow (`installation-flow.mmd`)
 Step-by-step visualization of the development environment setup process:
 - System detection and prerequisites check
 - Workspace setup
@@ -21,7 +23,7 @@ Step-by-step visualization of the development environment setup process:
 - Environment configuration
 - Service startup and verification
 
-### 3. Data Flow (`data-flow.puml`)
+### 3. Data Flow (`data-flow.mmd`)
 Detailed sequence diagram showing request/response flow:
 - User login authentication flow
 - Database queries and caching
@@ -29,7 +31,7 @@ Detailed sequence diagram showing request/response flow:
 - Event publishing to message queue
 - JWT token generation
 
-### 4. Developer Workflow (`developer-workflow.puml`)
+### 4. Developer Workflow (`developer-workflow.mmd`)
 Comprehensive activity diagram showing the daily developer workflow:
 - Initial setup phase (one-time)
 - Daily development cycle
@@ -40,7 +42,7 @@ Comprehensive activity diagram showing the daily developer workflow:
 - Daily cleanup procedures
 - Common utility commands reference
 
-### 5. Component Relationships (`component-relationships.puml`)
+### 5. Component Relationships (`component-relationships.mmd`)
 Component diagram illustrating relationships between all go-framework components:
 - Core tools (Makefile, CLI)
 - Shell script categories (setup, dev, database, testing, build, deployment, monitoring, utilities)
@@ -49,7 +51,7 @@ Component diagram illustrating relationships between all go-framework components
 - External dependencies (Docker, Kubernetes, Service repos)
 - How all components interact with each other
 
-### 6. CI/CD Process (`cicd-process.puml`)
+### 6. CI/CD Process (`cicd-process.mmd`)
 Detailed sequence diagram of the complete CI/CD pipeline:
 - Development and local testing phase
 - Code quality checks (linting, static analysis)
@@ -63,55 +65,52 @@ Detailed sequence diagram of the complete CI/CD pipeline:
 
 ## 🎨 Viewing the Diagrams
 
-### Option 1: Online PlantUML Editor
+### Option 1: GitHub Native Rendering
 
-1. Visit [PlantUML Web Server](http://www.plantuml.com/plantuml/uml/)
-2. Copy and paste the content of any `.puml` file
-3. View the rendered diagram
+Mermaid diagrams are natively supported by GitHub, GitLab, and many documentation platforms. Simply view the `.mmd` files directly on GitHub, and they will be automatically rendered.
 
 ### Option 2: VS Code Extension
 
-1. Install the **PlantUML** extension by jebbs
-2. Open any `.puml` file
-3. Press `Alt+D` (or `Option+D` on Mac) to preview
+1. Install the **Markdown Preview Mermaid Support** extension by Matt Bierner
+2. Open any markdown file that includes Mermaid diagrams or open a `.mmd` file
+3. Press `Ctrl+Shift+V` (or `Cmd+Shift+V` on Mac) to preview
 
-### Option 3: Command Line
+### Option 3: Mermaid Live Editor
 
-Install PlantUML locally:
+1. Visit [Mermaid Live Editor](https://mermaid.live/)
+2. Copy and paste the content of any `.mmd` file
+3. View and export the rendered diagram (PNG, SVG, or PDF)
+
+### Option 4: Command Line
+
+Install Mermaid CLI locally:
 
 ```bash
-# macOS
-brew install plantuml
-
-# Ubuntu/Debian
-sudo apt-get install plantuml
-
 # Using npm
-npm install -g node-plantuml
-```
+npm install -g @mermaid-js/mermaid-cli
 
-Generate PNG images:
+# Generate PNG images
+mmdc -i docs/diagrams/system-architecture.mmd -o docs/diagrams/system-architecture.png
 
-```bash
 # Generate all diagrams
-plantuml docs/diagrams/*.puml
-
-# Generate specific diagram
-plantuml docs/diagrams/system-architecture.puml
+for file in docs/diagrams/*.mmd; do
+  mmdc -i "$file" -o "${file%.mmd}.png"
+done
 
 # Generate SVG (scalable)
-plantuml -tsvg docs/diagrams/system-architecture.puml
+mmdc -i docs/diagrams/system-architecture.mmd -o docs/diagrams/system-architecture.svg
 
 # Generate with dark theme
-plantuml -darkmode docs/diagrams/*.puml
+mmdc -i docs/diagrams/system-architecture.mmd -o docs/diagrams/system-architecture.png -t dark
 ```
 
-### Option 4: Docker
+### Option 5: Docker
 
 ```bash
 # Generate all diagrams using Docker
-docker run --rm -v $(pwd):/data plantuml/plantuml:latest \
-  /data/docs/diagrams/*.puml
+docker run --rm -v $(pwd):/data minlag/mermaid-cli \
+  -i /data/docs/diagrams/system-architecture.mmd \
+  -o /data/docs/diagrams/system-architecture.png
 
 # View generated images
 open docs/diagrams/*.png  # macOS
@@ -120,19 +119,19 @@ xdg-open docs/diagrams/*.png  # Linux
 
 ## 📁 Generated Files
 
-After running PlantUML, you'll get:
+After running Mermaid CLI, you'll get:
 
 ```
 docs/diagrams/
-├── system-architecture.puml
+├── system-architecture.mmd
 ├── system-architecture.png      (generated)
-├── installation-flow.puml
+├── installation-flow.mmd
 ├── installation-flow.png        (generated)
-├── data-flow.puml
+├── data-flow.mmd
 └── data-flow.png                (generated)
 ```
 
-**Note:** Generated `.png` and `.svg` files are git-ignored to keep the repository clean.
+**Note:** Generated `.png` and `.svg` files are git-ignored to keep the repository clean. The source `.mmd` files are the source of truth.
 
 ## 🎯 Use Cases
 
@@ -153,8 +152,10 @@ Generate diagrams automatically in your pipeline:
 # .github/workflows/docs.yml
 - name: Generate diagrams
   run: |
-    sudo apt-get install -y plantuml
-    plantuml docs/diagrams/*.puml
+    npm install -g @mermaid-js/mermaid-cli
+    for file in docs/diagrams/*.mmd; do
+      mmdc -i "$file" -o "${file%.mmd}.png"
+    done
     
 - name: Upload diagrams
   uses: actions/upload-artifact@v3
@@ -167,155 +168,163 @@ Generate diagrams automatically in your pipeline:
 
 ### Themes
 
-PlantUML supports various themes:
+Mermaid supports various themes via the `%%init%%` directive:
 
-```plantuml
-@startuml
-!theme plain          ' Default clean theme
-!theme bluegray       ' Blue-gray theme
-!theme black-knight   ' Dark theme
-!theme mars           ' Mars theme
-@enduml
+```mermaid
+%%{init: {'theme':'dark'}}%%
+graph TD
+    A[Start] --> B[End]
 ```
+
+Available themes: `default`, `neutral`, `dark`, `forest`, `base`
 
 ### Colors
 
-Customize colors in the diagrams:
+Customize colors in the diagrams using classDef:
 
-```plantuml
-!define PRIMARY_COLOR #4A90E2
-!define SECONDARY_COLOR #50C878
-
-component "API Gateway" as gateway #PRIMARY_COLOR
+```mermaid
+%%{init: {'theme':'base'}}%%
+graph TD
+    A[Component]:::primaryColor
+    
+    classDef primaryColor fill:#4A90E2,stroke:#333,color:#fff
 ```
 
 ### Export Formats
 
-PlantUML supports multiple output formats:
+Mermaid CLI supports multiple output formats:
 
 ```bash
-plantuml -tpng diagram.puml    # PNG (default)
-plantuml -tsvg diagram.puml    # SVG (scalable)
-plantuml -teps diagram.puml    # EPS (vector)
-plantuml -tpdf diagram.puml    # PDF
-plantuml -tlatex diagram.puml  # LaTeX
+mmdc -i diagram.mmd -o diagram.png    # PNG (default)
+mmdc -i diagram.mmd -o diagram.svg    # SVG (scalable)
+mmdc -i diagram.mmd -o diagram.pdf    # PDF
 ```
 
-## 📖 PlantUML Syntax Reference
+## 📖 Mermaid Syntax Reference
 
-### Component Diagrams
+### Graph/Flowchart Diagrams
 
-```plantuml
-@startuml
-component "Name" as alias
-database "Database" as db
-queue "Queue" as mq
-
-alias --> db : "relationship"
-alias ..> mq : "async"
-@enduml
+```mermaid
+graph TD
+    A[Rectangle] --> B{Diamond}
+    B -->|Yes| C[Result 1]
+    B -->|No| D[Result 2]
 ```
 
 ### Sequence Diagrams
 
-```plantuml
-@startuml
-actor User
-participant "Service" as svc
-database "DB" as db
-
-User -> svc: Request
-activate svc
-svc -> db: Query
-db --> svc: Result
-svc --> User: Response
-deactivate svc
-@enduml
+```mermaid
+sequenceDiagram
+    participant User
+    participant Service
+    participant DB
+    
+    User->>Service: Request
+    activate Service
+    Service->>DB: Query
+    DB-->>Service: Result
+    Service-->>User: Response
+    deactivate Service
 ```
 
-### Activity Diagrams
+### Flowchart Diagrams
 
-```plantuml
-@startuml
-start
-:Activity;
-if (condition?) then (yes)
-  :Action;
-else (no)
-  :Other action;
-endif
-stop
-@enduml
+```mermaid
+flowchart LR
+    Start([Start]) --> Process[Process]
+    Process --> Decision{Decision?}
+    Decision -->|Yes| End1([End])
+    Decision -->|No| End2([End])
 ```
 
 ## 🔗 Resources
 
-- [PlantUML Official Site](https://plantuml.com/)
-- [PlantUML Language Reference](https://plantuml.com/guide)
-- [Real World PlantUML](https://real-world-plantuml.com/)
-- [PlantUML Cheat Sheet](https://ogom.github.io/draw_uml/plantuml/)
+- [Mermaid Official Site](https://mermaid.js.org/)
+- [Mermaid Live Editor](https://mermaid.live/)
+- [Mermaid Syntax Documentation](https://mermaid.js.org/intro/)
+- [Mermaid CLI Documentation](https://github.com/mermaid-js/mermaid-cli)
+- [GitHub Mermaid Support](https://github.blog/2022-02-14-include-diagrams-markdown-files-mermaid/)
 
 ## 🤝 Contributing
 
 When adding new diagrams:
 
-1. Use descriptive filenames (e.g., `service-deployment.puml`)
-2. Add comments explaining complex parts
-3. Use consistent color scheme
+1. Use descriptive filenames (e.g., `service-deployment.mmd`)
+2. Add comments explaining complex parts using `%%` for single-line or `%% comment %%` for inline
+3. Use consistent color scheme with classDef
 4. Update this README with diagram description
-5. Test rendering before committing
+5. Test rendering before committing (use Mermaid Live Editor or VS Code preview)
 
 Example:
 
-```plantuml
-@startuml service-deployment
-!theme plain
+```mermaid
+%% Service Deployment Diagram
+%% This diagram shows the deployment process for microservices to Kubernetes
 
-' This diagram shows the deployment process
-' for microservices to Kubernetes
-
-...
-@enduml
+graph TD
+    A[Start] --> B[Build]
+    B --> C[Deploy]
+    
+    classDef primaryColor fill:#4A90E2,stroke:#333,color:#fff
+    class A,B,C primaryColor
 ```
 
 ## 📝 Tips
 
 1. **Keep diagrams simple**: Complex diagrams are hard to maintain
-2. **Use notes**: Add explanatory notes for clarity
-3. **Group related elements**: Use packages/rectangles for grouping
+2. **Use comments**: Add explanatory comments with `%%` for clarity
+3. **Group related elements**: Use subgraphs for grouping
 4. **Consistent naming**: Match service names with actual code
-5. **Version control**: Commit `.puml` files, not generated images
+5. **Version control**: Commit `.mmd` files, not generated images
 6. **Auto-generate**: Set up CI/CD to generate images automatically
+7. **Native rendering**: GitHub and GitLab render `.mmd` files automatically in markdown
 
 ## ❓ Troubleshooting
 
-### PlantUML not rendering?
+### Mermaid not rendering?
 
 ```bash
-# Check PlantUML installation
-plantuml -version
-
-# Verify Java is installed (required)
-java -version
+# Check Mermaid CLI installation
+mmdc --version
 
 # Test with simple diagram
-echo "@startuml
-Bob -> Alice : hello
-@enduml" | plantuml -pipe > test.png
+echo "graph TD; A-->B" > test.mmd
+mmdc -i test.mmd -o test.png
 ```
 
 ### Syntax errors?
 
-Use the online editor to validate syntax:
-http://www.plantuml.com/plantuml/uml/
+Use the Mermaid Live Editor to validate syntax:
+https://mermaid.live/
 
 ### Images too large?
 
 ```bash
 # Scale down the output
-plantuml -scale 0.5 diagram.puml
+mmdc -i diagram.mmd -o diagram.png -w 800
+
+# Or specify scale factor
+mmdc -i diagram.mmd -o diagram.png -s 2
+```
+
+### GitHub not rendering?
+
+Ensure your `.mmd` files are referenced correctly in markdown:
+
+```markdown
+# Correct way to embed in markdown
+```mermaid
+graph TD
+    A --> B
+\```
+```
+
+Or link to the file:
+```markdown
+[View Diagram](./path/to/diagram.mmd)
 ```
 
 ---
 
-**Last Updated:** 2024-12-25
+**Last Updated:** 2024-12-30  
+**Conversion Note:** All diagrams were converted from PlantUML to Mermaid format to leverage native GitHub/GitLab rendering and better integration with modern documentation tools. Original PlantUML files have been replaced with Mermaid equivalents (.mmd files).

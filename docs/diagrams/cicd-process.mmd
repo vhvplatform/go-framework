@@ -1,0 +1,260 @@
+%% CI/CD Build and Deployment Process
+%% Converted from PlantUML to Mermaid
+
+sequenceDiagram
+    participant Developer
+    participant GitHub as GitHub<br/>Repository
+    participant CI as CI/CD<br/>(GitHub Actions)
+    participant Build as Build<br/>Scripts
+    participant Test as Test<br/>Scripts
+    participant Registry as Docker<br/>Registry
+    participant K8s as Kubernetes<br/>Cluster
+    participant Artifacts as Artifact<br/>Storage
+    
+    %% Development Phase
+    rect rgb(240, 248, 255)
+        Note over Developer: Development Phase
+        Developer->>Developer: Write code
+        Developer->>Developer: Run local tests<br/>make test-unit
+        Developer->>Developer: Build locally<br/>make build
+        Note right of Developer: Local development uses:<br/>- make start-dev (hot reload)<br/>- make test-unit (fast feedback)<br/>- make rebuild SERVICE=xxx
+    end
+    
+    %% Version Control
+    rect rgb(245, 255, 250)
+        Note over Developer,GitHub: Version Control
+        Developer->>GitHub: Commit changes
+        Developer->>GitHub: Push to branch
+        Note right of GitHub: Triggers on:<br/>- Push to main/develop<br/>- Pull request creation<br/>- Tag creation (releases)
+    end
+    
+    %% CI Pipeline - Code Quality
+    rect rgb(255, 250, 240)
+        Note over GitHub,CI: CI: Code Quality Checks
+        GitHub->>CI: Trigger workflow
+        activate CI
+        
+        CI->>CI: Checkout code
+        CI->>CI: Setup Go 1.25+
+        CI->>CI: Cache dependencies
+        Note right of CI: Cache go modules<br/>for faster builds
+        
+        CI->>CI: Run linters
+        Note right of CI: - golangci-lint<br/>- shellcheck (scripts)<br/>- yamllint (configs)
+        
+        alt Linting passes
+            CI->>CI: ✓ Linting passed
+        else Linting fails
+            CI->>GitHub: ✗ Report failure
+            GitHub->>Developer: Notification
+            deactivate CI
+            Developer->>Developer: Fix linting issues
+            Developer->>GitHub: Push fixes
+        end
+    end
+    
+    %% CI Pipeline - Build
+    rect rgb(240, 248, 255)
+        Note over CI,Build: CI: Build Phase
+        CI->>Build: Execute build scripts
+        activate Build
+        
+        Build->>Build: Run go mod download
+        Build->>Build: Run go mod verify
+        Build->>Build: Build all services
+        Note right of Build: ./scripts/build/build-all.sh<br/>- Compiles Go binaries<br/>- Runs build for each service<br/>- Generates build artifacts
+        
+        alt Build succeeds
+            Build->>CI: ✓ Build successful
+            deactivate Build
+        else Build fails
+            Build->>CI: ✗ Build failed
+            deactivate Build
+            CI->>GitHub: Report failure
+            GitHub->>Developer: Notification
+            deactivate CI
+        end
+    end
+    
+    %% CI Pipeline - Testing
+    rect rgb(255, 250, 240)
+        Note over CI,Test: CI: Testing Phase
+        CI->>Test: Execute test scripts
+        activate Test
+        
+        Test->>Test: Setup test environment
+        Note right of Test: Start test services:<br/>- Test databases<br/>- Mock services
+        
+        Test->>Test: Run unit tests
+        Note right of Test: ./scripts/testing/run-unit-tests.sh<br/>- Fast, isolated tests<br/>- No external dependencies
+        
+        Test->>Test: Run integration tests
+        Note right of Test: ./scripts/testing/run-integration-tests.sh<br/>- Tests with real services<br/>- Database interactions<br/>- API integration
+        
+        Test->>Test: Generate coverage report
+        Note right of Test: Target: >80% coverage<br/>- Line coverage<br/>- Branch coverage
+        
+        Test->>Test: Run security scans
+        Note right of Test: - CodeQL analysis<br/>- Dependency vulnerability scan<br/>- Secret detection
+        
+        alt All tests pass
+            Test->>CI: ✓ All tests passed
+            Test->>Artifacts: Upload coverage report
+        else Tests fail
+            Test->>CI: ✗ Tests failed
+            Test->>Artifacts: Upload failure logs
+            CI->>GitHub: Report failure
+            GitHub->>Developer: Notification
+            deactivate CI
+            deactivate Test
+        end
+        deactivate Test
+    end
+    
+    %% Docker Build
+    rect rgb(245, 255, 250)
+        Note over CI,Registry: CI: Docker Image Build
+        CI->>Build: Build Docker images
+        activate Build
+        
+        Build->>Build: Build service images
+        Note right of Build: ./scripts/build/docker-build-all.sh<br/>- Multi-stage builds<br/>- Optimized layers<br/>- Security scanning
+        
+        Build->>Build: Tag images
+        Note right of Build: Tagging strategy:<br/>- commit SHA<br/>- branch name<br/>- version tag (if release)<br/>- latest (if main branch)
+        
+        Build->>Build: Run container security scan
+        Note right of Build: - Trivy scan<br/>- Check for vulnerabilities<br/>- Validate base images
+        
+        alt Security scan passes
+            Build->>Registry: Push images
+            activate Registry
+            Registry->>Registry: Store images
+            Registry->>CI: ✓ Images pushed
+            deactivate Registry
+            Build->>CI: ✓ Docker build complete
+            deactivate Build
+        else Security issues found
+            Build->>CI: ✗ Security vulnerabilities
+            deactivate Build
+            CI->>GitHub: Report security issues
+            deactivate CI
+        end
+    end
+    
+    %% Deployment - Development
+    rect rgb(235, 255, 235)
+        Note over CI,K8s: CD: Deploy to Development
+        alt Branch is develop
+            CI->>Build: Trigger deployment
+            activate Build
+            
+            Build->>Build: Prepare deployment configs
+            Note right of Build: Use configs for dev environment:<br/>- Lower resources<br/>- Debug enabled<br/>- Test data
+            
+            Build->>K8s: Deploy to dev cluster
+            activate K8s
+            
+            K8s->>K8s: Apply Kubernetes manifests
+            Note right of K8s: - Update deployments<br/>- Rolling update strategy<br/>- Health checks
+            
+            K8s->>K8s: Wait for rollout
+            Note right of K8s: Monitor deployment:<br/>- Pod readiness<br/>- Health endpoints<br/>- Service availability
+            
+            K8s->>Build: ✓ Deployment successful
+            deactivate K8s
+            
+            Build->>CI: ✓ Dev deployment complete
+            deactivate Build
+            
+            CI->>GitHub: Update deployment status
+            GitHub->>Developer: Success notification
+            deactivate CI
+        end
+    end
+    
+    %% Deployment - Production
+    rect rgb(235, 255, 235)
+        Note over GitHub,K8s: CD: Deploy to Production
+        alt Tag pushed (release)
+            GitHub->>CI: Trigger release workflow
+            activate CI
+            
+            CI->>CI: Run additional checks
+            Note right of CI: Production readiness:<br/>- All tests pass<br/>- Performance tests<br/>- Security audit<br/>- Documentation updated
+            
+            CI->>CI: Create release notes
+            Note right of CI: Generate from:<br/>- Commits since last release<br/>- Closed issues<br/>- Pull requests
+            
+            CI->>Build: Deploy to staging
+            activate Build
+            
+            Build->>K8s: Deploy to staging cluster
+            activate K8s
+            
+            K8s->>K8s: Blue-green deployment
+            Note right of K8s: - Deploy to green environment<br/>- Run smoke tests<br/>- Switch traffic<br/>- Keep blue as backup
+            
+            K8s->>Build: ✓ Staging deployment successful
+            deactivate K8s
+            
+            Build->>CI: ✓ Staging ready
+            deactivate Build
+            
+            CI->>CI: Wait for manual approval
+            Note right of CI: Manual gate for production:<br/>- Review staging<br/>- Check metrics<br/>- Approve deployment
+            
+            Developer->>CI: Approve production deployment
+            
+            CI->>Build: Deploy to production
+            activate Build
+            
+            Build->>K8s: Deploy to production cluster
+            activate K8s
+            
+            K8s->>K8s: Canary deployment
+            Note right of K8s: Progressive rollout:<br/>- 10% traffic<br/>- Monitor metrics<br/>- 50% traffic<br/>- Monitor more<br/>- 100% traffic
+            
+            K8s->>Build: ✓ Production deployment successful
+            deactivate K8s
+            
+            Build->>CI: ✓ Production updated
+            deactivate Build
+            
+            CI->>GitHub: Create GitHub release
+            CI->>GitHub: Tag Docker images
+            CI->>Artifacts: Archive release artifacts
+            
+            CI->>GitHub: Update status
+            GitHub->>Developer: Release notification
+            deactivate CI
+        end
+    end
+    
+    %% Monitoring and Rollback
+    rect rgb(255, 250, 240)
+        Note over K8s,Developer: Post-Deployment Monitoring
+        K8s->>K8s: Monitor metrics
+        Note right of K8s: Continuous monitoring:<br/>- Error rates<br/>- Response times<br/>- Resource usage<br/>- Health checks
+        
+        alt Issues detected
+            K8s->>GitHub: Alert: High error rate
+            GitHub->>Developer: Critical alert
+            
+            Developer->>CI: Trigger rollback
+            activate CI
+            
+            CI->>K8s: Rollback to previous version
+            activate K8s
+            
+            K8s->>K8s: Instant rollback
+            Note right of K8s: - Switch to previous deployment<br/>- Restore stability<br/>- Investigate issues
+            
+            K8s->>CI: ✓ Rollback complete
+            deactivate K8s
+            
+            CI->>GitHub: Rollback successful
+            deactivate CI
+            GitHub->>Developer: Stability restored
+        end
+    end

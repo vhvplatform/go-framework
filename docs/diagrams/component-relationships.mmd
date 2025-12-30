@@ -1,0 +1,160 @@
+%% go-framework - Component Relationships
+%% Converted from PlantUML to Mermaid
+
+graph TB
+    %% External Actor
+    Developer([Developer]):::actorStyle
+    
+    %% Core Components
+    subgraph CoreTools["Developer Tools Core"]
+        Makefile[Makefile<br/><br/>40+ automation targets<br/>Entry point for all operations]:::toolStyle
+        CLI[CLI Tool saas<br/><br/>Go-based CLI alternative<br/>User-friendly interface]:::toolStyle
+    end
+    
+    %% Shell Scripts
+    subgraph ShellScripts["Shell Scripts"]
+        direction TB
+        
+        subgraph Setup["setup/"]
+            SetupScripts[install-deps.sh<br/>clone-repos.sh<br/>install-tools.sh<br/>init-workspace.sh]:::scriptStyle
+        end
+        
+        subgraph Dev["dev/"]
+            DevScripts[restart-service.sh<br/>rebuild.sh<br/>shell.sh<br/>wait-for-services.sh<br/>create-service.sh]:::scriptStyle
+        end
+        
+        subgraph Database["database/"]
+            DBScripts[seed.sh<br/>reset.sh<br/>backup.sh<br/>restore.sh<br/>migrate.sh]:::scriptStyle
+        end
+        
+        subgraph Testing["testing/"]
+            TestScripts[run-unit-tests.sh<br/>run-integration-tests.sh<br/>run-e2e-tests.sh<br/>run-load-tests.sh<br/>generate-test-data.sh]:::scriptStyle
+        end
+        
+        subgraph Build["build/"]
+            BuildScripts[build-all.sh<br/>build-service.sh<br/>docker-build-all.sh<br/>docker-push-all.sh]:::scriptStyle
+        end
+        
+        subgraph Deployment["deployment/"]
+            DeployScripts[deploy-local.sh<br/>deploy-dev.sh<br/>port-forward.sh<br/>tunnel.sh]:::scriptStyle
+        end
+        
+        subgraph Monitoring["monitoring/"]
+            MonitorScripts[open-grafana.sh<br/>open-prometheus.sh<br/>open-jaeger.sh<br/>tail-logs.sh]:::scriptStyle
+        end
+        
+        subgraph Utilities["utilities/"]
+            UtilScripts[cleanup.sh<br/>validate-env.sh<br/>generate-jwt.sh<br/>test-api.sh<br/>check-health.sh]:::scriptStyle
+        end
+    end
+    
+    %% Configuration and Data
+    subgraph ConfigData["Configuration & Data"]
+        direction TB
+        
+        subgraph Docker["docker/"]
+            DockerFiles[docker-compose.yml<br/>docker-compose.dev.yml<br/>docker-compose.test.yml<br/>.env]:::configStyle
+        end
+        
+        subgraph Configs["configs/"]
+            ConfigFiles[VS Code Settings<br/>Git Hooks<br/>Linting Rules]:::configStyle
+        end
+        
+        subgraph Fixtures["fixtures/"]
+            FixtureFiles[Test Data JSON<br/>Sample Configs]:::configStyle
+        end
+        
+        subgraph Postman["postman/"]
+            PostmanFiles[API Collections<br/>Environment Files]:::configStyle
+        end
+    end
+    
+    %% Documentation
+    subgraph Documentation["Documentation"]
+        direction TB
+        README[README.md]:::docStyle
+        CONTRIBUTING[CONTRIBUTING.md]:::docStyle
+        APIDocs[API Documentation]:::docStyle
+        
+        subgraph Docs["docs/"]
+            DocsFiles[GETTING_STARTED.md<br/>LOCAL_DEVELOPMENT.md<br/>TESTING.md<br/>TROUBLESHOOTING.md<br/>TOOLS.md]:::docStyle
+        end
+        
+        subgraph Diagrams["docs/diagrams/"]
+            DiagramFiles[Mermaid Diagrams<br/>Architecture Views]:::docStyle
+        end
+    end
+    
+    %% External Systems
+    subgraph External["External Systems"]
+        DockerEngine[Docker Engine]:::externalStyle
+        K8s[Kubernetes Cluster]:::externalStyle
+        ServiceRepos[Service Repositories]:::externalStyle
+    end
+    
+    %% Developer Relationships
+    Developer -->|primary interface| Makefile
+    Developer -->|alternative interface| CLI
+    Developer -->|reads| Documentation
+    Developer -->|tests APIs with| Postman
+    Developer -->|configures IDE| Configs
+    
+    %% Makefile connections
+    Makefile -->|make setup| Setup
+    Makefile -->|make start/stop/restart| Dev
+    Makefile -->|make db-*| Database
+    Makefile -->|make test-*| Testing
+    Makefile -->|make build/docker-*| Build
+    Makefile -->|make deploy-*| Deployment
+    Makefile -->|make open-*| Monitoring
+    Makefile -->|make clean/health/etc| Utilities
+    
+    %% CLI connections (mirrors Makefile)
+    CLI -->|saas setup| Setup
+    CLI -->|saas start/stop| Dev
+    CLI -->|saas test| Testing
+    CLI -->|saas deploy| Deployment
+    CLI -.->|delegates to| Makefile
+    
+    %% Script category relationships
+    Setup -->|installs & configures| DockerEngine
+    Setup -->|clones| ServiceRepos
+    Setup -->|initializes| Configs
+    
+    Dev -->|uses| Docker
+    Dev -->|controls services| DockerEngine
+    
+    Database -->|connects to services| Docker
+    Database -->|loads data from| Fixtures
+    
+    Testing -->|runs tests against| Docker
+    Testing -->|can use collections| Postman
+    
+    Build -->|builds code from| ServiceRepos
+    Build -->|creates images| DockerEngine
+    
+    Deployment -->|deploys to| K8s
+    Deployment -->|uses configs| Docker
+    
+    Monitoring -->|queries services| DockerEngine
+    
+    Utilities -->|uses| Docker
+    Utilities -->|validates| Configs
+    
+    %% Configuration relationships
+    Docker -.->|references| Configs
+    Configs -->|installs| ConfigFiles
+    Configs -->|enforces| ConfigFiles
+    
+    %% Documentation relationships
+    Docs -->|includes| Diagrams
+    README -->|links to| Docs
+    CONTRIBUTING -->|documents| Configs
+    
+    %% Styling
+    classDef actorStyle fill:#333,stroke:#333,stroke-width:2px,color:#fff
+    classDef toolStyle fill:#9B59B6,stroke:#333,stroke-width:2px,color:#fff
+    classDef scriptStyle fill:#50C878,stroke:#333,stroke-width:2px,color:#fff
+    classDef configStyle fill:#FFB84D,stroke:#333,stroke-width:2px,color:#000
+    classDef docStyle fill:#9B59B6,stroke:#333,stroke-width:2px,color:#fff
+    classDef externalStyle fill:#4A90E2,stroke:#333,stroke-width:2px,color:#fff
