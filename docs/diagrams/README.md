@@ -136,9 +136,9 @@ docs/diagrams/
 ## 🎯 Use Cases
 
 ### For Developers
-- **Understanding the system**: Study system-architecture.puml to understand service interactions
-- **Onboarding**: Follow installation-flow.puml for setup guidance
-- **Debugging**: Use data-flow.puml to trace request paths
+- **Understanding the system**: Study system-architecture.mmd to understand service interactions
+- **Onboarding**: Follow installation-flow.mmd for setup guidance
+- **Debugging**: Use data-flow.mmd to trace request paths
 
 ### For Documentation
 - **README files**: Embed generated PNG images

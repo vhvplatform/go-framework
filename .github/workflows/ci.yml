@@ -141,19 +141,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup PlantUML
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y plantuml graphviz
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-      - name: Generate PlantUML diagrams
+      - name: Install Mermaid CLI
+        run: npm install -g @mermaid-js/mermaid-cli
+
+      - name: Generate Mermaid diagrams
         run: |
-          plantuml -tpng docs/diagrams/*.puml
-          plantuml -tsvg docs/diagrams/*.puml
+          for file in docs/diagrams/*.mmd; do
+            mmdc -i "$file" -o "${file%.mmd}.png"
+            mmdc -i "$file" -o "${file%.mmd}.svg"
+          done
 
       - name: Upload diagrams
         uses: actions/upload-artifact@v4
         with:
-          name: plantuml-diagrams
-          path: docs/diagrams/*.png
+          name: mermaid-diagrams
+          path: |
+            docs/diagrams/*.png
+            docs/diagrams/*.svg
           retention-days: 90
