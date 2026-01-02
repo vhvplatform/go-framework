@@ -1,40 +1,23 @@
-# Framework Coding Convention Guidelines (Vietnamese)
+# Framework Official Guidelines
 
-## 1. Mục tiêu
-
-Tài liệu này định nghĩa **chuẩn coding chính thức** cho framework microservice Golang của tổ chức, nhằm:
-
-* Đồng nhất code giữa nhiều team
-* Giảm conflict, giảm chi phí review
-* Dễ maintain, scale và audit
-* Phù hợp với kiến trúc microservice + Kubernetes + MongoDB
+Tài liệu này là **bản chuẩn chính thức** cho framework microservice Golang.
 
 ---
 
-## 2. Nguyên tắc cốt lõi
+# 1. NAMING_CONVENTION.md
 
-* **Convention over configuration**
-* **Explicit > Implicit**
-* **Service độc lập – giao tiếp qua API**
-* **Không import code chéo giữa các microservice**
-* **Shared logic = lib nội bộ hoặc service nền tảng**
+## 1.1 Nguyên tắc cốt lõi
 
----
-
-## 3. Quy ước đặt tên (Naming Convention – RẤT QUAN TRỌNG)
-
-### 3.1 Nguyên tắc chung
-
-* Tên phải **mô tả đúng bản chất**, không viết tắt mơ hồ
-* Ưu tiên **tiếng Anh**, nhất quán toàn hệ thống
-* Không dùng từ thừa: `data`, `info`, `object`, `manager` nếu không cần thiết
-* Tránh trùng tên giữa các layer
+* Nhất quán toàn hệ thống
+* Tên phản ánh **domain + responsibility**
+* Ưu tiên rõ ràng hơn ngắn gọn
+* Không viết tắt nếu không phải thuật ngữ phổ biến (ID, API, URL)
 
 ---
 
-### 3.2 Service / Repository
+## 1.2 Git Repository / Microservice
 
-**Format:**
+**Format chuẩn:**
 
 ```
 <domain>-<capability>-service
@@ -47,47 +30,42 @@ Tài liệu này định nghĩa **chuẩn coding chính thức** cho framework m
 * `crm-customer-service`
 * `hrm-employee-service`
 
-**Ví dụ sai:**
+**Không được dùng:**
 
 * `auth`
-* `service-auth`
-* `customer`
+* `customer-service`
+* `crm-service`
 
-📌 *Lý do:*
-
-* Nhìn repo là biết **domain + trách nhiệm**
-* Phù hợp CI/CD, GitOps, Kubernetes naming
+📌 Mỗi service chỉ có **1 responsibility rõ ràng**.
 
 ---
 
-### 3.3 Package (Go)
-
-**Quy tắc:**
+## 1.3 Golang Package
 
 * lowercase
-* ngắn, đúng ngữ nghĩa
-* 1 package = 1 responsibility
-
-**Ví dụ:**
+* số ít
+* 1 package = 1 vai trò
 
 ```go
-package handler
-package repository
-package usecase
-package middleware
+handler
+usecase
+repository
+model
+middleware
+infrastructure
 ```
 
-❌ Không nên:
+❌ Cấm:
 
-```go
-package handlers
-package utils
-package common
+```
+utils
+common
+helpers
 ```
 
 ---
 
-### 3.4 File
+## 1.4 File
 
 **Format:**
 
@@ -95,105 +73,58 @@ package common
 <entity>_<layer>.go
 ```
 
-**Ví dụ:**
+Ví dụ:
 
 * `user_handler.go`
-* `user_repository.go`
 * `user_usecase.go`
-* `auth_middleware.go`
+* `user_repository.go`
 
 ---
 
-### 3.5 Struct / Interface
-
-**Struct:** PascalCase, danh từ
+## 1.5 Struct / Interface
 
 ```go
 type User struct {}
 type LoginRequest struct {}
-```
 
-**Interface:** PascalCase + hậu tố rõ nghĩa
-
-```go
 type UserRepository interface {}
 type TokenGenerator interface {}
 ```
 
-❌ Tránh:
+* Struct: danh từ
+* Interface: hành vi rõ ràng
+
+---
+
+## 1.6 Function / Method
+
+* Public: PascalCase
+* Private: camelCase
+* Bắt đầu bằng **động từ**
 
 ```go
-type IUserRepo struct {}
+CreateUser()
+VerifyToken()
+GenerateAccessToken()
 ```
 
 ---
 
-### 3.6 Function / Method
-
-**Public:** PascalCase
-**Private:** camelCase
-
-```go
-func CreateUser() {}
-func validateToken() {}
-```
-
-📌 *Tên function nên bắt đầu bằng động từ*
-
-* `Create`
-* `Get`
-* `Update`
-* `Delete`
-* `Verify`
-* `Generate`
-
----
-
-### 3.7 Biến (Variable)
-
-* camelCase
-* Tên phản ánh ý nghĩa
-
-```go
-var userID string
-var tokenExpiredAt int64
-```
-
-❌ Tránh:
-
-```go
-var id string
-var data interface{}
-```
-
----
-
-### 3.8 Constant
-
-```go
-const MaxLoginRetry = 5
-const TokenTTLSeconds = 3600
-```
-
----
-
-### 3.9 API Endpoint
-
-**Format:**
+## 1.7 API Endpoint
 
 ```
 /api/v1/<resource>/<action>
 ```
 
-**Ví dụ:**
+Ví dụ:
 
 * `POST /api/v1/auth/login`
 * `POST /api/v1/auth/refresh`
-* `GET  /api/v1/users/{id}`
+* `GET /api/v1/users/{id}`
 
 ---
 
-### 3.10 MongoDB Collection & Field
+## 1.8 MongoDB
 
 **Collection:** snake_case, số nhiều
 
@@ -206,77 +137,148 @@ login_sessions
 
 ```json
 {
-  "_id": "",
-  "userId": "",
   "createdTime": 1710000000,
   "lastUpdateTime": 1710000100
 }
 ```
 
-📌 *Chuẩn thời gian:* Unix timestamp (int)
+---
+
+# 2. SERVICE_TEMPLATE/
+
+## 2.1 Mục tiêu
+
+* Tạo service mới trong **< 5 phút**
+* Không cần suy nghĩ cấu trúc
+* Bắt buộc đúng convention
 
 ---
 
-## 4. Cấu trúc thư mục chuẩn cho 1 microservice
+## 2.2 Cấu trúc repo mẫu
 
 ```
-cmd/
-  server/
-internal/
-  handler/
-  usecase/
-  repository/
-  model/
-  middleware/
-  config/
-  infrastructure/
-api/
-  openapi.yaml
-deploy/
-  docker/
-  k8s/
-Makefile
-README.md
+SERVICE_TEMPLATE/
+├── cmd/server/main.go
+├── internal/
+│   ├── handler/
+│   ├── usecase/
+│   ├── repository/
+│   ├── model/
+│   ├── middleware/
+│   ├── config/
+│   └── infrastructure/
+├── api/openapi.yaml
+├── deploy/
+│   ├── docker/
+│   └── k8s/
+├── Makefile
+├── README.md
 ```
 
 ---
 
-## 5. Quy ước về Config
+## 2.3 Quy trình tạo service mới
 
-* Không hardcode
-* Inject qua ENV
-* Phân môi trường: dev / dev-shared / staging / prod
+1. Copy `SERVICE_TEMPLATE`
+2. Rename repo theo naming convention
+3. Update:
+
+    * `module name`
+    * `serviceName`
+    * `openapi.yaml`
+4. Run:
+
+```bash
+make dev
+```
+
+---
+
+# 3. LOCAL_DEV_SHARED_INFRA.md
+
+## 3.1 Mục tiêu
+
+* Dev local **không cần Docker / K8s / DB**
+* Tất cả dev dùng **shared DB & queue**
+* Chấp nhận race condition để test luồng thật
+
+---
+
+## 3.2 Kiến trúc
+
+```
+Local Service (Go)
+   |
+   | ENV CONFIG
+   v
+Dev Infra Proxy
+   |
+   +-- MongoDB (shared)
+   +-- Redis / Queue (shared)
+```
+
+---
+
+## 3.3 Cấu hình ENV
 
 ```env
-DB_URI=
-REDIS_ADDR=
-QUEUE_ENDPOINT=
+APP_ENV=dev-shared
+DB_URI=mongodb://dev-proxy.internal
+REDIS_ADDR=dev-proxy.internal:6379
+QUEUE_ENDPOINT=dev-proxy.internal
 ```
 
----
-
-## 6. Logging & Error
-
-* Log dạng JSON
-* Có `traceId`, `service`, `env`
-* Không log secret
+📌 Không hardcode endpoint trong code.
 
 ---
 
-## 7. Rule bắt buộc khi review code
+## 3.4 Quy ước dữ liệu khi dùng shared DB
 
-* Không call DB trực tiếp từ handler
-* Không dùng shared DB schema ngoài contract
-* Không bypass auth middleware
-* Không panic trong business logic
+* Bắt buộc có:
+
+```go
+env
+serviceName
+```
+
+* Query luôn filter theo env + service
 
 ---
 
-## 8. Versioning & Áp dụng
+# 4. CI_ENFORCEMENT.md
 
-* Tài liệu này là **chuẩn bắt buộc**
-* Mọi service mới phải tuân theo
-* CI/CD sẽ enforce các rule chính
+## 4.1 Mục tiêu
+
+* Fail build nếu sai convention
+* Không phụ thuộc ý thức cá nhân
+
+---
+
+## 4.2 CI Rule bắt buộc
+
+### Golang
+
+* `golangci-lint`
+* Custom rule:
+
+    * Cấm package `utils`
+    * Cấm DB call trong handler
+
+### Naming
+
+* Check repo name regex
+* Check file name regex
+
+### API
+
+* Validate OpenAPI
+* Detect breaking change
+
+---
+
+## 4.3 Nguyên tắc
+
+> Code không đúng chuẩn = không được merge
 
 ---
 
