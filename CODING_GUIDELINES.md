@@ -1,287 +1,377 @@
-# Framework Official Guidelines
+# FRAMEWORK OFFICIAL GUIDELINES
 
-Tài liệu này là **bản chuẩn chính thức** cho framework microservice Golang.
+**Golang Microservice Framework – Internal Engineering Standard**
 
----
+***
 
-# 1. NAMING_CONVENTION.md
+## Phạm vi & đối tượng áp dụng
 
-## 1.1 Nguyên tắc cốt lõi
+Tài liệu này áp dụng cho:
 
-* Nhất quán toàn hệ thống
-* Tên phản ánh **domain + responsibility**
-* Ưu tiên rõ ràng hơn ngắn gọn
-* Không viết tắt nếu không phải thuật ngữ phổ biến (ID, API, URL)
+* Tất cả microservice viết bằng **Golang**
+* Bao gồm:
+    * Platform services (auth, iam, file, notification, object-storage…)
+    * Business services (crm, hrm, lms, billing…)
+* Áp dụng cho **mọi môi trường**: local, dev, staging, prod
 
----
+***
 
-## 1.2 Git Repository / Microservice
+## 1\. Triết lý thiết kế \(Design Philosophy\)
 
-**Format chuẩn:**
+### 1.1 Production-first mindset
+
+Framework được thiết kế với tư duy:
+
+> **Code phải chịu được môi trường production ngay từ lúc dev**
+
+Do đó:
+
+* Không tạo môi trường dev “quá sạch”
+* Không che giấu race condition
+* Không giả lập hành vi hệ thống
+
+***
+
+### 1.2 Chaos-aware development
+
+Framework **chủ động chấp nhận**:
+
+* Concurrent requests
+* Duplicate events
+* Partial failure
+* Eventual consistency
+
+👉 Dev phải **xử lý bằng code**, không né tránh bằng môi trường.
+
+***
+
+## 2\. Kiến trúc tổng thể \(High\-level Architecture\)
+
+### 2.1 Microservice đúng nghĩa
+
+Mỗi service:
+
+* Có **domain rõ ràng**
+* Có **API contract riêng**
+* Có **database riêng (schema riêng)**
+
+❌ Không chia sẻ database schema
+❌ Không query DB của service khác
+
+***
+
+### 2.2 Gateway-centric architecture
+
+* Frontend **chỉ gọi API Gateway**
+* Gateway chịu trách nhiệm:
+    * CORS
+    * Authentication / Authorization
+    * Tenant mapping
+    * Rate limiting
+    * Routing
+
+Microservice phía sau:
+
+* Tin tưởng gateway
+* Không xử lý CORS
+* Không validate origin
+
+***
+
+## 3\. LOCAL DEVELOPMENT RULES \(CỐT LÕI\)
+
+> Mục tiêu:
+> **Dev local nhẹ – code chạy thật – infra dùng chung**
+
+***
+
+### Rule 3.1 – Không yêu cầu dev cài hạ tầng
+
+Dev **KHÔNG BẮT BUỘC** phải cài:
+
+* Kubernetes
+* MongoDB / PostgreSQL
+* Redis / Kafka / RabbitMQ
+* API Gateway
+
+Dev chỉ cần:
+
+* Golang
+* Editor
+* Network access tới infra dùng chung
+
+***
+
+### Rule 3.2 – Service local chạy như production
+
+Service chạy local:
 
 ```
-<domain>-<capability>-service
+go run cmd/api/main.go
 ```
 
-**Ví dụ đúng:**
+Yêu cầu:
 
-* `auth-service`
-* `file-storage-service`
-* `crm-customer-service`
-* `hrm-employee-service`
+* Không code path riêng cho local
+* Không mock DB
+* Không mock queue
 
-**Không được dùng:**
+👉 Code local = code prod
 
-* `auth`
-* `customer-service`
-* `crm-service`
+***
 
-📌 Mỗi service chỉ có **1 responsibility rõ ràng**.
+### Rule 3.3 – Mọi kết nối phải qua config
 
----
+Tất cả hạ tầng phải cấu hình qua:
 
-## 1.3 Golang Package
+* ENV
+* Config file (YAML / TOML)
+
+Ví dụ:
+
+```
+database:
+  mongoUri: mongodb://dev-shared.mongo.internal:27017/app
+
+queue:
+  redisUri: redis://dev-shared.redis.internal:6379
+```
+
+❌ Cấm hard-code
+❌ Cấm switch logic bằng hostname
+
+***
+
+## ⭐ Rule 3.4 – SHARED INFRA DEVELOPMENT (QUY ƯỚC ĐẶC BIỆT)
+
+> **TẤT CẢ DEV DÙNG CHUNG DB & QUEUE**
+> **KHÔNG CHIA ENV**
+> **KHÔNG TÁCH API**
+
+Đây là **quy ước có chủ đích**, không phải thiếu sót.
+
+***
+
+### 3.4.1 Mục tiêu của Rule 3.4
+
+Rule này tồn tại để:
+
+* Mọi dev nhìn thấy **cùng một trạng thái hệ thống**
+* Phát hiện:
+    * race condition
+    * duplicate event
+    * dirty write
+* Tránh tình trạng:
+
+  > “local chạy ok, lên prod chết”
+
+***
+
+### 3.4.2 Hệ quả DEV PHẢI CHẤP NHẬN
+
+| Hệ quả | Trạng thái |
+| ------ | ---------- |
+| Data không sạch | CHẤP NHẬN |
+| Concurrent insert | CHẤP NHẬN |
+| Log lẫn nhau | CHẤP NHẬN |
+| Test phá dữ liệu | KHÔNG CHẤP NHẬN |
+
+***
+
+### 3.4.3 Quy tắc bắt buộc khi dùng chung DB
+
+#### (1) Không được giả định DB rỗng
+
+Code **KHÔNG ĐƯỢC**:
+
+* assume first insert
+* assume auto increment
+* assume empty collection
+
+***
+
+#### (2) Idempotency là bắt buộc
+
+Mọi API quan trọng phải:
+
+* retry-safe
+* xử lý duplicate key
+
+Ví dụ:
+
+* unique index
+* upsert
+* version field
+
+***
+
+#### (3) Không truncate / reset dữ liệu
+
+❌ Không drop collection
+❌ Không reset database
+Chỉ dùng:
+
+* logical delete
+* versioning
+
+***
+
+#### (4) Phải có audit metadata
+
+Mọi record phải có:
+
+```
+createdAt
+updatedAt
+createdBy
+requestId
+```
+
+***
+
+### 3.4.4 Race condition là “bài test tự nhiên”
+
+Framework coi:
+
+* race condition
+* concurrent update
+
+👉 là **bài test tự nhiên** cho chất lượng code.
+Dev **không được né** bằng env riêng.
+
+***
+
+## 4\. Source Code Organization Rules
+
+### 4.1 Mỗi service = 1 repo
+
+* Repo độc lập
+* Version độc lập
+* CI/CD độc lập
+
+***
+
+### 4.2 Cấu trúc thư mục chuẩn
+
+```
+.
+├── cmd/
+│   └── api/
+│       └── main.go
+├── internal/
+│   ├── domain/        # entity, aggregate
+│   ├── service/       # business logic
+│   ├── repository/    # DB access
+│   ├── transport/
+│   │   └── http/
+│   └── app/           # wire dependencies
+├── pkg/               # reusable packages
+├── config/
+├── docs/
+└── README.md
+```
+
+***
+
+## 5\. Naming Convention Rules
+
+### 5.1 Service naming
+
+```
+go-auth-service
+go-file-service
+go-crm-service
+```
 
 * lowercase
-* số ít
-* 1 package = 1 vai trò
+* kebab-case
+* không thêm env suffix
 
-```go
-handler
-usecase
-repository
-model
-middleware
-infrastructure
-```
+***
 
-❌ Cấm:
+### 5.2 API naming
 
 ```
-utils
-common
-helpers
+GET  /v1/users
+POST /v1/users
 ```
 
----
+* RESTful
+* versioned
+* noun-based
 
-## 1.4 File
+***
 
-**Format:**
+### 5.3 Database naming (MongoDB)
 
-```
-<entity>_<layer>.go
-```
+| Thành phần | Quy ước |
+| ---------- | ------- |
+| Database | snake\_case |
+| Collection | snake\_case |
+| Field | camelCase |
 
-Ví dụ:
+***
 
-* `user_handler.go`
-* `user_usecase.go`
-* `user_repository.go`
+## 6\. Testing Rules
 
----
+### 6.1 Unit test
 
-## 1.5 Struct / Interface
+* Test business logic
+* Không connect DB
 
-```go
-type User struct {}
-type LoginRequest struct {}
+***
 
-type UserRepository interface {}
-type TokenGenerator interface {}
-```
+### 6.2 Integration test
 
-* Struct: danh từ
-* Interface: hành vi rõ ràng
+* Dùng DB thật
+* Dùng shared DB
 
----
+***
 
-## 1.6 Function / Method
-
-* Public: PascalCase
-* Private: camelCase
-* Bắt đầu bằng **động từ**
-
-```go
-CreateUser()
-VerifyToken()
-GenerateAccessToken()
-```
-
----
-
-## 1.7 API Endpoint
-
-```
-/api/v1/<resource>/<action>
-```
-
-Ví dụ:
-
-* `POST /api/v1/auth/login`
-* `POST /api/v1/auth/refresh`
-* `GET /api/v1/users/{id}`
-
----
-
-## 1.8 MongoDB
-
-**Collection:** snake_case, số nhiều
-
-```
-users
-login_sessions
-```
-
-**Field:** camelCase
-
-```json
-{
-  "createdTime": 1710000000,
-  "lastUpdateTime": 1710000100
-}
-```
-
----
-
-# 2. SERVICE_TEMPLATE/
-
-## 2.1 Mục tiêu
-
-* Tạo service mới trong **< 5 phút**
-* Không cần suy nghĩ cấu trúc
-* Bắt buộc đúng convention
-
----
-
-## 2.2 Cấu trúc repo mẫu
-
-```
-SERVICE_TEMPLATE/
-├── cmd/server/main.go
-├── internal/
-│   ├── handler/
-│   ├── usecase/
-│   ├── repository/
-│   ├── model/
-│   ├── middleware/
-│   ├── config/
-│   └── infrastructure/
-├── api/openapi.yaml
-├── deploy/
-│   ├── docker/
-│   └── k8s/
-├── Makefile
-├── README.md
-```
-
----
-
-## 2.3 Quy trình tạo service mới
-
-1. Copy `SERVICE_TEMPLATE`
-2. Rename repo theo naming convention
-3. Update:
-
-    * `module name`
-    * `serviceName`
-    * `openapi.yaml`
-4. Run:
-
-```bash
-make dev
-```
-
----
-
-# 3. LOCAL_DEV_SHARED_INFRA.md
-
-## 3.1 Mục tiêu
-
-* Dev local **không cần Docker / K8s / DB**
-* Tất cả dev dùng **shared DB & queue**
-* Chấp nhận race condition để test luồng thật
-
----
-
-## 3.2 Kiến trúc
-
-```
-Local Service (Go)
-   |
-   | ENV CONFIG
-   v
-Dev Infra Proxy
-   |
-   +-- MongoDB (shared)
-   +-- Redis / Queue (shared)
-```
-
----
-
-## 3.3 Cấu hình ENV
-
-```env
-APP_ENV=dev-shared
-DB_URI=mongodb://dev-proxy.internal
-REDIS_ADDR=dev-proxy.internal:6379
-QUEUE_ENDPOINT=dev-proxy.internal
-```
-
-📌 Không hardcode endpoint trong code.
-
----
-
-## 3.4 Quy ước dữ liệu khi dùng shared DB
-
-* Bắt buộc có:
-
-```go
-env
-serviceName
-```
-
-* Query luôn filter theo env + service
-
----
-
-# 4. CI_ENFORCEMENT.md
-
-## 4.1 Mục tiêu
-
-* Fail build nếu sai convention
-* Không phụ thuộc ý thức cá nhân
-
----
-
-## 4.2 CI Rule bắt buộc
-
-### Golang
-
-* `golangci-lint`
-* Custom rule:
-
-    * Cấm package `utils`
-    * Cấm DB call trong handler
-
-### Naming
-
-* Check repo name regex
-* Check file name regex
-
-### API
+### 6.3 Contract test
 
 * Validate OpenAPI
-* Detect breaking change
+* Đảm bảo backward compatibility
 
----
+***
 
-## 4.3 Nguyên tắc
+### 6.4 CORS test
 
-> Code không đúng chuẩn = không được merge
+* **CHỈ test tại API Gateway**
+* Không test trong service
 
----
+***
 
-**Owner:** Core Platform Team
-**Status:** Active
-**Version:** v1.0
+## 7\. CI/CD Enforcement Rules
+
+Build sẽ **FAIL** nếu:
+
+* Không có OpenAPI spec
+* Sai naming
+* Hard-code config
+* Truy cập DB service khác
+* Không xử lý duplicate key
+
+***
+
+## 8\. Security Rules
+
+* Không log secret
+* Không expose internal error
+* Auth chỉ xử lý tại gateway
+
+***
+
+## 9\. Vai trò của API Gateway
+
+Gateway chịu trách nhiệm:
+
+* CORS
+* Auth
+* Tenant mapping
+* Rate limit
+
+Service phía sau:
+
+* Tin gateway
+* Focus business
