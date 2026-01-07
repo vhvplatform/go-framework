@@ -1,15 +1,41 @@
-# SaaS Platform - Developer Tools
+# SaaS Platform - Monorepo
 
 <p align="center">
-  <strong>Everything you need to develop and test the SaaS Platform locally</strong>
+  <strong>Full-stack SaaS Platform with Backend, Frontend, and Mobile App</strong>
 </p>
 
 <p align="center">
   <a href="#quick-start">Quick Start</a> •
-  <a href="#features">Features</a> •
+  <a href="#repository-structure">Structure</a> •
   <a href="#documentation">Documentation</a> •
   <a href="#requirements">Requirements</a>
 </p>
+
+---
+
+## 📁 Repository Structure
+
+This monorepo contains all components of the SaaS Platform:
+
+```
+go-framework/
+├── server/         # Golang backend microservices
+├── client/         # React.js frontend application (coming soon)
+├── flutter/        # Flutter mobile application (coming soon)
+└── docs/           # Project documentation
+```
+
+### [Server](server/) - Backend Microservices
+Complete Golang backend with microservices architecture, Docker setup, development tools, and automation scripts.
+
+### [Client](client/) - Frontend Application
+React.js-based frontend microservice for the web interface (placeholder - to be implemented).
+
+### [Flutter](flutter/) - Mobile Application  
+Flutter-based mobile application for iOS and Android (placeholder - to be implemented).
+
+### [Docs](docs/) - Documentation
+Comprehensive documentation including guides, architecture, deployment instructions, and diagrams.
 
 ---
 
@@ -22,10 +48,11 @@ Get up and running in minutes:
 git clone https://github.com/vhvplatform/go-framework.git
 cd go-framework
 
-# Setup development environment (installs tools, clones repos)
+# Setup backend development environment
+cd server
 make setup
 
-# Start all services
+# Start all backend services
 make start
 
 # View service status
@@ -35,9 +62,9 @@ make status
 make info
 ```
 
-**Windows Users:** See the [Windows Setup Guide](docs/WINDOWS_SETUP.md) for automated setup using PowerShell. Supports custom installation paths (e.g., `E:\go\go-framework`).
+**Windows Users:** See the [Windows Setup Guide](docs/windows/WINDOWS_SETUP.md) for automated setup using PowerShell. Supports custom installation paths (e.g., `E:\go\go-framework`).
 
-That's it! Your complete SaaS platform is now running locally.
+That's it! Your backend services are now running locally.
 
 ## 📦 What's Included
 
@@ -62,38 +89,70 @@ That's it! Your complete SaaS platform is now running locally.
 
 ## 📚 Documentation
 
-- [Getting Started](docs/GETTING_STARTED.md) - Detailed setup guide
-- [Windows Setup Guide](docs/WINDOWS_SETUP.md) - Windows-specific setup instructions
-- [Windows Testing Guide](docs/WINDOWS_TESTING_GUIDE.md) - Testing Windows installations
-- [Kubernetes Deployment](docs/KUBERNETES_DEPLOYMENT.md) - Deploy to Kubernetes cluster
-- [Local Development](docs/LOCAL_DEVELOPMENT.md) - Development workflow
-- [Testing Guide](docs/TESTING.md) - How to run tests
-- [Debugging](docs/DEBUGGING.md) - Debugging tips and tricks
-- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
-- [Tools Reference](docs/TOOLS.md) - Complete tool documentation
+See the [docs](docs/) directory for comprehensive documentation:
+
+### Getting Started
+- [Getting Started](docs/guides/GETTING_STARTED.md) - Detailed setup guide
+- [Beginner Guide](docs/guides/BEGINNER_GUIDE.md) - For new developers
+- [Setup Guide](docs/guides/SETUP.md) - Installation instructions
+
+### Development
+- [Local Development](docs/guides/LOCAL_DEVELOPMENT.md) - Development workflow
+- [Coding Guidelines](docs/guides/CODING_GUIDELINES.md) - Code standards
+- [Testing Guide](docs/guides/TESTING.md) - How to run tests
+- [Debugging](docs/guides/DEBUGGING.md) - Debugging tips and tricks
+- [Troubleshooting](docs/guides/TROUBLESHOOTING.md) - Common issues and solutions
+- [Tools Reference](docs/guides/TOOLS.md) - Complete tool documentation
+
+### Deployment
+- [Kubernetes Deployment](docs/deployment/KUBERNETES_DEPLOYMENT.md) - Deploy to Kubernetes cluster
+
+### Architecture
+- [System Architecture](docs/architecture/ARCHITECTURE.md) - System design and components
+- [Architecture Diagrams](docs/diagrams/) - Visual representations
+
+### Platform-Specific
+- [Windows Setup Guide](docs/windows/WINDOWS_SETUP.md) - Windows-specific setup
+- [Windows Testing Guide](docs/windows/WINDOWS_TESTING_GUIDE.md) - Testing Windows installations
 
 ## 💻 Requirements
 
-### Minimum Requirements
+### Backend (Server)
 - **Docker Desktop** 4.0+
 - **Go** 1.25+
 - **Make** (usually pre-installed on macOS/Linux)
 
-### Recommended
+### Frontend (Client) - Coming Soon
+- **Node.js** 18+
+- **npm** or **yarn**
+- **React** 18+
+
+### Mobile (Flutter) - Coming Soon
+- **Flutter SDK** 3.0+
+- **Dart** 3.0+
+- **Android Studio** / **Xcode**
+
+### Recommended Tools
 - **kubectl** 1.27+ (for Kubernetes deployment)
 - **Helm** 3.12+ (for Helm deployments)
-- **VS Code** (with Go extension)
+- **VS Code** (with Go, React, and Flutter extensions)
 
 ### Operating Systems
 - ✅ macOS (Intel & Apple Silicon)
 - ✅ Linux (Ubuntu, Debian, Fedora, etc.)
-- ✅ Windows 10/11 (with WSL2) - See [Windows Setup Guide](docs/WINDOWS_SETUP.md)
+- ✅ Windows 10/11 (with WSL2) - See [Windows Setup Guide](docs/windows/WINDOWS_SETUP.md)
 
 ## 🎯 Key Features
 
-### One-Command Operations
+### Backend Server Features
+
+#### One-Command Operations
 
 ```bash
+# Navigate to server directory
+cd server
+
+# Development commands
 make setup          # Complete development environment setup
 make start          # Start all services with one command
 make test           # Run full test suite
@@ -104,6 +163,9 @@ make clean          # Clean up everything
 ### Powerful Scripts
 
 ```bash
+# Navigate to server directory first
+cd server
+
 # Database Management
 make db-seed        # Populate with test data
 make db-reset       # Reset database
@@ -130,6 +192,9 @@ make open-jaeger        # Open Jaeger tracing
 ### Hot Reload Development
 
 ```bash
+# Navigate to server directory
+cd server
+
 # Start with development mode for hot-reload
 make start-dev
 
@@ -138,8 +203,9 @@ make start-dev
 
 ## 🛠️ Directory Structure
 
+### Server Directory
 ```
-go-framework/
+server/
 ├── docker/                    # Docker Compose configurations
 │   ├── docker-compose.yml     # Main stack
 │   ├── docker-compose.dev.yml # Development overrides
@@ -149,7 +215,6 @@ go-framework/
 │   ├── dev/                   # Development utilities
 │   ├── database/              # Database management
 │   ├── testing/               # Test automation
-│   ├── build/                 # Build scripts
 │   ├── deployment/            # Deployment automation
 │   ├── monitoring/            # Monitoring utilities
 │   └── utilities/             # General utilities
@@ -157,12 +222,28 @@ go-framework/
 │   ├── vscode/                # VS Code settings
 │   ├── git/                   # Git hooks and config
 │   └── linting/               # Linter configurations
+├── mocks/                     # Mock services for testing
+├── tools/                     # CLI development tools
 ├── fixtures/                  # Test data
 ├── postman/                   # API testing collections
-├── tools/                     # Developer tools
-├── docs/                      # Documentation
-└── Makefile                   # Main automation file
+├── k8s/                       # Kubernetes manifests
+└── Makefile                   # Build and automation commands
 ```
+
+### Documentation Directory
+```
+docs/
+├── guides/        # Development and setup guides
+├── architecture/  # System architecture documentation
+├── deployment/    # Deployment guides
+├── windows/       # Windows-specific documentation
+├── diagrams/      # Architecture diagrams (Mermaid)
+└── vi/           # Vietnamese documentation
+```
+
+### Coming Soon
+- `client/` - React.js frontend application
+- `flutter/` - Mobile application for iOS/Android
 
 ## 🌐 Service URLs
 
@@ -193,7 +274,7 @@ Once started, services are available at:
 Copy and customize the environment file:
 
 ```bash
-cd docker
+cd server/docker
 cp .env.example .env
 # Edit .env with your settings
 ```
@@ -287,7 +368,7 @@ make open-jaeger       # Distributed tracing
 
 For detailed instructions on deploying to a Kubernetes cluster, see the comprehensive guide:
 
-📖 **[Kubernetes Deployment Guide](docs/KUBERNETES_DEPLOYMENT.md)**
+📖 **[Kubernetes Deployment Guide](docs/deployment/KUBERNETES_DEPLOYMENT.md)**
 
 The guide includes:
 - Prerequisites and requirements
@@ -300,7 +381,7 @@ The guide includes:
 Quick start:
 ```bash
 # Deploy all resources to Kubernetes
-kubectl apply -f k8s/base/
+kubectl apply -f server/k8s/base/
 
 # Check deployment status
 kubectl get pods -n go-platform
@@ -458,10 +539,13 @@ make db-backup
 - **git/pre-commit.sh** - Git pre-commit hooks for code quality
 - **linting/** - Linter configurations (golangci-lint, shellcheck)
 
-### Developer CLI Tool (`tools/cli/`)
+### Developer CLI Tool (`server/tools/cli/`)
 Built with Go 1.25+ and Cobra, the `saas` CLI provides a user-friendly interface:
 
 ```bash
+# Navigate to server directory
+cd server
+
 # Build the CLI
 make build-cli
 
@@ -480,9 +564,9 @@ saas deploy local   # Deploy to local Kubernetes
 
 ## 🆘 Getting Help
 
-1. Check [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
-2. View service logs: `make logs-service SERVICE=<name>`
-3. Check service health: `make status`
+1. Check [Troubleshooting Guide](docs/guides/TROUBLESHOOTING.md)
+2. View service logs: `make logs-service SERVICE=<name>` (from server directory)
+3. Check service health: `make status` (from server directory)
 4. Review [Mermaid diagrams](docs/diagrams/) for architecture understanding
 5. Read the [comprehensive documentation](docs/)
 6. Open an issue on GitHub
@@ -490,11 +574,11 @@ saas deploy local   # Deploy to local Kubernetes
 ## 🎓 Learning Resources
 
 ### Documentation
-- [Getting Started Guide](docs/GETTING_STARTED.md) - Step-by-step onboarding
-- [Local Development Guide](docs/LOCAL_DEVELOPMENT.md) - Daily workflow
-- [Testing Guide](docs/TESTING.md) - Testing strategies
-- [Debugging Guide](docs/DEBUGGING.md) - Troubleshooting tips
-- [Tools Reference](docs/TOOLS.md) - Complete tool documentation
+- [Getting Started Guide](docs/guides/GETTING_STARTED.md) - Step-by-step onboarding
+- [Local Development Guide](docs/guides/LOCAL_DEVELOPMENT.md) - Daily workflow
+- [Testing Guide](docs/guides/TESTING.md) - Testing strategies
+- [Debugging Guide](docs/guides/DEBUGGING.md) - Troubleshooting tips
+- [Tools Reference](docs/guides/TOOLS.md) - Complete tool documentation
 - [Architecture Diagrams](docs/diagrams/) - Visual system overview
 
 ### Best Practices
@@ -508,11 +592,11 @@ saas deploy local   # Deploy to local Kubernetes
 
 This repository follows industry best practices:
 
-- **Go**: Version 1.25+, follows official Go style guide
-- **Linting**: golangci-lint with strict rules (see `.golangci.yml`)
+- **Go**: Version 1.25+, follows official Go style guide (see `server/.golangci.yml`)
+- **Linting**: golangci-lint with strict rules
 - **Testing**: Unit tests with >80% coverage target
 - **Shell Scripts**: ShellCheck validated, includes error handling
-- **Git Hooks**: Automated pre-commit checks
+- **Git Hooks**: Automated pre-commit checks (see `server/configs/git/`)
 - **Documentation**: Comprehensive inline comments and external docs
 - **Security**: Regular dependency updates, no hardcoded secrets
 
