@@ -7,7 +7,7 @@ This example demonstrates a basic setup of the go-framework development environm
 ```bash
 # 1. Clone the repository
 git clone https://github.com/vhvplatform/go-framework.git
-cd go-framework
+cd go-framework/server
 
 # 2. Run automated setup
 make setup
@@ -158,16 +158,16 @@ make restart-service SERVICE=auth-service
    ```
 
 3. **Start Development**
-   - See [LOCAL_DEVELOPMENT.md](../../docs/LOCAL_DEVELOPMENT.md)
-   - See [DEVELOPMENT.md](../../docs/DEVELOPMENT.md)
+   - See [LOCAL_DEVELOPMENT.md](../../../docs/guides/LOCAL_DEVELOPMENT.md)
+   - See [DEVELOPMENT.md](../../../docs/guides/DEVELOPMENT.md)
 
 4. **Learn More**
-   - [TOOLS.md](../../docs/TOOLS.md) - Tool reference
-   - [ARCHITECTURE.md](../../docs/ARCHITECTURE.md) - System design
-   - [TROUBLESHOOTING.md](../../docs/TROUBLESHOOTING.md) - Common issues
+   - [TOOLS.md](../../../docs/guides/TOOLS.md) - Tool reference
+   - [ARCHITECTURE.md](../../../docs/architecture/ARCHITECTURE.md) - System design
+   - [TROUBLESHOOTING.md](../../../docs/guides/TROUBLESHOOTING.md) - Common issues
 
 ## Support
 
 - [GitHub Issues](https://github.com/vhvplatform/go-framework/issues)
-- [Documentation](../../docs/)
-- [Contributing Guide](../../CONTRIBUTING.md)
+- [Documentation](../../../docs/)
+- [Contributing Guide](../../../CONTRIBUTING.md)

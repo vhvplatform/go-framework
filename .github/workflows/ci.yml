@@ -23,13 +23,13 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
-          working-directory: tools/cli
+          working-directory: server/tools/cli
           args: --timeout=5m
 
       - name: Run shellcheck
         uses: ludeeus/action-shellcheck@master
         with:
-          scandir: './scripts'
+          scandir: './server/scripts'
           severity: warning
 
   test:
@@ -55,17 +55,17 @@ jobs:
             ${{ runner.os }}-go-
 
       - name: Download dependencies
-        working-directory: tools/cli
+        working-directory: server/tools/cli
         run: go mod download
 
       - name: Run tests
-        working-directory: tools/cli
+        working-directory: server/tools/cli
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: ./tools/cli/coverage.out
+          files: ./server/tools/cli/coverage.out
           flags: unittests
           name: codecov-umbrella
 
@@ -83,10 +83,10 @@ jobs:
           go-version: '1.25'
 
       - name: Build CLI
-        working-directory: tools/cli
+        working-directory: server/tools/cli
         run: |
-          go build -v -o ../../bin/saas .
-          chmod +x ../../bin/saas
+          go build -v -o ../../../bin/saas .
+          chmod +x ../../../bin/saas
 
       - name: Test CLI execution
         run: ./bin/saas version

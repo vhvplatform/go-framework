@@ -47,7 +47,7 @@ setup-env: ## Setup environment variables
 	@echo "${YELLOW}Please edit docker/.env with your configuration${RESET}"
 
 ## Development Commands
-create-service: ## Create new service (SERVICE=name, see docs/NEW_SERVICE_GUIDE.md)
+create-service: ## Create new service (SERVICE=name, see ../docs/guides/NEW_SERVICE_GUIDE.md)
 	@if [ -z "$(SERVICE)" ]; then \
 		echo "${RED}❌ Error: SERVICE variable required${RESET}"; \
 		echo "Usage: make create-service SERVICE=my-service"; \

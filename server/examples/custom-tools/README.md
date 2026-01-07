@@ -98,7 +98,7 @@ MY_VAR=test make my-custom-command
 
 ### 5. Document Your Tool
 
-Add to `docs/TOOLS.md`:
+Add to `docs/guides/TOOLS.md`:
 
 ````markdown
 ### my-custom-tool.sh
@@ -356,6 +356,6 @@ make db-backup && \
 
 ## See Also
 
-- [DEVELOPMENT.md](../../docs/DEVELOPMENT.md) - Development guide
-- [TOOLS.md](../../docs/TOOLS.md) - Tool reference
-- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Contribution guidelines
+- [DEVELOPMENT.md](../../../docs/guides/DEVELOPMENT.md) - Development guide
+- [TOOLS.md](../../../docs/guides/TOOLS.md) - Tool reference
+- [CONTRIBUTING.md](../../../CONTRIBUTING.md) - Contribution guidelines
