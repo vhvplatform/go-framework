@@ -35,7 +35,7 @@ make status
 make info
 ```
 
-**Windows Users:** See the [Windows Setup Guide](docs/WINDOWS_SETUP.md) for automated setup using PowerShell. Supports custom installation paths (e.g., `E:\go\go-framework`).
+**Windows Users:** See the [Windows Setup Guide](docs/windows/WINDOWS_SETUP.md) for automated setup using PowerShell. Supports custom installation paths (e.g., `E:\go\go-framework`).
 
 That's it! Your complete SaaS platform is now running locally.
 
@@ -62,15 +62,15 @@ That's it! Your complete SaaS platform is now running locally.
 
 ## 📚 Documentation
 
-- [Getting Started](docs/GETTING_STARTED.md) - Detailed setup guide
-- [Windows Setup Guide](docs/WINDOWS_SETUP.md) - Windows-specific setup instructions
-- [Windows Testing Guide](docs/WINDOWS_TESTING_GUIDE.md) - Testing Windows installations
-- [Kubernetes Deployment](docs/KUBERNETES_DEPLOYMENT.md) - Deploy to Kubernetes cluster
-- [Local Development](docs/LOCAL_DEVELOPMENT.md) - Development workflow
-- [Testing Guide](docs/TESTING.md) - How to run tests
-- [Debugging](docs/DEBUGGING.md) - Debugging tips and tricks
-- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
-- [Tools Reference](docs/TOOLS.md) - Complete tool documentation
+- [Getting Started](docs/setup/GETTING_STARTED.md) - Detailed setup guide
+- [Windows Setup Guide](docs/windows/WINDOWS_SETUP.md) - Windows-specific setup instructions
+- [Windows Testing Guide](docs/windows/WINDOWS_TESTING_GUIDE.md) - Testing Windows installations
+- [Kubernetes Deployment](docs/deployment/KUBERNETES_DEPLOYMENT.md) - Deploy to Kubernetes cluster
+- [Local Development](docs/development/LOCAL_DEVELOPMENT.md) - Development workflow
+- [Testing Guide](docs/testing/TESTING.md) - How to run tests
+- [Debugging](docs/development/DEBUGGING.md) - Debugging tips and tricks
+- [Troubleshooting](docs/testing/TROUBLESHOOTING.md) - Common issues and solutions
+- [Tools Reference](docs/development/TOOLS.md) - Complete tool documentation
 
 ## 💻 Requirements
 
@@ -87,7 +87,7 @@ That's it! Your complete SaaS platform is now running locally.
 ### Operating Systems
 - ✅ macOS (Intel & Apple Silicon)
 - ✅ Linux (Ubuntu, Debian, Fedora, etc.)
-- ✅ Windows 10/11 (with WSL2) - See [Windows Setup Guide](docs/WINDOWS_SETUP.md)
+- ✅ Windows 10/11 (with WSL2) - See [Windows Setup Guide](docs/windows/WINDOWS_SETUP.md)
 
 ## 🎯 Key Features
 
@@ -140,27 +140,28 @@ make start-dev
 
 ```
 go-framework/
-├── docker/                    # Docker Compose configurations
-│   ├── docker-compose.yml     # Main stack
-│   ├── docker-compose.dev.yml # Development overrides
-│   └── docker-compose.test.yml# Testing configuration
-├── scripts/                   # Automation scripts
-│   ├── setup/                 # Setup and installation
-│   ├── dev/                   # Development utilities
-│   ├── database/              # Database management
-│   ├── testing/               # Test automation
-│   ├── build/                 # Build scripts
-│   ├── deployment/            # Deployment automation
-│   ├── monitoring/            # Monitoring utilities
-│   └── utilities/             # General utilities
-├── configs/                   # IDE and tool configurations
-│   ├── vscode/                # VS Code settings
-│   ├── git/                   # Git hooks and config
-│   └── linting/               # Linter configurations
-├── fixtures/                  # Test data
-├── postman/                   # API testing collections
-├── tools/                     # Developer tools
-├── docs/                      # Documentation
+├── server/                    # Golang backend microservices
+│   ├── docker/                # Docker Compose configurations
+│   ├── scripts/               # Automation scripts
+│   ├── mocks/                 # Mock services for development
+│   ├── tools/                 # Development tools and CLI
+│   ├── k8s/                   # Kubernetes configurations
+│   ├── configs/               # IDE and tool configurations
+│   ├── fixtures/              # Test data and fixtures
+│   ├── postman/               # API testing collections
+│   └── examples/              # Example implementations
+├── client/                    # ReactJS frontend microservices
+│   └── (Coming soon)          # Frontend applications
+├── flutter/                   # Flutter mobile applications
+│   └── (Coming soon)          # Mobile app code
+├── docs/                      # Project documentation
+│   ├── setup/                 # Setup and installation guides
+│   ├── development/           # Development guides
+│   ├── testing/               # Testing guides
+│   ├── deployment/            # Deployment guides
+│   ├── windows/               # Windows-specific docs
+│   ├── architecture/          # Architecture documentation
+│   └── diagrams/              # System diagrams
 └── Makefile                   # Main automation file
 ```
 
@@ -287,7 +288,7 @@ make open-jaeger       # Distributed tracing
 
 For detailed instructions on deploying to a Kubernetes cluster, see the comprehensive guide:
 
-📖 **[Kubernetes Deployment Guide](docs/KUBERNETES_DEPLOYMENT.md)**
+📖 **[Kubernetes Deployment Guide](docs/deployment/KUBERNETES_DEPLOYMENT.md)**
 
 The guide includes:
 - Prerequisites and requirements
@@ -480,7 +481,7 @@ saas deploy local   # Deploy to local Kubernetes
 
 ## 🆘 Getting Help
 
-1. Check [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
+1. Check [Troubleshooting Guide](docs/testing/TROUBLESHOOTING.md)
 2. View service logs: `make logs-service SERVICE=<name>`
 3. Check service health: `make status`
 4. Review [Mermaid diagrams](docs/diagrams/) for architecture understanding
@@ -490,11 +491,11 @@ saas deploy local   # Deploy to local Kubernetes
 ## 🎓 Learning Resources
 
 ### Documentation
-- [Getting Started Guide](docs/GETTING_STARTED.md) - Step-by-step onboarding
-- [Local Development Guide](docs/LOCAL_DEVELOPMENT.md) - Daily workflow
-- [Testing Guide](docs/TESTING.md) - Testing strategies
-- [Debugging Guide](docs/DEBUGGING.md) - Troubleshooting tips
-- [Tools Reference](docs/TOOLS.md) - Complete tool documentation
+- [Getting Started Guide](docs/setup/GETTING_STARTED.md) - Step-by-step onboarding
+- [Local Development Guide](docs/development/LOCAL_DEVELOPMENT.md) - Daily workflow
+- [Testing Guide](docs/testing/TESTING.md) - Testing strategies
+- [Debugging Guide](docs/development/DEBUGGING.md) - Troubleshooting tips
+- [Tools Reference](docs/development/TOOLS.md) - Complete tool documentation
 - [Architecture Diagrams](docs/diagrams/) - Visual system overview
 
 ### Best Practices

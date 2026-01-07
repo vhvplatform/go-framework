@@ -27,27 +27,27 @@ help: ## Show this help
 ## Setup Commands
 setup: ## Setup complete development environment
 	@echo "${GREEN}🚀 Setting up development environment...${RESET}"
-	@./scripts/setup/install-deps.sh
-	@./scripts/setup/clone-repos.sh
-	@./scripts/setup/install-tools.sh
-	@./scripts/setup/init-workspace.sh
+	@./server/scripts/setup/install-deps.sh
+	@./server/scripts/setup/clone-repos.sh
+	@./server/scripts/setup/install-tools.sh
+	@./server/scripts/setup/init-workspace.sh
 	@echo "${GREEN}✅ Setup complete!${RESET}"
 
 setup-tools: ## Install development tools only
 	@echo "${GREEN}🔧 Installing development tools...${RESET}"
-	@./scripts/setup/install-tools.sh
+	@./server/scripts/setup/install-tools.sh
 
 setup-repos: ## Clone all service repositories
 	@echo "${GREEN}📂 Cloning repositories...${RESET}"
-	@./scripts/setup/clone-repos.sh
+	@./server/scripts/setup/clone-repos.sh
 
 setup-env: ## Setup environment variables
 	@echo "${GREEN}⚙️  Setting up environment...${RESET}"
-	@cd docker && cp .env.example .env
-	@echo "${YELLOW}Please edit docker/.env with your configuration${RESET}"
+	@cd server/docker && cp .env.example .env
+	@echo "${YELLOW}Please edit server/docker/.env with your configuration${RESET}"
 
 ## Development Commands
-create-service: ## Create new service (SERVICE=name, see docs/NEW_SERVICE_GUIDE.md)
+create-service: ## Create new service (SERVICE=name, see docs/development/NEW_SERVICE_GUIDE.md)
 	@if [ -z "$(SERVICE)" ]; then \
 		echo "${RED}❌ Error: SERVICE variable required${RESET}"; \
 		echo "Usage: make create-service SERVICE=my-service"; \
@@ -67,34 +67,34 @@ create-service: ## Create new service (SERVICE=name, see docs/NEW_SERVICE_GUIDE.
 	[ -n "$(DATABASE)" ] && ARGS="$$ARGS --database $(DATABASE)"; \
 	[ "$(WITH_GRPC)" = "true" ] && ARGS="$$ARGS --with-grpc"; \
 	[ "$(WITH_MESSAGING)" = "true" ] && ARGS="$$ARGS --with-messaging"; \
-	./scripts/dev/create-service.sh $$ARGS
+	./server/scripts/dev/create-service.sh $$ARGS
 
 start: ## Start all services
 	@echo "${GREEN}🚀 Starting all services...${RESET}"
-	@cd docker && docker compose up -d
-	@./scripts/dev/wait-for-services.sh
+	@cd server/docker && docker compose up -d
+	@./server/scripts/dev/wait-for-services.sh
 	@echo "${GREEN}✅ All services started!${RESET}"
 	@make status
 
 start-dev: ## Start with development overrides (hot-reload)
 	@echo "${GREEN}🚀 Starting services in development mode...${RESET}"
-	@cd docker && docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-	@./scripts/dev/wait-for-services.sh
+	@cd server/docker && docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+	@./server/scripts/dev/wait-for-services.sh
 	@echo "${GREEN}✅ Development environment started!${RESET}"
 
 start-observability: ## Start only observability stack
 	@echo "${GREEN}📊 Starting observability stack...${RESET}"
-	@cd docker && docker compose up -d prometheus grafana jaeger
+	@cd server/docker && docker compose up -d prometheus grafana jaeger
 	@echo "${GREEN}✅ Observability stack started!${RESET}"
 
 stop: ## Stop all services
 	@echo "${YELLOW}⏸️  Stopping all services...${RESET}"
-	@cd docker && docker compose down
+	@cd server/docker && docker compose down
 	@echo "${GREEN}✅ All services stopped!${RESET}"
 
 stop-keep-data: ## Stop services but keep data volumes
 	@echo "${YELLOW}⏸️  Stopping services (keeping data)...${RESET}"
-	@cd docker && docker compose stop
+	@cd server/docker && docker compose stop
 	@echo "${GREEN}✅ Services stopped!${RESET}"
 
 restart: stop start ## Restart all services
@@ -105,7 +105,7 @@ restart-service: ## Restart specific service (SERVICE=name)
 		echo "Usage: make restart-service SERVICE=auth-service"; \
 		exit 1; \
 	fi
-	@./scripts/dev/restart-service.sh $(SERVICE)
+	@./server/scripts/dev/restart-service.sh $(SERVICE)
 
 rebuild: ## Rebuild and restart specific service (SERVICE=name)
 	@if [ -z "$(SERVICE)" ]; then \
@@ -113,10 +113,10 @@ rebuild: ## Rebuild and restart specific service (SERVICE=name)
 		echo "Usage: make rebuild SERVICE=auth-service"; \
 		exit 1; \
 	fi
-	@./scripts/dev/rebuild.sh $(SERVICE)
+	@./server/scripts/dev/rebuild.sh $(SERVICE)
 
 logs: ## View logs from all services
-	@cd docker && docker compose logs -f
+	@cd server/docker && docker compose logs -f
 
 logs-service: ## View logs from specific service (SERVICE=name)
 	@if [ -z "$(SERVICE)" ]; then \
@@ -124,7 +124,7 @@ logs-service: ## View logs from specific service (SERVICE=name)
 		echo "Usage: make logs-service SERVICE=auth-service"; \
 		exit 1; \
 	fi
-	@cd docker && docker compose logs -f $(SERVICE)
+	@cd server/docker && docker compose logs -f $(SERVICE)
 
 shell: ## Access service shell (SERVICE=name)
 	@if [ -z "$(SERVICE)" ]; then \
@@ -132,32 +132,32 @@ shell: ## Access service shell (SERVICE=name)
 		echo "Usage: make shell SERVICE=auth-service"; \
 		exit 1; \
 	fi
-	@./scripts/dev/shell.sh $(SERVICE)
+	@./server/scripts/dev/shell.sh $(SERVICE)
 
 status: ## Check status of all services
-	@./scripts/utilities/check-health.sh
+	@./server/scripts/utilities/check-health.sh
 
 ps: ## Show running containers
-	@cd docker && docker compose ps
+	@cd server/docker && docker compose ps
 
 ## Database Commands
 db-seed: ## Seed database with test data
 	@echo "${GREEN}🌱 Seeding database...${RESET}"
-	@./scripts/database/seed.sh
+	@./server/scripts/database/seed.sh
 
 db-reset: ## Reset database (WARNING: deletes all data)
 	@echo "${RED}⚠️  WARNING: This will delete all data!${RESET}"
 	@read -p "Are you sure? [y/N] " -n 1 -r; \
 	echo; \
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		./scripts/database/reset.sh; \
+		./server/scripts/database/reset.sh; \
 	else \
 		echo "${YELLOW}Cancelled.${RESET}"; \
 	fi
 
 db-backup: ## Backup database
 	@echo "${GREEN}💾 Backing up database...${RESET}"
-	@./scripts/database/backup.sh
+	@./server/scripts/database/backup.sh
 
 db-restore: ## Restore database from backup (FILE=path)
 	@if [ -z "$(FILE)" ]; then \
@@ -165,42 +165,42 @@ db-restore: ## Restore database from backup (FILE=path)
 		echo "Usage: make db-restore FILE=backup.tar.gz"; \
 		exit 1; \
 	fi
-	@./scripts/database/restore.sh $(FILE)
+	@./server/scripts/database/restore.sh $(FILE)
 
 db-migrate: ## Run database migrations
 	@echo "${GREEN}🔄 Running migrations...${RESET}"
-	@./scripts/database/migrate.sh
+	@./server/scripts/database/migrate.sh
 
 ## Testing Commands
 test: ## Run all tests
 	@echo "${GREEN}🧪 Running all tests...${RESET}"
-	@./scripts/testing/run-unit-tests.sh
-	@./scripts/testing/run-integration-tests.sh
+	@./server/scripts/testing/run-unit-tests.sh
+	@./server/scripts/testing/run-integration-tests.sh
 
 test-unit: ## Run unit tests
 	@echo "${GREEN}🧪 Running unit tests...${RESET}"
-	@./scripts/testing/run-unit-tests.sh
+	@./server/scripts/testing/run-unit-tests.sh
 
 test-integration: ## Run integration tests
 	@echo "${GREEN}🧪 Running integration tests...${RESET}"
-	@./scripts/testing/run-integration-tests.sh
+	@./server/scripts/testing/run-integration-tests.sh
 
 test-e2e: ## Run end-to-end tests
 	@echo "${GREEN}🧪 Running E2E tests...${RESET}"
-	@./scripts/testing/run-e2e-tests.sh
+	@./server/scripts/testing/run-e2e-tests.sh
 
 test-load: ## Run load tests
 	@echo "${GREEN}🧪 Running load tests...${RESET}"
-	@./scripts/testing/run-load-tests.sh
+	@./server/scripts/testing/run-load-tests.sh
 
 test-data: ## Generate test data
 	@echo "${GREEN}📊 Generating test data...${RESET}"
-	@./scripts/testing/generate-test-data.sh
+	@./server/scripts/testing/generate-test-data.sh
 
 ## Build Commands
 build: ## Build all services
 	@echo "${GREEN}🔨 Building all services...${RESET}"
-	@./scripts/build/build-all.sh
+	@./server/scripts/build/build-all.sh
 
 build-service: ## Build specific service (SERVICE=name)
 	@if [ -z "$(SERVICE)" ]; then \
@@ -208,74 +208,74 @@ build-service: ## Build specific service (SERVICE=name)
 		echo "Usage: make build-service SERVICE=auth-service"; \
 		exit 1; \
 	fi
-	@./scripts/build/build-service.sh $(SERVICE)
+	@./server/scripts/build/build-service.sh $(SERVICE)
 
 docker-build: ## Build all Docker images
 	@echo "${GREEN}🐳 Building Docker images...${RESET}"
-	@./scripts/build/docker-build-all.sh
+	@./server/scripts/build/docker-build-all.sh
 
 docker-push: ## Push all Docker images
 	@echo "${GREEN}🐳 Pushing Docker images...${RESET}"
-	@./scripts/build/docker-push-all.sh
+	@./server/scripts/build/docker-push-all.sh
 
 ## Deployment Commands
 deploy-local: ## Deploy to local Kubernetes
 	@echo "${GREEN}☸️  Deploying to local Kubernetes...${RESET}"
-	@./scripts/deployment/deploy-local.sh
+	@./server/scripts/deployment/deploy-local.sh
 
 deploy-dev: ## Deploy to development environment
 	@echo "${GREEN}☸️  Deploying to development...${RESET}"
-	@./scripts/deployment/deploy-dev.sh
+	@./server/scripts/deployment/deploy-dev.sh
 
 port-forward: ## Setup port forwarding to K8s services
 	@echo "${GREEN}🔌 Setting up port forwarding...${RESET}"
-	@./scripts/deployment/port-forward.sh
+	@./server/scripts/deployment/port-forward.sh
 
 tunnel: ## Create tunnel to cluster
 	@echo "${GREEN}🔌 Creating tunnel...${RESET}"
-	@./scripts/deployment/tunnel.sh
+	@./server/scripts/deployment/tunnel.sh
 
 ## Monitoring Commands
 open-grafana: ## Open Grafana dashboard
-	@./scripts/monitoring/open-grafana.sh
+	@./server/scripts/monitoring/open-grafana.sh
 
 open-prometheus: ## Open Prometheus dashboard
-	@./scripts/monitoring/open-prometheus.sh
+	@./server/scripts/monitoring/open-prometheus.sh
 
 open-jaeger: ## Open Jaeger UI
-	@./scripts/monitoring/open-jaeger.sh
+	@./server/scripts/monitoring/open-jaeger.sh
 
 open-rabbitmq: ## Open RabbitMQ Management UI
 	@echo "${GREEN}🐰 Opening RabbitMQ Management UI...${RESET}"
 	@open http://localhost:15672 || xdg-open http://localhost:15672 || echo "Open http://localhost:15672 in your browser"
 
 tail-logs: ## Tail service logs in real-time
-	@./scripts/monitoring/tail-logs.sh
+	@./server/scripts/monitoring/tail-logs.sh
 
 ## Utility Commands
 clean: ## Clean up Docker resources
 	@echo "${YELLOW}🧹 Cleaning up...${RESET}"
-	@./scripts/utilities/cleanup.sh
+	@./server/scripts/utilities/cleanup.sh
 
 clean-all: ## Clean everything including volumes (WARNING: deletes data)
 	@echo "${RED}⚠️  WARNING: This will delete all data!${RESET}"
 	@read -p "Are you sure? [y/N] " -n 1 -r; \
 	echo; \
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		cd docker && docker compose down -v; \
+		cd server/docker && docker compose down -v; \
 		echo "${GREEN}✅ Cleaned!${RESET}"; \
 	else \
 		echo "${YELLOW}Cancelled.${RESET}"; \
 	fi
 
 validate-env: ## Validate environment configuration
-	@./scripts/utilities/validate-env.sh
+	@./server/scripts/utilities/validate-env.sh
 
 generate-jwt: ## Generate JWT token for testing
-	@./scripts/utilities/generate-jwt.sh
+	@./server/scripts/utilities/generate-jwt.sh
 
 test-api: ## Test API endpoints
-	@./scripts/utilities/test-api.sh
+	@./server/scripts/utilities/test-api.sh
 
 health: ## Quick health check of all services
 	@echo "${GREEN}🏥 Health check...${RESET}"
