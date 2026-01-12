@@ -1,4 +1,4 @@
-# FRAMEWORK OFFICIAL GUIDELINES
+# \# 📘 FRAMEWORK OFFICIAL GUIDELINES & ENGINEERING HANDBOOK \(V2\.0\)
 
 **Golang Microservice Framework – Internal Engineering Standard**
 
@@ -6,13 +6,11 @@
 
 ## Phạm vi & đối tượng áp dụng
 
-Tài liệu này áp dụng cho:
+Tài liệu này là "nguồn sự thật duy nhất" áp dụng cho:
 
-* Tất cả microservice viết bằng **Golang**
-* Bao gồm:
-    * Platform services (auth, iam, file, notification, object-storage…)
-    * Business services (crm, hrm, lms, billing…)
-* Áp dụng cho **mọi môi trường**: local, dev, staging, prod
+* Tất cả microservice viết bằng **Golang** (Platform & Business services).
+* Tất cả kỹ sư phần mềm, DevOps, và cán bộ kiểm soát chất lượng (QA).
+* Áp dụng thống nhất cho **mọi môi trường**: local, dev, staging, prod.
 
 ***
 
@@ -20,358 +18,172 @@ Tài liệu này áp dụng cho:
 
 ### 1.1 Production-first mindset
 
-Framework được thiết kế với tư duy:
+Framework được thiết kế với tư duy: **Code phải chịu được môi trường production ngay từ máy của developer.**
 
-> **Code phải chịu được môi trường production ngay từ lúc dev**
+* Không tạo môi trường dev “quá sạch” hay giả lập lý tưởng.
+* Không che giấu race condition hay độ trễ mạng.
+* **Hệ quả:** Nếu code chạy lỗi trên shared-infra vì dữ liệu của dev khác, đó là lỗi của code (chưa xử lý concurrency/idempotency), không phải lỗi môi trường.
 
-Do đó:
+### 1.2 Chaos-aware & Polyglot Persistence
 
-* Không tạo môi trường dev “quá sạch”
-* Không che giấu race condition
-* Không giả lập hành vi hệ thống
-
-***
-
-### 1.2 Chaos-aware development
-
-Framework **chủ động chấp nhận**:
-
-* Concurrent requests
-* Duplicate events
-* Partial failure
-* Eventual consistency
-
-👉 Dev phải **xử lý bằng code**, không né tránh bằng môi trường.
+* **Chấp nhận sự hỗn loạn:** Code phải xử lý được: Concurrent requests, Duplicate events (Kafka), Partial failure (gRPC timeout), và Eventual consistency.
+* **Đúng việc - Đúng công cụ:** \* **YugabyteDB (ACID):** Cho dữ liệu nghiệp vụ quan trọng, tài chính, quan hệ.
+    * **MongoDB (Flex):** Cho cấu hình Tenant, Metadata động, tài liệu không cấu trúc.
+    * **ClickHouse (OLAP):** Cho Audit logs, Access logs, dữ liệu phân tích quy mô lớn.
 
 ***
 
 ## 2\. Kiến trúc tổng thể \(High\-level Architecture\)
 
-### 2.1 Microservice đúng nghĩa
+### 2.1 Microservice đúng nghĩa (Data Isolation)
 
-Mỗi service:
+Mỗi service sở hữu **Domain rõ ràng** và **Database riêng** (Schema/Database độc lập).
 
-* Có **domain rõ ràng**
-* Có **API contract riêng**
-* Có **database riêng (schema riêng)**
+* ❌ Không chia sẻ database schema.
+* ❌ Không query trực tiếp DB của service khác. Mọi giao tiếp phải qua gRPC.
 
-❌ Không chia sẻ database schema
-❌ Không query DB của service khác
+### 2.2 Gateway-centric & Auth Broker
 
-***
-
-### 2.2 Gateway-centric architecture
-
-* Frontend **chỉ gọi API Gateway**
-* Gateway chịu trách nhiệm:
-    * CORS
-    * Authentication / Authorization
-    * Tenant mapping
-    * Rate limiting
-    * Routing
-
-Microservice phía sau:
-
-* Tin tưởng gateway
-* Không xử lý CORS
-* Không validate origin
+* **API Gateway:** Là điểm đầu cuối duy nhất cho Frontend. Chịu trách nhiệm: CORS, Rate Limiting, Routing.
+* **Auth Broker:** Gateway thực hiện đổi **Opaque Token** lấy **Internal JWT** (từ Redis L2).
+* **Trust Boundary:** Các microservice phía sau tin tưởng hoàn toàn vào `Internal JWT` và `X-Tenant-ID` được chuyển tiếp từ Gateway qua gRPC Metadata.
 
 ***
 
-## 3\. LOCAL DEVELOPMENT RULES \(CỐT LÕI\)
+## 3\. Quy chuẩn Dữ liệu & Đặt tên \(Data Standards\)
 
-> Mục tiêu:
-> **Dev local nhẹ – code chạy thật – infra dùng chung**
+### 3.1 Naming Convention
+
+| **Thành phần**           | **Quy ước**             | **Ví dụ**                       |
+| ------------------------ | ----------------------- | ------------------------------- |
+| **Database / Table**     | `snake_case` (Số nhiều) | `order_items`, `tenant_configs` |
+| **Database Field**       | `snake_case`            | `user_id`, `created_at`         |
+| **Golang Struct / JSON** | `camelCase`             | `UserId`, `createdAt`           |
+| **Primary Key**          | `_id` (UUID v7)         | `018d1234-5678-7123...`         |
+
+### 3.2 Standard Mixins (Các trường bắt buộc)
+
+Mọi bản ghi nghiệp vụ (Yugabyte/Mongo) phải bao gồm:
+
+* `_id`: UUID định danh duy nhất.
+* `tenant_id`: Định danh Tenant (bắt buộc để isolation).
+* `version`: Số nguyên phục vụ **Optimistic Locking** (chống ghi đè).
+* `created_at / updated_at`: Thời gian UTC.
+* `deleted_at`: Đánh dấu **Soft Delete**. Cấm dùng lệnh `DELETE` vật lý.
 
 ***
 
-### Rule 3.1 – Không yêu cầu dev cài hạ tầng
+## 4\. Quản lý Phiên bản API \(Versioning Strategy\)
 
-Dev **KHÔNG BẮT BUỘC** phải cài:
+Hệ thống bắt buộc hỗ trợ đa phiên bản để đảm bảo tương thích ngược.
 
-* Kubernetes
-* MongoDB / PostgreSQL
-* Redis / Kafka / RabbitMQ
-* API Gateway
+### 4.1 Cấu trúc thư mục Logic
 
-Dev chỉ cần:
-
-* Golang
-* Editor
-* Network access tới infra dùng chung
-
-***
-
-### Rule 3.2 – Service local chạy như production
-
-Service chạy local:
+Việc chia version thực hiện từ tầng Protobuf đến Transport:
+Plaintext
 
 ```
-go run cmd/api/main.go
+internal/api/
+├── grpc/
+│   ├── v1/           # Implement service v1 (Stable)
+│   └── v2/           # Implement service v2 (Logic mới/Breaking changes)
+api/proto/
+└── product/
+    ├── v1/product.proto  # package api.product.v1
+    └── v2/product.proto  # package api.product.v2
 ```
 
-Yêu cầu:
+### 4.2 Breaking Changes
 
-* Không code path riêng cho local
-* Không mock DB
-* Không mock queue
-
-👉 Code local = code prod
+* Không được sửa đổi nội dung đã release của phiên bản cũ (v1).
+* Nếu thay đổi kiểu dữ liệu hoặc xóa field, phải nâng cấp lên v2.
+* Gateway điều hướng dựa trên path: `/api/v1/resource` -> Service Handler V1.
 
 ***
 
-### Rule 3.3 – Mọi kết nối phải qua config
+## 5\. LOCAL DEVELOPMENT RULES \(CỐT LÕI\)
 
-Tất cả hạ tầng phải cấu hình qua:
+> **Mục tiêu: Dev local nhẹ – infra dùng chung – code chạy thật**
 
-* ENV
-* Config file (YAML / TOML)
+### Rule 5.1 – Không cài đặt hạ tầng local
 
-Ví dụ:
+Dev không bắt buộc cài DB/Kafka/Redis local. Tất cả kết nối qua cấu hình (`.env.local`) trỏ về **Shared Infrastructure**.
 
-```
-database:
-  mongoUri: mongodb://dev-shared.mongo.internal:27017/app
+### ⭐ Rule 5.2 – Shared Infra Development (Quy ước đặc biệt)
 
-queue:
-  redisUri: redis://dev-shared.redis.internal:6379
-```
+**Tất cả dev dùng chung DB & Queue. Không chia Env riêng.**
 
-❌ Cấm hard-code
-❌ Cấm switch logic bằng hostname
+* **Namespace kỷ luật:** Mọi key Redis/Kafka phải có prefix: `{tenant_id}:{service_name}:{dev_name}:{key}`.
+* **Hệ quả chấp nhận:** Data không sạch, Log lẫn nhau, Concurrent insert từ dev khác.
+* **Cấm kỵ:** Không được giả định DB rỗng; Không được Truncate/Reset database chung.
 
-***
+### Rule 5.3 – Idempotency là bắt buộc
 
-## ⭐ Rule 3.4 – SHARED INFRA DEVELOPMENT (QUY ƯỚC ĐẶC BIỆT)
+Mọi API xử lý dữ liệu (CUD) phải:
 
-> **TẤT CẢ DEV DÙNG CHUNG DB & QUEUE**
-> **KHÔNG CHIA ENV**
-> **KHÔNG TÁCH API**
-
-Đây là **quy ước có chủ đích**, không phải thiếu sót.
+* **Retry-safe:** Gọi lại nhiều lần không gây sai lệch (Dùng Unique Index, Upsert).
+* **Audit Metadata:** Phải có `requestId` và `correlation_id` trong mọi bản ghi.
 
 ***
 
-### 3.4.1 Mục tiêu của Rule 3.4
+## 6\. Cơ chế Caching \(2\-Level Cache\)
 
-Rule này tồn tại để:
+Để đạt hiệu năng cao nhất, mọi service phải áp dụng:
 
-* Mọi dev nhìn thấy **cùng một trạng thái hệ thống**
-* Phát hiện:
-    * race condition
-    * duplicate event
-    * dirty write
-* Tránh tình trạng:
-
-  > “local chạy ok, lên prod chết”
+1. **Level 1 (Local Cache):** Dùng `Ristretto` (In-memory). Truy cập <0.1ms. Dùng cho dữ liệu "hot" hoặc cấu hình ít thay đổi.
+2. **Level 2 (Distributed Cache):** Dùng `Redis`. Dùng chung cho toàn bộ cluster của service.
+3. **Consistency:** Khi update dữ liệu, xóa L2 và bắn Pub/Sub để các instance xóa L1 tương ứng.
 
 ***
 
-### 3.4.2 Hệ quả DEV PHẢI CHẤP NHẬN
+## 7\. Logging & Observability
 
-| Hệ quả | Trạng thái |
-| ------ | ---------- |
-| Data không sạch | CHẤP NHẬN |
-| Concurrent insert | CHẤP NHẬN |
-| Log lẫn nhau | CHẤP NHẬN |
-| Test phá dữ liệu | KHÔNG CHẤP NHẬN |
+* **Correlation ID:** API Gateway sinh ra ID duy nhất. ID này phải được propagate qua context và in ra trong mọi dòng log của mọi service liên quan.
+* **Structured Logging:** Sử dụng JSON format. Không log dữ liệu nhạy cảm (Password, Secret).
+* **Audit Logs:** Ghi lại mọi thay đổi (Who, When, What, Old, New) vào **ClickHouse** thông qua Kafka (không đồng bộ).
 
 ***
 
-### 3.4.3 Quy tắc bắt buộc khi dùng chung DB
+## 8\. Source Code Organization \(Standard Layout\)
 
-#### (1) Không được giả định DB rỗng
-
-Code **KHÔNG ĐƯỢC**:
-
-* assume first insert
-* assume auto increment
-* assume empty collection
-
-***
-
-#### (2) Idempotency là bắt buộc
-
-Mọi API quan trọng phải:
-
-* retry-safe
-* xử lý duplicate key
-
-Ví dụ:
-
-* unique index
-* upsert
-* version field
-
-***
-
-#### (3) Không truncate / reset dữ liệu
-
-❌ Không drop collection
-❌ Không reset database
-Chỉ dùng:
-
-* logical delete
-* versioning
-
-***
-
-#### (4) Phải có audit metadata
-
-Mọi record phải có:
-
-```
-createdAt
-updatedAt
-createdBy
-requestId
-```
-
-***
-
-### 3.4.4 Race condition là “bài test tự nhiên”
-
-Framework coi:
-
-* race condition
-* concurrent update
-
-👉 là **bài test tự nhiên** cho chất lượng code.
-Dev **không được né** bằng env riêng.
-
-***
-
-## 4\. Source Code Organization Rules
-
-### 4.1 Mỗi service = 1 repo
-
-* Repo độc lập
-* Version độc lập
-* CI/CD độc lập
-
-***
-
-### 4.2 Cấu trúc thư mục chuẩn
+Plaintext
 
 ```
 .
-├── cmd/
-│   └── api/
-│       └── main.go
+├── cmd/server/          # Entry point (Main, Wire DI)
 ├── internal/
-│   ├── domain/        # entity, aggregate
-│   ├── service/       # business logic
-│   ├── repository/    # DB access
-│   ├── transport/
-│   │   └── http/
-│   └── app/           # wire dependencies
-├── pkg/               # reusable packages
-├── config/
-├── docs/
-└── README.md
+│   ├── api/             # Transport Layer (gRPC, HTTP handlers)
+│   ├── service/         # Business Logic (Pure Go)
+│   ├── repository/      # Data Access (Yugabyte, Mongo, ClickHouse)
+│   ├── model/           # Domain Entities (Internal structs)
+│   └── platform/        # Shared library (Connectors, Log, Cache)
+├── api/proto/           # Protobuf definitions (v1, v2...)
+├── pkg/                 # SDK/Reusable code cho service khác
+├── scripts/             # Migration, Build scripts
+└── Makefile             # Lệnh thực thi chuẩn (gen, run, test)
 ```
 
 ***
 
-## 5\. Naming Convention Rules
+## 9\. CI/CD Enforcement Rules \(Luật Build\)
 
-### 5.1 Service naming
+Build sẽ **FAIL** tự động nếu vi phạm:
 
-```
-go-auth-service
-go-file-service
-go-crm-service
-```
-
-* lowercase
-* kebab-case
-* không thêm env suffix
+1. **Naming Violation:** DB field không phải `snake_case` hoặc PK không phải `_id`.
+2. **Hard-coded Config:** Phát hiện IP, Port hoặc Secret cứng trong code.
+3. **No Soft-Delete:** Sử dụng câu lệnh SQL `DELETE` trong code.
+4. **API Contract:** Sửa đổi file `.proto` của phiên bản đã release (v1) gây breaking change.
+5. **Security:** Không xử lý lỗi hoặc để lộ thông tin hệ thống trong error response.
 
 ***
 
-### 5.2 API naming
+## 10\. Security & Phân quyền
 
-```
-GET  /v1/users
-POST /v1/users
-```
-
-* RESTful
-* versioned
-* noun-based
+* **Auth xử lý tại Gateway:** Service phía sau tập trung vào nghiệp vụ.
+* **Internal Claims:** Mọi service phải trích xuất `tenant_id`, `user_id`, và `permissions` từ `Internal-JWT` để thực hiện phân quyền nội bộ (RBAC/ABAC).
 
 ***
 
-### 5.3 Database naming (MongoDB)
-
-| Thành phần | Quy ước |
-| ---------- | ------- |
-| Database | snake\_case |
-| Collection | snake\_case |
-| Field | camelCase |
-
-***
-
-## 6\. Testing Rules
-
-### 6.1 Unit test
-
-* Test business logic
-* Không connect DB
-
-***
-
-### 6.2 Integration test
-
-* Dùng DB thật
-* Dùng shared DB
-
-***
-
-### 6.3 Contract test
-
-* Validate OpenAPI
-* Đảm bảo backward compatibility
-
-***
-
-### 6.4 CORS test
-
-* **CHỈ test tại API Gateway**
-* Không test trong service
-
-***
-
-## 7\. CI/CD Enforcement Rules
-
-Build sẽ **FAIL** nếu:
-
-* Không có OpenAPI spec
-* Sai naming
-* Hard-code config
-* Truy cập DB service khác
-* Không xử lý duplicate key
-
-***
-
-## 8\. Security Rules
-
-* Không log secret
-* Không expose internal error
-* Auth chỉ xử lý tại gateway
-
-***
-
-## 9\. Vai trò của API Gateway
-
-Gateway chịu trách nhiệm:
-
-* CORS
-* Auth
-* Tenant mapping
-* Rate limit
-
-Service phía sau:
-
-* Tin gateway
-* Focus business
+**Phê duyệt bởi:** System Architect
+**Ngày hiệu lực:** 12/01/2026
+**Trạng thái:** OFFICIAL STANDARD v2.0
