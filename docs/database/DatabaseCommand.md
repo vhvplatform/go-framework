@@ -952,35 +952,48 @@ ON roles USING GIN (permission_codes);
 
 
 CREATE TABLE permissions (
-    -- I. ĐỊNH DANH (IDENTITY)
-    -- Khuyến nghị sinh UUID v7 từ tầng Application để tối ưu hiệu năng ghi
-    _id UUID PRIMARY KEY, 
+    -- I. Định danh & Liên kết kỹ thuật
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
+    app_code VARCHAR(50) NOT NULL,
+    code VARCHAR(100) NOT NULL,
+    parent_code VARCHAR(100),
     
-    -- II. THÔNG TIN NGHIỆP VỤ (BUSINESS DATA)
-    -- Code là định danh logic để ứng dụng kiểm tra quyền (Entitlement Check)
-    code VARCHAR(100) NOT NULL, 
-    module VARCHAR(50) NOT NULL,
+    -- II. Cấu trúc cây & Phân nhóm
+    path TEXT, -- Cấu trúc lưu trữ: /root_code/parent_code/this_code/
+    is_group BOOLEAN NOT NULL DEFAULT FALSE,
+    
+    -- III. Thông tin hiển thị
+    name VARCHAR(255) NOT NULL,
     description TEXT,
     
-    -- III. TRUY VẾT (AUDIT)
+    -- IV. Audit Mixins
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-    -- IV. CÁC RÀNG BUỘC (CONSTRAINTS)
+    
+    -- V. Ràng buộc toàn vẹn
+    CONSTRAINT fk_perm_app FOREIGN KEY (app_code) REFERENCES applications(code),
+    CONSTRAINT fk_perm_parent FOREIGN KEY (parent_code) REFERENCES permissions(code),
     CONSTRAINT uq_permissions_code UNIQUE (code),
-    CONSTRAINT chk_permissions_code_len CHECK (LENGTH(code) > 0),
-    CONSTRAINT chk_permissions_dates CHECK (updated_at >= created_at)
+    CONSTRAINT chk_perm_updated CHECK (updated_at >= created_at)
 );
 
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
--- Index hỗ trợ tìm kiếm nhanh mã quyền khi ứng dụng thực hiện kiểm tra quyền hạn (AuthZ)
--- Query: SELECT _id FROM permissions WHERE code = 'user:view_salary';
-CREATE UNIQUE INDEX idx_permissions_code_lookup ON permissions (code);
+-- Index hỗ trợ tìm nhanh mã quyền khi kiểm tra Entitlement (AuthZ)
+CREATE UNIQUE INDEX idx_permissions_code_lookup 
+ON permissions (code);
 
--- Index hỗ trợ việc phân loại và hiển thị danh sách quyền theo module trong trang quản trị Roles
--- Query: SELECT * FROM permissions WHERE module = 'FINANCE';
-CREATE INDEX idx_permissions_module_group ON permissions (module);
+-- Index hỗ trợ lọc danh sách quyền theo từng ứng dụng
+CREATE INDEX idx_permissions_app_filter 
+ON permissions (app_code);
+
+-- Index "thần thánh" hỗ trợ truy vấn cấu trúc cây (Materialized Path)
+-- Giúp query: WHERE path LIKE '/HRM/%' đạt hiệu năng O(log N)
+CREATE INDEX idx_permissions_path_tree 
+ON permissions (path text_pattern_ops);
+
+-- Comment để hỗ trợ Documentation
+COMMENT ON TABLE permissions IS 'Danh mục quyền hạn hệ thống hỗ trợ phân cấp nhiều tầng';
 
 
 CREATE TABLE user_roles (
