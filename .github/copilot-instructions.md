@@ -2,7 +2,7 @@
 
 Mọi code phát sinh trong Workspace này ĐỀU PHẢI tuân thủ các quy tắc sau:
 
-## 1. Truy vấn & Xử lý dữ liệu (Context: #file:docs/database/Database.md, #file:docs/database/DatabaseCommand.md)
+## 1. Truy vấn & Xử lý dữ liệu (Context: #file:docs/database/*.md)
 * **Standard Fields:** Tự động thêm Mixins: `_id` (UUID v7), `tenant_id`, `version`, `created_at`, `updated_at`, `deleted_at`. Tự động gán `updated_at` khi cập nhật và `deleted_at` khi Soft Delete.
 * **Soft Delete:** Cấm lệnh `DELETE`. Luôn mặc định filter `deleted_at IS NULL`.
 * **Naming:** DB dùng `snake_case`. Code/JSON dùng `camelCase`.
