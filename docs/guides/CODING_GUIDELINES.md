@@ -71,6 +71,21 @@ Mọi bản ghi nghiệp vụ (Yugabyte/Mongo) phải bao gồm:
 * `created_at / updated_at`: Thời gian UTC.
 * `deleted_at`: Đánh dấu **Soft Delete**. Cấm dùng lệnh `DELETE` vật lý.
 
+### 🌐 API Design Standards
+
+#### 1. Base Path Naming
+Chúng ta thống nhất sử dụng danh từ số ít (Singular) và loại bỏ hậu tố `-service` để URL ngắn gọn, sạch sẽ.
+
+| Loại Service | Định dạng cũ (Bỏ)        | Định dạng chuẩn (Dùng) |
+| :----------- | :----------------------- | :--------------------- |
+| Tenant       | `/api/tenant-service/v1` | `/api/tenant/v1`       |
+| User         | `/api/user-service/v1`   | `/api/user/v1`         |
+| Auth         | `/api/auth-service/v1`   | `/api/auth/v1`         |
+
+#### 2. Tại sao dùng số ít?
+- Tránh nhầm lẫn giữa Resource (ví dụ: `/users/123`) và Service quản lý Resource đó.
+- Nhất quán với cấu trúc folder trong mã nguồn (thường đặt tên package là `user`, `tenant`).
+- URL ngắn gọn, dễ nhớ cho việc cấu hình Gateway/Reverse Proxy.
 ***
 
 ## 4\. Quản lý Phiên bản API \(Versioning Strategy\)
