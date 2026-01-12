@@ -15,6 +15,9 @@ Mọi code phát sinh trong Workspace này ĐỀU PHẢI tuân thủ các quy t�
 * **YugabyteDB:** ACID/Transactions/Relational data.
 * **MongoDB:** Tenant Config/Metadata/Schema-less.
 * **ClickHouse:** Logging/Analytics ghi qua Kafka (Yêu cầu Retry & DLQ).
+* **Transactional Outbox:** Mọi hành động thay đổi trạng thái quan trọng (Create/Update) TRƯỚC KHI bắn ra Kafka phải được lưu vào bảng `outbox_events` trong cùng một Transaction với dữ liệu chính.
+* **Debezium:** Debezium chỉ được phép CDC (Change Data Capture) trên bảng `outbox_events` để đảm bảo tính toàn vẹn và đúng thứ tự của sự kiện.
+* **Telemetry:** Phải đính kèm `trace_id` vào payload của Outbox Event để OpenTelemetry có thể trace sang các service tiêu thụ event (consumers).
 
 ## 3. Giao tiếp & API (Context: #file:docs/guides/CODING_GUIDELINES.md)
 * **Transport:** 100% gRPC + mTLS + `protoc-gen-validate`.
