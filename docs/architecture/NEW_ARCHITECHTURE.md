@@ -50,7 +50,7 @@ This framework is designed for **High-Performance, Scalability, and Multi-tenanc
 | **Messaging**     | **Kafka**                   | Event Bus, CDC (Change Data Capture)         |
 | **CDC Tool**      | **Debezium**                | Outbox Pattern Implementation                |
 | **Observability** | OpenTelemetry               | Tracing & Metrics                            |
-| **Frontend**      | React                       | Schema-driven UI                             |
+| **Frontend**      | React (NextJS)              | Schema-driven UI                             |
 
 ---
 
@@ -91,6 +91,8 @@ graph TD
     Gateway -- Async Log --> Kafka
     Biz -- Audit Log --> Kafka
     Kafka --> ClickHouse
+```
+    
 ## Design Philosophy
 
 ### 1\. Polyglot Persistence Strategy
@@ -171,9 +173,15 @@ version       BIGINT DEFAULT 1     -- Optimistic Locking
 * **Role:** Route traffic, Enforce Security, Protocol Conversion.
 * **Tech:** Custom Go Service (using `grpc-gateway`).
 * **Routing Logic:**
-    * `/api/{service}/*` -> gRPC to Backend Service.
-    * `/page/{service}/*` -> Redirect to React Frontend.
+    * `/api/{service-name}/v1/{api-name}` -> gRPC to Backend Service. Example: /api/user-service/v1/users.
+    * `/page/{service-name}/{page-name}` -> Redirect to React Frontend. Example: /api/user-service/users
     * `/upload/*` -> File Service.
+    * Other is rewrite URL (slug).
+
+$$note
+- service-name is folder name of microservice that omited prefix. Example: go-user-service/react-user-service => user-service
+$$
+
 * **Middleware Pipeline:**
     1. **Trace ID:** Generate/Propagate Correlation ID.
     2. **Auth Interceptor:** Phantom Token Validation (See Auth Section).
