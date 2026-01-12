@@ -222,7 +222,11 @@
 | 219 | permissions | YSQL | Collection |     |     |     | Danh mục các hành động kỹ thuật do lập trình viên định nghĩa cứng trong code. |
 | 220 | permissions | \_id | UUID | NO  |     | PRIMARY KEY | Định danh duy nhất theo chuẩn UUID v7 giúp tối ưu sharding và sắp xếp theo thời gian,. |
 | 221 | permissions | code | VARCHAR(100) | NO  |     | UNIQUE, CHECK (LENGTH(code) > 0) | Mã quyền duy nhất dùng trong code (VD: invoice:create, user:view),. |
-| 222 | permissions | module | VARCHAR(50) | NO  |     |     | Tên module chức năng sở hữu quyền này (VD: FINANCE, HRM, IAM). |
+| 222 | permissions | app_code | VARCHAR(50) | NO  |     | REFERENCES applications(code)    | Liên kết với ứng dụng sở hữu quyền này (VD: HRM, CRM). |
+| 222 | permissions | parent_code | VARCHAR(100) | YES  |     | REFERENCES permissions(code)    | Mã của quyền cha để tạo cấu trúc cây phân cấp . |
+| 222 | permissions | path | TEXT | NO  |     | REFERENCES applications(code)    | Materialized Path (VD: /HRM/PAYROLL/). Giúp truy vấn cả nhánh quyền cực nhanh. |
+| 222 | permissions | is_group | BOOLEAN | NO  | FALSE    |     | TRUE nếu chỉ là thư mục phân nhóm, FALSE nếu là quyền thực thi |
+| 222 | permissions | name | VARCHAR(255) | NO  |     |     | Tên hiển thị của quyền trên giao diện quản trị. |
 | 223 | permissions | description | TEXT | YES | NULL |     | Mô tả chi tiết ý nghĩa và phạm vi tác động của quyền này. |
 | 224 | permissions | created\_at | TIMESTAMPTZ | NO  | now() |     | Thời điểm tạo quyền trong hệ thống (UTC),. |
 | 225 | permissions | updated\_at | TIMESTAMPTZ | NO  | now() | CHECK (updated\_at >= created\_at) | Thời điểm cập nhật thông tin quyền gần nhất. |
@@ -779,3 +783,29 @@
 | 776 | user\_notification\_settings | channels | JSONB | NO  | {}' | Cấu trúc: {"email": bool, "sms": bool, ...} | Lưu trạng thái bật/tắt của từng kênh nhận tin dưới dạng JSON linh hoạt. |
 | 777 | user\_notification\_settings | version | BIGINT | NO  | 1   | CHECK (version >= 1) | Hỗ trợ Optimistic Locking để ngăn chặn ghi đè dữ liệu đồng thời. |
 | 778 | user\_notification\_settings | updated\_at | TIMESTAMPTZ | NO  | now() | Chuẩn UTC | Thời điểm cập nhật cấu hình gần nhất phục vụ Audit. |
+applications	YSQL	Collection				định nghĩa các đơn vị phần mềm kỹ thuật cụ thể (ví dụ: App Tuyển dụng, App Chấm công) trước khi được đóng gói thành các gói cước thương mại (service_packages)
+applications	_id	UUID	NO	-	PRIMARY KEY	Định danh duy nhất chuẩn UUID v7, hỗ trợ sắp xếp theo thời gian.
+applications	code	VARCHAR(50)	NO	-	UNIQUE, CHECK (code ~ '^[A-Z0-9_]+$')	Mã định danh kỹ thuật (VD: HRM_RECRUIT). Chỉ chứa chữ hoa, số và gạch dưới.
+applications	name	VARCHAR(255)	NO	-	CHECK (LENGTH(name) > 0)	Tên hiển thị của ứng dụng trên giao diện.
+applications	description	TEXT	YES	NULL	-	Mô tả chi tiết về chức năng kỹ thuật của ứng dụng.
+applications	is_active	BOOLEAN	NO	TRUE	-	Trạng thái bật/tắt ứng dụng trên toàn hệ thống.
+applications	created_at	TIMESTAMPTZ	NO	now()	Chuẩn UTC	Thời điểm tạo bản ghi ứng dụng.
+applications	updated_at	TIMESTAMPTZ	NO	now()	CHECK (updated_at >= created_at)	Thời điểm cập nhật dữ liệu gần nhất.
+applications	deleted_at	TIMESTAMPTZ	YES	NULL	-	Thời điểm xóa mềm (Soft Delete) để bảo toàn dữ liệu lịch sử.
+applications	version	BIGINT	NO	1	CHECK (version >= 1)	Cơ chế Optimistic Locking, ngăn chặn ghi đè dữ liệu đồng thời.
+traffic_logs 	ClickHouse	Collection				Bảng này ghi nhận mọi yêu cầu (Request) đi vào hệ thống, bao gồm các thông số về băng thông, độ trễ và ngữ cảnh khách hàng
+traffic_logs 	_id	UUID	NO	-	Khóa chính logic (UUID v7)	Định danh duy nhất cho mỗi bản ghi log.
+traffic_logs 	tenant_id	UUID	NO	-	Thành phần Sorting Key	Định danh tổ chức sở hữu lưu lượng để cô lập dữ liệu khách hàng.
+traffic_logs 	user_id	Nullable(UUID)	YES	NULL	-	ID người dùng thực hiện request (nếu đã xác thực).
+traffic_logs 	app_code	String	NO	-	Thành phần Sorting Key	Mã ứng dụng nhận request (VD: HRM, CRM, POS).
+traffic_logs 	method	Enum8(...)	NO	-	GET=1, POST=2, ...	Phương thức HTTP, dùng Enum để tối ưu nén.
+traffic_logs 	domain	String	NO	-	-	Tên miền yêu cầu (VD: hr.abc.com).
+traffic_logs 	path	String	NO	-	-	Đường dẫn cụ thể (VD: /api/v1/employees).
+traffic_logs 	status_code	Int16	NO	-	-	Mã trạng thái HTTP (VD: 200, 404, 500).
+traffic_logs 	latency_ms	Int32	NO	-	-	Độ trễ xử lý của hệ thống tính bằng mili-giây.
+traffic_logs 	request_size	Int64	NO	0	Byte	Dung lượng request đầu vào để tính Bandwidth.
+traffic_logs 	response_size	Int64	NO	0	Byte	Dung lượng response đầu ra để tính Bandwidth.
+traffic_logs 	ip_address	IPv6	NO	-	-	Địa chỉ IP người dùng (Hỗ trợ cả IPv4 và IPv6).
+traffic_logs 	user_agent	String	YES	NULL	-	Thông tin thiết bị và trình duyệt truy cập.
+traffic_logs 	data_region	String	NO	DEFAULT'	-	Vùng vật lý phát sinh traffic phục vụ tuân thủ dữ liệu.
+traffic_logs 	timestamp	DateTime64(3)	NO	now()	UTC	Thời điểm chính xác request xảy ra (độ chính xác ms).
