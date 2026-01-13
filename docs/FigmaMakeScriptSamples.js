@@ -69,6 +69,7 @@ function sendPrompt() {
 		setTimeout(() => {
 			sendButton.click();
 			currentIdx++;
+			console.log('Đã chạy được: '+currentIdx+'/'+prompts.length+' prompt. Để thêm prompts mới dùng lệnh: prompts.push("Lệnh mới"); Để dừng chạy dùng lệnh: prompts = [];');
 			// Đợi 10-15 giây để AI xử lý xong trước khi gửi prompt tiếp theo
 			setTimeout(sendPrompt, 15000);
 		}, 1000);
