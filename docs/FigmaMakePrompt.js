@@ -21,7 +21,6 @@ function setReactInputValue(inputField, value) {
 }
 function sendPrompt() {
 	if (currentIdx >= prompts.length) return;
-	code-chat-stop-button
 	
 	// Tìm ô nhập liệu của Figma Make (thường là thẻ có contenteditable hoặc textarea)
 	const inputField = document.getElementById('code-chat-chat-box-form');
