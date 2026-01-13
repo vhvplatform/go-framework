@@ -1,9 +1,7 @@
-let prompts = [
+var prompts = [
 	"Prompt 1",
 	"Prompt 2",
-];
-
-let currentIdx = 0, startTime = new Date().getTime();
+], currentIdx = 0, startTime = new Date().getTime();
 
 function setReactInputValue(inputField, value) {
     // 1. Tìm setter gốc của React dành cho giá trị textarea/input
