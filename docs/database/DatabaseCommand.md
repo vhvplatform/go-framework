@@ -569,43 +569,130 @@ ON group_members (tenant_id, group_id);
 CREATE INDEX idx_gm_lookup_member 
 ON group_members (tenant_id, member_id);
 
-
-CREATE TABLE locations (
-    -- I. ĐỊNH DANH & PHÂN TÁCH (IDENTITY & SHARDING)
-    _id UUID PRIMARY KEY, -- Khuyến nghị gen UUID v7 từ tầng Application [3]
-    tenant_id UUID NOT NULL,
+CREATE TABLE location_types (
+    -- I. ĐỊNH DANH & PHÂN QUYỀN DỮ LIỆU
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application
+    tenant_id UUID,       -- NULL = System Type, NOT NULL = Custom Type
     
-    -- II. THÔNG TIN ĐỊA LÝ & NGHIỆP VỤ
+    -- II. THÔNG TIN NGHIỆP VỤ
+    code VARCHAR(50) NOT NULL,
     name TEXT NOT NULL,
-    code VARCHAR(50),
-    address JSONB NOT NULL DEFAULT '{}',
-    coordinates POINT, -- Kiểu dữ liệu tọa độ hỗ trợ bởi YSQL/Postgres [2]
-    radius_meters INT,
-    timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
-    is_headquarter BOOLEAN NOT NULL DEFAULT FALSE,
+    description TEXT,
     
-    -- III. TRUY VẾT & PHIÊN BẢN (AUDIT & VERSIONING)
+    -- III. CẤU HÌNH ĐỘNG (CORE FEATURE)
+    -- Lưu cấu trúc schema cho các trường bổ sung
+    extra_fields JSONB NOT NULL DEFAULT '[]',
+    
+    -- IV. TRẠNG THÁI VẬN HÀNH
+    is_system BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    
+    -- V. AUDIT & VERSIONING
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     version BIGINT NOT NULL DEFAULT 1,
 
     -- CÁC RÀNG BUỘC (CONSTRAINTS)
-    CONSTRAINT fk_loc_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
-    CONSTRAINT chk_loc_name CHECK (LENGTH(name) > 0),
-    CONSTRAINT chk_loc_radius CHECK (radius_meters > 0),
-    CONSTRAINT chk_loc_updated CHECK (updated_at >= created_at)
+    CONSTRAINT fk_loctype_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
+    
+    -- Mã code phải viết hoa, không dấu cách
+    CONSTRAINT chk_loctype_code_fmt CHECK (code ~ '^[A-Z0-9_]+$'),
+    
+    CONSTRAINT chk_loctype_name_len CHECK (LENGTH(name) > 0),
+    CONSTRAINT chk_loctype_version CHECK (version >= 1),
+    CONSTRAINT chk_loctype_dates CHECK (updated_at >= created_at)
 );
 
--- IV. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
--- Index hỗ trợ truy vấn nhanh tất cả chi nhánh của một Tenant (Access Pattern phổ biến) [4], [11]
-CREATE INDEX idx_locations_tenant ON locations (tenant_id);
+-- A. Đảm bảo tính duy nhất của Code cho từng Tenant (Custom Types)
+CREATE UNIQUE INDEX idx_loctype_tenant_code 
+ON location_types (tenant_id, code) 
+WHERE tenant_id IS NOT NULL;
 
--- Index hỗ trợ tìm kiếm nhanh theo mã chi nhánh trong cùng một tổ chức
-CREATE INDEX idx_locations_code ON locations (tenant_id, code);
+-- B. Đảm bảo tính duy nhất của Code cho hệ thống (System Types)
+CREATE UNIQUE INDEX idx_loctype_system_code 
+ON location_types (code) 
+WHERE tenant_id IS NULL;
 
--- Index lọc nhanh trụ sở chính khi cần hiển thị thông tin pháp lý của Tenant
-CREATE INDEX idx_locations_hq ON locations (tenant_id) WHERE is_headquarter = TRUE;
+-- C. Index hỗ trợ load danh sách loại địa điểm cho Tenant
+-- (Bao gồm cả loại của Tenant đó VÀ loại của Hệ thống)
+CREATE INDEX idx_loctype_lookup 
+ON location_types (tenant_id, is_active) 
+WHERE is_active = TRUE;
+
+-- D. Index GIN để tìm kiếm/validate trong cấu hình trường động
+CREATE INDEX idx_loctype_extra_fields 
+ON location_types USING GIN (extra_fields);
+
+CREATE TABLE locations (
+    -- I. ĐỊNH DANH & CẤU TRÚC (Identity & Structure)
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application
+    tenant_id UUID NOT NULL,
+    parent_id UUID,
+    type_id UUID NOT NULL, -- Link tới bảng location_types
+    
+    -- II. THÔNG TIN CƠ BẢN (Basic Info)
+    name TEXT NOT NULL,
+    code VARCHAR(50),
+    path TEXT, -- Materialized Path: /root_id/parent_id/this_id/
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    
+    -- III. ĐỊA LÝ & CHẤM CÔNG (Geo & Timekeeping)
+    address JSONB NOT NULL DEFAULT '{}',
+    coordinates POINT, -- Lưu (Long, Lat)
+    radius_meters INT DEFAULT 100,
+    timezone VARCHAR(50) NOT NULL DEFAULT 'UTC', -- Mặc định UTC, App sẽ override
+    is_headquarter BOOLEAN NOT NULL DEFAULT FALSE,
+    
+    -- IV. DỮ LIỆU ĐỘNG (EAV over JSONB)
+    metadata JSONB NOT NULL DEFAULT '{}',
+    
+    -- V. AUDIT & VERSIONING
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ, -- Soft Delete
+    version BIGINT NOT NULL DEFAULT 1,
+
+    -- CÁC RÀNG BUỘC (CONSTRAINTS)
+    CONSTRAINT fk_loc_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
+    CONSTRAINT fk_loc_parent FOREIGN KEY (parent_id) REFERENCES locations(_id),
+    CONSTRAINT fk_loc_type FOREIGN KEY (type_id) REFERENCES location_types(_id),
+    
+    CONSTRAINT uq_loc_code UNIQUE (tenant_id, code), -- Mã địa điểm duy nhất trong 1 Tenant
+    CONSTRAINT chk_loc_name CHECK (LENGTH(name) > 0),
+    CONSTRAINT chk_loc_radius CHECK (radius_meters > 0),
+    CONSTRAINT chk_loc_status CHECK (status IN ('ACTIVE', 'INACTIVE', 'CLOSED')),
+    CONSTRAINT chk_loc_dates CHECK (updated_at >= created_at)
+);
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+
+-- Index hỗ trợ tìm kiếm nhanh danh sách địa điểm của một Tenant
+CREATE INDEX idx_locations_tenant 
+ON locations (tenant_id, status) 
+WHERE deleted_at IS NULL;
+
+-- Index "Thần thánh" cho cây phân cấp (Materialized Path)
+-- Giúp query: Lấy tất cả phòng ban con của Chi nhánh A (WHERE path LIKE '/A/%')
+CREATE INDEX idx_locations_path 
+ON locations (tenant_id, path text_pattern_ops) 
+WHERE deleted_at IS NULL;
+
+-- Index GIN hỗ trợ tìm kiếm sâu trong dữ liệu động (Metadata)
+-- VD: Tìm tất cả kho hàng có diện tích > 500m2 (lưu trong metadata)
+CREATE INDEX idx_locations_metadata 
+ON locations USING GIN (metadata);
+
+-- Index hỗ trợ tìm kiếm trụ sở chính
+CREATE INDEX idx_locations_hq 
+ON locations (tenant_id) 
+WHERE is_headquarter = TRUE AND deleted_at IS NULL;
+
+-- (Tùy chọn) Index không gian để tìm địa điểm gần nhất (Nếu dùng tính năng chấm công GPS)
+-- Cần cài extension: CREATE EXTENSION IF NOT EXISTS postgis; (Nếu dùng PostGIS)
+-- Hoặc dùng Index mặc định của Yugabyte cho Point
+CREATE INDEX idx_locations_geo ON locations USING GIST (coordinates);
 
 
 CREATE TABLE user_linked_identities (
