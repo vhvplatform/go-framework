@@ -3,7 +3,7 @@ const prompts = [
 	"Prompt 2",
 ];
 
-let currentIdx = 0;
+let currentIdx = 0, startTime = new Date().getTime();
 
 function setReactInputValue(inputField, value) {
     // 1. Tìm setter gốc của React dành cho giá trị textarea/input
@@ -40,7 +40,8 @@ function sendPrompt() {
 		setTimeout(() => {
 			sendButton.click();
 			currentIdx++;
-			console.log('Đã chạy được: '+currentIdx+'/'+prompts.length+' prompt. Để thêm prompts mới dùng lệnh: prompts.push("Lệnh mới"); Để dừng chạy dùng lệnh: prompts = [];');
+			let duration = ((new Date()).getTime() - startTime)/1000;
+			console.log('Đã chạy được: '+currentIdx+'/'+prompts.length+' prompt, hết '+Math.round(duration)+'s, trung bình '+Math.round(duration/currentIdx)+'s. Để thêm prompts mới dùng lệnh: prompts.push("Lệnh mới"); Để dừng chạy dùng lệnh: prompts = [];');
 			// Đợi 10-15 giây để AI xử lý xong trước khi gửi prompt tiếp theo
 			setTimeout(sendPrompt, 15000);
 		}, 1000);
