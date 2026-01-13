@@ -364,27 +364,53 @@ ON tenants (data_region, tier, status);
 CREATE INDEX idx_tenants_path ON tenants (path ASC) WHERE deleted_at IS NULL;
 
 CREATE TABLE users (
-    _id UUID DEFAULT uuid_generate_v7(),
-    email TEXT NOT NULL,
-    password_hash TEXT,
+    -- I. ĐỊNH DANH (IDENTITY)
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application [3]
+    email VARCHAR(255) NOT NULL,
+    password_hash TEXT, -- Lưu chuỗi hash Argon2id [8]
     full_name TEXT NOT NULL,
+    avatar_url TEXT,
+    phone_number VARCHAR(20),
+
+    -- II. TRẠNG THÁI & BẢO MẬT (SECURITY)
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+    is_support_staff BOOLEAN NOT NULL DEFAULT FALSE, -- Phục vụ Impersonation [12]
+    mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    mfa_secret TEXT, -- Cần mã hóa ở tầng ứng dụng trước khi lưu
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+
+    -- III. CẤU HÌNH & THÔNG TIN THÊM
+    locale VARCHAR(10) NOT NULL DEFAULT 'vi-VN',
     metadata JSONB NOT NULL DEFAULT '{}',
+
+    -- IV. TRUY VẾT (AUDIT)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
 
-    CONSTRAINT pk_users PRIMARY KEY (_id HASH),
-    CONSTRAINT uq_users_email UNIQUE (email)
+    -- CÁC RÀNG BUỘC (CONSTRAINTS)
+    CONSTRAINT uq_users_phone UNIQUE (phone_number),
+    CONSTRAINT chk_users_email_fmt CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
+    CONSTRAINT chk_users_url_fmt CHECK (avatar_url IS NULL OR avatar_url ~* '^https?://'),
+    CONSTRAINT chk_users_status CHECK (status IN ('ACTIVE', 'BANNED', 'DISABLED', 'PENDING')),
+    CONSTRAINT chk_users_updated CHECK (updated_at >= created_at)
 );
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+
+-- Index duy nhất cho Email (Hỗ trợ Soft Delete)
+-- Chỉ check trùng với các user chưa bị xóa (deleted_at IS NULL) [16]
 CREATE UNIQUE INDEX idx_users_email_active 
 ON users (email) 
 WHERE deleted_at IS NULL;
 
+-- Index tìm kiếm mờ (Fuzzy Search) bằng Trigram
+-- Hỗ trợ tìm user theo tên hoặc email kể cả khi gõ sai chính tả [17]
+-- Cần bật extension: CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE INDEX idx_users_search_trgm 
 ON users USING GIN (full_name gin_trgm_ops, email gin_trgm_ops);
-CREATE UNIQUE INDEX idx_users_phone_active 
-ON users (phone_number) 
-WHERE phone_number IS NOT NULL AND deleted_at IS NULL;
+
+-- Index hỗ trợ quản trị viên lọc user theo trạng thái và thời gian tạo [18]
 CREATE INDEX idx_users_status_created 
 ON users (status, created_at DESC);
 
