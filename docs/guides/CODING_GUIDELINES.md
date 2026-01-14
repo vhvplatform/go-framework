@@ -1,4 +1,4 @@
-# \# 📘 FRAMEWORK OFFICIAL GUIDELINES & ENGINEERING HANDBOOK \(V2\.0\)
+# 📘 FRAMEWORK OFFICIAL GUIDELINES & ENGINEERING HANDBOOK \(V2\.0\)
 
 **Golang Microservice Framework – Internal Engineering Standard**
 

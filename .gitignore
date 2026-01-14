@@ -53,3 +53,7 @@ docs/diagrams/*.pdf
 # Setup summary files
 SETUP_SUMMARY.txt
 **/SETUP_SUMMARY.txt
+
+# AI Copilot tasks (temporary documentation)
+tasks/
+!tasks/README.md

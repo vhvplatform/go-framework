@@ -60,3 +60,13 @@ Quy tắc đặt tên Resource: Dùng danh từ Số nhiều (Plural) theo chu�
 ## 9. Testing & Review
 * **Testing:** Yêu cầu Unit, Contract (buf break), và Integration tests.
 * **Review:** Kiểm tra nghiêm ngặt mTLS và Tenant Isolation.
+
+## 10. Viết summary
+* Khi hoàn thành các nhiệm vụ tôi đưa ra, viết tóm tắt ngắn gọn
+* File summary phải có tên kết thúc là copilot-summary.md và đặt trong thư mục tasks/
+* Các file hướng dẫn khác cũng đưa vào thư mục tasks/ với tên kết thúc là copilot-instructions.md
+* Các file .sh, .bat hỗ trợ cũng đưa vào thư mục tasks/ thư mục con là scripts/
+* Thư mục tasks/ có thể chưa tồn tại, hãy tạo nó nếu cần thiết và thêm vào .gitignore để tránh commit nhầm
+
+## 11. Ngôn ngữ
+* Ngôn ngữ mặc định là tiếng Việt trừ khi tôi yêu cầu dùng tiếng khác.
