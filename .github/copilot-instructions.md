@@ -14,7 +14,7 @@ Mọi code phát sinh trong Workspace này ĐỀU PHẢI tuân thủ các quy t�
 * **Soft Delete:** Cấm lệnh `DELETE`. Luôn mặc định filter `deleted_at IS NULL`.
 * **Naming:** DB dùng `snake_case`. Code/JSON dùng `camelCase`.
 * **Tenant Isolation:** - Lấy `tenant_id` từ gRPC Metadata/Context (Auth Broker).
-    - Mặc định: `WHERE tenant_id = current_tenant`. 
+    - Mặc định: `WHERE tenant_id = current_tenant`.
     - View-chéo: `WHERE tenant_id IN (sub_tenant_ids)` sau Authorization Check.
     - Kỷ luật: Cấm truy vấn thiếu điều kiện `tenant_id`.
 ## 2. Phân tầng Persistence (Context: #file:docs/architecture/NEW_ARCHITECHTURE.md)
@@ -60,6 +60,7 @@ Quy tắc đặt tên Resource: Dùng danh từ Số nhiều (Plural) theo chu�
 ## 9. Testing & Review
 * **Testing:** Yêu cầu Unit, Contract (buf break), và Integration tests.
 * **Review:** Kiểm tra nghiêm ngặt mTLS và Tenant Isolation.
+* **Unit test:** Vì dùng Database chung nên không bao giờ truncate table hoặc tự động migration database trong unit test. Dùng transaction rollback hoặc mock DB.
 
 ## 10. Viết summary
 * Khi hoàn thành các nhiệm vụ tôi đưa ra, viết tóm tắt ngắn gọn
@@ -68,5 +69,7 @@ Quy tắc đặt tên Resource: Dùng danh từ Số nhiều (Plural) theo chu�
 * Các file .sh, .bat hỗ trợ cũng đưa vào thư mục tasks/ thư mục con là scripts/
 * Thư mục tasks/ có thể chưa tồn tại, hãy tạo nó nếu cần thiết và thêm vào .gitignore để tránh commit nhầm
 
-## 11. Ngôn ngữ
+## 11. Quy ước khác
 * Ngôn ngữ mặc định là tiếng Việt trừ khi tôi yêu cầu dùng tiếng khác.
+* Kiểm tra cấu hình để xem terminal default là PowerShell hay Bash để chạy lệnh hoặc viết script phù hợp.
+* Mọi thay đổi phải tuân thủ các quy tắc kiến trúc đã nêu ở trên.

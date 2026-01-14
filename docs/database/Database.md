@@ -7935,7 +7935,7 @@ CREATE TABLE tenants (
     status VARCHAR(20) NOT NULL DEFAULT 'TRIAL', -- Trạng thái: TRIAL, ACTIVE, SUSPENDED, DELETED [12, 13]
     tier VARCHAR(20) NOT NULL DEFAULT 'FREE', -- Phân cấp: FREE, PRO, ENTERPRISE (Dùng cho Feature Flags) [14, 15]
     billing_type VARCHAR(20) NOT NULL DEFAULT 'FIXED', -- FIXED, METERED, HYBRID [12, 15]
-    
+
     -- III. CẤU HÌNH ĐỊA PHƯƠNG (LOCALIZATION)
     timezone VARCHAR(50) NOT NULL DEFAULT 'UTC', -- Múi giờ để tính chu kỳ Billing chính xác [12, 13]
     locale VARCHAR(10) NOT NULL DEFAULT 'vi-VN', -- Ngôn ngữ mặc định [12, 13]
@@ -8040,13 +8040,13 @@ CREATE TABLE users (
     password_hash TEXT, -- Lưu chuỗi hash Argon2id
     full_name TEXT NOT NULL,
     phone_number VARCHAR(20),
-    
+
     -- II. TRẠNG THÁI & BẢO MẬT (SECURITY)
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     is_support_staff BOOLEAN NOT NULL DEFAULT FALSE,
     mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
     is_verified BOOLEAN NOT NULL DEFAULT FALSE,
-    
+
     -- III. CẤU HÌNH & THÔNG TIN THÊM (PREFERENCES)
     locale VARCHAR(10) NOT NULL DEFAULT 'vi-VN',
     metadata JSONB DEFAULT '{}', -- Lưu các thông tin profile tùy biến khác
@@ -8261,13 +8261,13 @@ CREATE TABLE tenant_members (
     _id UUID PRIMARY KEY, -- Khuyến nghị gen UUID v7 từ Application
     tenant_id UUID NOT NULL,
     user_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN VẬN HÀNH (OPERATIONAL)
     display_name VARCHAR(255),
     status VARCHAR(20) NOT NULL DEFAULT 'INVITED',
     custom_data JSONB NOT NULL DEFAULT '{}',
     joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    
+
     -- III. TRUY VẾT & PHIÊN BẢN (AUDIT & VERSIONING)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -8340,14 +8340,14 @@ CREATE TABLE departments (
     _id UUID PRIMARY KEY, -- Khuyến nghị gen UUID v7 từ Application
     tenant_id UUID NOT NULL,
     parent_id UUID,
-    
+
     -- II. THÔNG TIN NGHIỆP VỤ (BUSINESS DATA)
     name TEXT NOT NULL,
     code VARCHAR(50),
     type VARCHAR(20) NOT NULL DEFAULT 'TEAM',
     head_member_id UUID,
     path TEXT, -- Cấu trúc: /parent_id/child_id/
-    
+
     -- III. TRUY VẾT & PHIÊN BẢN (AUDIT & VERSIONING)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -8490,11 +8490,11 @@ CREATE TABLE users (
     is_verified BOOLEAN NOT NULL DEFAULT FALSE, -- Xác thực email [2]
     mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE, -- Trạng thái bật MFA
     mfa_secret TEXT, -- Secret key cho TOTP (nên mã hóa) [2]
-    
+
     -- III. CẤU HÌNH & DỮ LIỆU ĐỘNG (PREFERENCES)
     locale VARCHAR(10) NOT NULL DEFAULT 'vi-VN', -- Ngôn ngữ/định dạng [2]
     metadata JSONB NOT NULL DEFAULT '{}', -- Lưu thông tin tùy chỉnh linh hoạt [9]
-    
+
     -- IV. TRUY VẾT (AUDIT)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -8592,8 +8592,8 @@ Dưới đây là các câu lệnh **CREATE INDEX** chiến lược cho bảng `
 Đây là chỉ mục giúp hệ thống xác định nhanh chóng định danh của khách hàng thông qua mã slug hoặc subdomain khi người dùng truy cập vào ứng dụng1,4.
 
 ```
-CREATE UNIQUE INDEX idx_tenants_code 
-ON tenants (code) 
+CREATE UNIQUE INDEX idx_tenants_code
+ON tenants (code)
 WHERE deleted_at IS NULL;
 ```
 
@@ -8604,8 +8604,8 @@ WHERE deleted_at IS NULL;
 Dùng để hiển thị danh sách các tổ chức/công ty mà một người dùng cụ thể đang quản lý5,7.
 
 ```
-CREATE INDEX idx_tenants_owner 
-ON tenants (owner_id) 
+CREATE INDEX idx_tenants_owner
+ON tenants (owner_id)
 WHERE deleted_at IS NULL;
 ```
 
@@ -8616,7 +8616,7 @@ WHERE deleted_at IS NULL;
 Khi sử dụng kiểu dữ liệu mảng để lưu danh sách ứng dụng mà tenant được quyền sử dụng, chỉ mục GIN là bắt buộc để tìm kiếm hiệu quả2,4.
 
 ```
-CREATE INDEX idx_tenants_active_apps 
+CREATE INDEX idx_tenants_active_apps
 ON tenants USING GIN (active_apps);
 ```
 
@@ -8627,7 +8627,7 @@ ON tenants USING GIN (active_apps);
 Hỗ trợ đội ngũ vận hành và marketing trong việc lọc danh sách khách hàng theo tình trạng kinh doanh2,5.
 
 ```
-CREATE INDEX idx_tenants_status_tier 
+CREATE INDEX idx_tenants_status_tier
 ON tenants (status, current_tier_code);
 ```
 
@@ -8638,7 +8638,7 @@ ON tenants (status, current_tier_code);
 Đối với hệ thống SaaS toàn cầu, việc theo dõi khách hàng theo khu vực địa lý là yếu tố then chốt để tuân thủ pháp lý và quản trị hạ tầng6,4.
 
 ```
-CREATE INDEX idx_tenants_region 
+CREATE INDEX idx_tenants_region
 ON tenants (data_region);
 ```
 
@@ -8649,7 +8649,7 @@ ON tenants (data_region);
 Nếu bạn gom các thông tin mô tả, logo, website vào cột JSONB để tăng tính linh hoạt, bạn có thể tạo chỉ mục GIN trên cột này9.
 
 ```
-CREATE INDEX idx_tenants_profile 
+CREATE INDEX idx_tenants_profile
 ON tenants USING GIN (profile);
 ```
 
@@ -8680,8 +8680,8 @@ Dưới đây là các câu lệnh **CREATE INDEX** chiến lược cho bảng `
 Đây là chỉ mục quan trọng nhất để phục vụ quá trình đăng nhập. Sử dụng **Partial Index** để đảm bảo email là duy nhất trên toàn hệ thống nhưng không bị xung đột với các tài khoản đã bị xóa mềm23.
 
 ```
-CREATE UNIQUE INDEX idx_users_email_active 
-ON users (email) 
+CREATE UNIQUE INDEX idx_users_email_active
+ON users (email)
 WHERE deleted_at IS NULL;
 ```
 
@@ -8693,7 +8693,7 @@ WHERE deleted_at IS NULL;
 -- Cần kích hoạt extension trước khi tạo index
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
-CREATE INDEX idx_users_search_trgm 
+CREATE INDEX idx_users_search_trgm
 ON users USING GIN (full_name gin_trgm_ops, email gin_trgm_ops);
 ```
 
@@ -8702,8 +8702,8 @@ ON users USING GIN (full_name gin_trgm_ops, email gin_trgm_ops);
 Tương tự như email, số điện thoại cần được index để phục vụ xác thực đa yếu tố (MFA) hoặc đăng nhập bằng điện thoại67.
 
 ```
-CREATE UNIQUE INDEX idx_users_phone_active 
-ON users (phone_number) 
+CREATE UNIQUE INDEX idx_users_phone_active
+ON users (phone_number)
 WHERE phone_number IS NOT NULL AND deleted_at IS NULL;
 ```
 
@@ -8712,7 +8712,7 @@ WHERE phone_number IS NOT NULL AND deleted_at IS NULL;
 Hỗ trợ các truy vấn lọc danh sách người dùng theo trạng thái (Active, Banned, Pending) và sắp xếp theo thời gian tạo (sử dụng lợi thế của UUID v7)68.
 
 ```
-CREATE INDEX idx_users_status_created 
+CREATE INDEX idx_users_status_created
 ON users (status, created_at DESC);
 ```
 
@@ -8721,7 +8721,7 @@ ON users (status, created_at DESC);
 Mặc dù index này nằm trên bảng liên kết `user_linked_identities`, nhưng nó là "chìa khóa" để tìm nhanh `user_id` khi người dùng đăng nhập qua Google, GitHub hoặc SSO910.
 
 ```
-CREATE INDEX idx_identity_lookup 
+CREATE INDEX idx_identity_lookup
 ON user_linked_identities (provider, provider_id);
 ```
 
@@ -8730,8 +8730,8 @@ ON user_linked_identities (provider, provider_id);
 Sử dụng trên bảng `user_sessions` để giúp người dùng hoặc quản trị viên truy vấn nhanh các phiên làm việc đang hoạt động và thu hồi thiết bị khi cần thiết1112.
 
 ```
-CREATE INDEX idx_sessions_user_active 
-ON user_sessions (user_id) 
+CREATE INDEX idx_sessions_user_active
+ON user_sessions (user_id)
 WHERE is_revoked = FALSE;
 ```
 
@@ -8797,16 +8797,16 @@ CREATE TABLE department_members (
 -- 2. TẠO CÁC INDEX CHIẾN LƯỢC
 
 -- Index hỗ trợ truy vấn danh sách nhân viên của một phòng ban cụ thể
-CREATE INDEX idx_dept_mem_lookup 
+CREATE INDEX idx_dept_mem_lookup
 ON department_members (tenant_id, department_id);
 
 -- Index hỗ trợ tìm tất cả các phòng ban mà một nhân viên đang tham gia
-CREATE INDEX idx_dept_mem_member 
+CREATE INDEX idx_dept_mem_member
 ON department_members (tenant_id, member_id);
 
 -- Index lọc nhanh những nhân sự thuộc phòng ban chính (dùng cho báo cáo nhân sự)
-CREATE INDEX idx_dept_mem_primary 
-ON department_members (tenant_id, is_primary) 
+CREATE INDEX idx_dept_mem_primary
+ON department_members (tenant_id, is_primary)
 WHERE is_primary = TRUE;
 ```
 
@@ -8860,7 +8860,7 @@ CREATE TABLE user_groups (
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application
     tenant_id UUID NOT NULL,
     parent_id UUID,
-    
+
     -- II. THÔNG TIN NGHIỆP VỤ
     name VARCHAR(100) NOT NULL,
     code VARCHAR(50),
@@ -8869,7 +8869,7 @@ CREATE TABLE user_groups (
     path TEXT,
     description TEXT,
     owner_member_id UUID,
-    
+
     -- III. TRUY VẾT & PHIÊN BẢN
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     version BIGINT NOT NULL DEFAULT 1,
@@ -8940,11 +8940,11 @@ CREATE TABLE group_members (
     tenant_id UUID NOT NULL,
     group_id UUID NOT NULL,
     member_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN NGHIỆP VỤ
     role_in_group VARCHAR(20) NOT NULL DEFAULT 'MEMBER',
     joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    
+
     -- III. TRUY VẾT & PHIÊN BẢN
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     version BIGINT NOT NULL DEFAULT 1,
@@ -8953,10 +8953,10 @@ CREATE TABLE group_members (
     CONSTRAINT fk_gm_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
     CONSTRAINT fk_gm_group FOREIGN KEY (group_id) REFERENCES user_groups(_id) ON DELETE CASCADE,
     CONSTRAINT fk_gm_member FOREIGN KEY (member_id) REFERENCES tenant_members(_id) ON DELETE CASCADE,
-    
+
     -- Đảm bảo một thành viên không bị gán trùng lặp vào cùng một nhóm
     CONSTRAINT uq_group_member UNIQUE (group_id, member_id),
-    
+
     CONSTRAINT chk_gm_role CHECK (role_in_group IN ('LEADER', 'MEMBER', 'SECRETARY')),
     CONSTRAINT chk_gm_version CHECK (version >= 1)
 );
@@ -8964,11 +8964,11 @@ CREATE TABLE group_members (
 -- 2. CÁC CHỈ MỤC CHIẾN LƯỢC (INDEXES)
 
 -- Index hỗ trợ truy vấn nhanh danh sách tất cả thành viên của một nhóm (Access Pattern: View Group)
-CREATE INDEX idx_gm_lookup_group 
+CREATE INDEX idx_gm_lookup_group
 ON group_members (tenant_id, group_id);
 
 -- Index hỗ trợ tìm tất cả các nhóm mà một nhân sự đang tham gia (Access Pattern: User Profile)
-CREATE INDEX idx_gm_lookup_member 
+CREATE INDEX idx_gm_lookup_member
 ON group_members (tenant_id, member_id);
 ```
 
@@ -9020,7 +9020,7 @@ CREATE TABLE locations (
     -- I. ĐỊNH DANH & PHÂN TÁCH (IDENTITY & SHARDING)
     _id UUID PRIMARY KEY, -- Khuyến nghị gen UUID v7 từ tầng Application [3]
     tenant_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN ĐỊA LÝ & NGHIỆP VỤ
     name TEXT NOT NULL,
     code VARCHAR(50),
@@ -9029,7 +9029,7 @@ CREATE TABLE locations (
     radius_meters INT,
     timezone VARCHAR(50) NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
     is_headquarter BOOLEAN NOT NULL DEFAULT FALSE,
-    
+
     -- III. TRUY VẾT & PHIÊN BẢN (AUDIT & VERSIONING)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -9097,12 +9097,12 @@ CREATE TABLE user_linked_identities (
     -- I. ĐỊNH DANH & LIÊN KẾT
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application [4]
     user_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN XÁC THỰC
     provider VARCHAR(20) NOT NULL,
     provider_id VARCHAR(255) NOT NULL,
     password_hash TEXT, -- TEXT tối ưu hơn VARCHAR cho các thuật toán băm hiện đại [7]
-    
+
     -- III. DỮ LIỆU ĐỘNG & TRUY VẾT
     data JSONB NOT NULL DEFAULT '{}',
     last_login_at TIMESTAMPTZ,
@@ -9120,11 +9120,11 @@ CREATE TABLE user_linked_identities (
 
 -- Index quan trọng nhất: Tìm nhanh User ID khi đăng nhập qua Google/Github/Email [8]
 -- Query: SELECT user_id FROM user_linked_identities WHERE provider = 'GOOGLE' AND provider_id = '...';
-CREATE INDEX idx_identity_lookup 
+CREATE INDEX idx_identity_lookup
 ON user_linked_identities (provider, provider_id);
 
 -- Index hỗ trợ trang quản lý tài khoản: Hiển thị các phương thức đã liên kết của 1 user
-CREATE INDEX idx_identity_user_id 
+CREATE INDEX idx_identity_user_id
 ON user_linked_identities (user_id);
 ```
 
@@ -9178,13 +9178,13 @@ CREATE TABLE user_sessions (
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application [3]
     tenant_id UUID NOT NULL,
     user_id UUID NOT NULL,
-    
+
     -- II. CƠ CHẾ XOAY VÒNG (ROTATION) & BẢO MẬT [2]
     family_id UUID NOT NULL,
     refresh_token_hash VARCHAR(255),
     rotation_counter INT NOT NULL DEFAULT 0,
     is_revoked BOOLEAN NOT NULL DEFAULT FALSE,
-    
+
     -- III. THÔNG TIN THIẾT BỊ & VỊ TRÍ [4]
     ip_address INET,
     user_agent TEXT,
@@ -9193,7 +9193,7 @@ CREATE TABLE user_sessions (
     browser_name VARCHAR(50),
     location_city VARCHAR(100),
     location_country VARCHAR(50),
-    
+
     -- IV. THỜI GIAN [7]
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     last_active_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -9208,17 +9208,17 @@ CREATE TABLE user_sessions (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ tìm nhanh danh sách thiết bị đang hoạt động của người dùng [7]
-CREATE INDEX idx_sessions_user_active 
-ON user_sessions (user_id) 
+CREATE INDEX idx_sessions_user_active
+ON user_sessions (user_id)
 WHERE is_revoked = FALSE;
 
 -- Index hỗ trợ quét các phiên đã hết hạn để dọn dẹp (Cleanup Job)
-CREATE INDEX idx_sessions_expiry 
-ON user_sessions (expires_at) 
+CREATE INDEX idx_sessions_expiry
+ON user_sessions (expires_at)
 WHERE is_revoked = FALSE;
 
 -- Index hỗ trợ kiểm tra nhanh token trong cùng một family khi thực hiện rotation [6]
-CREATE INDEX idx_sessions_family 
+CREATE INDEX idx_sessions_family
 ON user_sessions (family_id);
 ```
 
@@ -9267,13 +9267,13 @@ CREATE TABLE user_mfa_methods (
     -- I. ĐỊNH DANH & LIÊN KẾT
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application để tránh Hotspot [3, 5]
     user_id UUID NOT NULL,
-    
+
     -- II. CHI TIẾT PHƯƠNG THỨC
     type VARCHAR(20) NOT NULL,
     name VARCHAR(50),
     encrypted_secret TEXT NOT NULL, -- Sử dụng TEXT để linh hoạt cho các loại secret khác nhau [6]
     is_default BOOLEAN NOT NULL DEFAULT FALSE,
-    
+
     -- III. TRUY VẾT (AUDIT)
     last_used_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -9287,12 +9287,12 @@ CREATE TABLE user_mfa_methods (
 -- 2. CÁC CHỈ MỤC CHIẾN LƯỢC (INDEXES)
 
 -- Index hỗ trợ tìm nhanh các phương thức MFA của một người dùng khi đăng nhập
-CREATE INDEX idx_user_mfa_lookup 
+CREATE INDEX idx_user_mfa_lookup
 ON user_mfa_methods (user_id);
 
 -- Index một phần (Partial Index) để xác định nhanh phương thức mặc định của người dùng
-CREATE INDEX idx_user_mfa_default 
-ON user_mfa_methods (user_id) 
+CREATE INDEX idx_user_mfa_default
+ON user_mfa_methods (user_id)
 WHERE is_default = TRUE;
 ```
 
@@ -9340,14 +9340,14 @@ CREATE TABLE user_webauthn_credentials (
     -- I. ĐỊNH DANH & LIÊN KẾT
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application [3]
     user_id UUID NOT NULL,
-    
+
     -- II. DỮ LIỆU KỸ THUẬT FIDO2/PASSKEY
     name VARCHAR(100),
     credential_id TEXT NOT NULL,
     public_key TEXT NOT NULL,
     sign_count INT NOT NULL DEFAULT 0,
     transports TEXT[], -- Kiểu mảng hỗ trợ bởi YSQL/Postgres [2]
-    
+
     -- III. TRUY VẾT THỜI GIAN
     last_used_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -9361,11 +9361,11 @@ CREATE TABLE user_webauthn_credentials (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index quan trọng: Tìm nhanh toàn bộ thiết bị Passkey của một người dùng khi bắt đầu bước Login Challenge
-CREATE INDEX idx_webauthn_user_lookup 
+CREATE INDEX idx_webauthn_user_lookup
 ON user_webauthn_credentials (user_id);
 
 -- Index hỗ trợ việc xác thực dựa trên Credential ID trả về từ trình duyệt
-CREATE INDEX idx_webauthn_credential_lookup 
+CREATE INDEX idx_webauthn_credential_lookup
 ON user_webauthn_credentials (credential_id);
 ```
 
@@ -9412,11 +9412,11 @@ CREATE TABLE user_backup_codes (
     -- I. ĐỊNH DANH & LIÊN KẾT
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
     user_id UUID NOT NULL,
-    
+
     -- II. NỘI DUNG & TRẠNG THÁI
-    code_hash TEXT NOT NULL, 
+    code_hash TEXT NOT NULL,
     is_used BOOLEAN NOT NULL DEFAULT FALSE,
-    
+
     -- III. TRUY VẾT THỜI GIAN
     used_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -9424,7 +9424,7 @@ CREATE TABLE user_backup_codes (
     -- IV. CÁC RÀNG BUỘC (CONSTRAINTS)
     -- Xóa người dùng sẽ tự động xóa các mã dự phòng liên quan (GDPR Compliance)
     CONSTRAINT fk_backup_user FOREIGN KEY (user_id) REFERENCES users(_id) ON DELETE CASCADE,
-    
+
     -- Đảm bảo logic thời gian: Ngày sử dụng phải sau ngày tạo
     CONSTRAINT chk_backup_time CHECK (used_at IS NULL OR used_at >= created_at)
 );
@@ -9432,13 +9432,13 @@ CREATE TABLE user_backup_codes (
 -- 2. CÁC CHỈ MỤC CHIẾN LƯỢC (INDEXES)
 
 -- Index hỗ trợ tìm nhanh danh sách các mã dự phòng của một người dùng cụ thể
-CREATE INDEX idx_backup_user_lookup 
+CREATE INDEX idx_backup_user_lookup
 ON user_backup_codes (user_id);
 
 -- Partial Index: Chỉ index các mã chưa sử dụng để tăng tốc độ xác thực khi login
 -- Giảm dung lượng index và tăng hiệu năng do không chứa các mã đã dùng
-CREATE INDEX idx_backup_unused_codes 
-ON user_backup_codes (user_id) 
+CREATE INDEX idx_backup_unused_codes
+ON user_backup_codes (user_id)
 WHERE is_used = FALSE;
 ```
 
@@ -9488,7 +9488,7 @@ Thiết kế này sử dụng các chuẩn mực về kiểu dữ liệu (UUID v
 CREATE TABLE tenant_sso_configs (
     -- I. ĐỊNH DANH & LIÊN KẾT
     tenant_id UUID PRIMARY KEY, -- Sử dụng luôn tenant_id làm PK vì quan hệ 1-1
-    
+
     -- II. THÔNG TIN KỸ THUẬT IdP
     provider_type VARCHAR(20) NOT NULL,
     entry_point_url TEXT NOT NULL,
@@ -9496,11 +9496,11 @@ CREATE TABLE tenant_sso_configs (
     cert_public_key TEXT,
     client_id VARCHAR(255),
     client_secret_enc TEXT,
-    
+
     -- III. CẤU HÌNH NGHIỆP VỤ
     attribute_mapping JSONB NOT NULL DEFAULT '{}',
     is_enforced BOOLEAN NOT NULL DEFAULT FALSE,
-    
+
     -- IV. TRUY VẾT & PHIÊN BẢN
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -9515,8 +9515,8 @@ CREATE TABLE tenant_sso_configs (
 
 -- 2. CÁC CHỈ MỤC CHIẾN LƯỢC (INDEXES)
 
--- Mặc dù tenant_id đã là PRIMARY KEY (có sẵn index), 
--- chúng ta có thể tạo thêm index trên is_enforced để hệ thống quản trị 
+-- Mặc dù tenant_id đã là PRIMARY KEY (có sẵn index),
+-- chúng ta có thể tạo thêm index trên is_enforced để hệ thống quản trị
 -- nhanh chóng lọc ra các Tenant đang áp dụng chính sách bảo mật nghiêm ngặt.
 CREATE INDEX idx_sso_enforced ON tenant_sso_configs (is_enforced) WHERE is_enforced = TRUE;
 
@@ -9568,12 +9568,12 @@ CREATE TABLE auth_verification_codes (
     -- I. ĐỊNH DANH & LIÊN KẾT
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
     tenant_id UUID NOT NULL,
-    
+
     -- II. NỘI DUNG & LOẠI XÁC THỰC
     identifier VARCHAR(255) NOT NULL,
     type VARCHAR(30) NOT NULL,
     code_hash TEXT NOT NULL,
-    
+
     -- III. KIỂM SOÁT THỜI GIAN & BẢO MẬT
     expires_at TIMESTAMPTZ NOT NULL,
     attempt_count INT NOT NULL DEFAULT 0,
@@ -9591,13 +9591,13 @@ CREATE TABLE auth_verification_codes (
 
 -- Index hỗ trợ tìm nhanh mã hợp lệ gần nhất cho một User/Email/Phone cụ thể
 -- Giúp tăng tốc luồng verify OTP khi user nhập mã
-CREATE INDEX idx_auth_codes_lookup 
+CREATE INDEX idx_auth_codes_lookup
 ON auth_verification_codes (tenant_id, identifier, type, expires_at DESC);
 
 -- Index hỗ trợ dọn dẹp các mã đã hết hạn (Cleanup Job)
 -- Sử dụng Partial Index để chỉ tập trung vào các bản ghi đã quá hạn
-CREATE INDEX idx_auth_codes_cleanup 
-ON auth_verification_codes (expires_at) 
+CREATE INDEX idx_auth_codes_cleanup
+ON auth_verification_codes (expires_at)
 WHERE expires_at < NOW();
 ```
 
@@ -9653,13 +9653,13 @@ CREATE TABLE personal_access_tokens (
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
     tenant_id UUID NOT NULL,
     user_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN TOKEN & BẢO MẬT
     name TEXT NOT NULL,
     token_prefix VARCHAR(10) NOT NULL,
     token_hash TEXT NOT NULL,
     scopes TEXT[] NOT NULL, -- Kiểu mảng hỗ trợ phân quyền linh hoạt
-    
+
     -- III. TRẠNG THÁI & THỜI GIAN
     last_used_at TIMESTAMPTZ,
     expires_at TIMESTAMPTZ,
@@ -9678,17 +9678,17 @@ CREATE TABLE personal_access_tokens (
 
 -- Index hỗ trợ xác thực token cực nhanh khi có request API
 -- Truy vấn: SELECT user_id, scopes FROM personal_access_tokens WHERE token_hash = ? AND is_active = TRUE;
-CREATE INDEX idx_pat_auth_lookup 
-ON personal_access_tokens (token_hash) 
+CREATE INDEX idx_pat_auth_lookup
+ON personal_access_tokens (token_hash)
 WHERE is_active = TRUE;
 
 -- Index hỗ trợ trang quản lý: Hiển thị danh sách token của một người dùng trong một Tenant
-CREATE INDEX idx_pat_user_list 
+CREATE INDEX idx_pat_user_list
 ON personal_access_tokens (tenant_id, user_id);
 
 -- Index hỗ trợ các tác vụ dọn dẹp (Cleanup) token đã hết hạn
-CREATE INDEX idx_pat_expiry 
-ON personal_access_tokens (expires_at) 
+CREATE INDEX idx_pat_expiry
+ON personal_access_tokens (expires_at)
 WHERE expires_at IS NOT NULL;
 ```
 
@@ -9738,15 +9738,15 @@ CREATE TABLE roles (
     -- I. ĐỊNH DANH & PHÂN TÁCH (IDENTITY & SHARDING)
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
     tenant_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN NGHIỆP VỤ
     name VARCHAR(100) NOT NULL,
     description TEXT,
     type VARCHAR(20) NOT NULL DEFAULT 'CUSTOM',
-    
+
     -- III. QUYỀN HẠN (Sử dụng mảng TEXT[] để tối ưu hiệu năng)
     permission_codes TEXT[] NOT NULL DEFAULT '{}',
-    
+
     -- IV. TRUY VẾT & PHIÊN BẢN (AUDIT & VERSIONING)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -9764,12 +9764,12 @@ CREATE TABLE roles (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ lấy nhanh danh sách vai trò của một Tenant
-CREATE INDEX idx_roles_tenant_lookup 
+CREATE INDEX idx_roles_tenant_lookup
 ON roles (tenant_id);
 
 -- Index GIN hỗ trợ tìm kiếm các vai trò có chứa một mã quyền cụ thể
 -- Query: SELECT * FROM roles WHERE 'user:view' = ANY(permission_codes);
-CREATE INDEX idx_roles_permissions 
+CREATE INDEX idx_roles_permissions
 ON roles USING GIN (permission_codes);
 ```
 
@@ -9815,14 +9815,14 @@ Thiết kế này tuân thủ quy tắc đặt tên `snake_case` và sử dụng
 CREATE TABLE permissions (
     -- I. ĐỊNH DANH (IDENTITY)
     -- Khuyến nghị sinh UUID v7 từ tầng Application để tối ưu hiệu năng ghi
-    _id UUID PRIMARY KEY, 
-    
+    _id UUID PRIMARY KEY,
+
     -- II. THÔNG TIN NGHIỆP VỤ (BUSINESS DATA)
     -- Code là định danh logic để ứng dụng kiểm tra quyền (Entitlement Check)
-    code VARCHAR(100) NOT NULL, 
+    code VARCHAR(100) NOT NULL,
     module VARCHAR(50) NOT NULL,
     description TEXT,
-    
+
     -- III. TRUY VẾT (AUDIT)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -9889,11 +9889,11 @@ CREATE TABLE user_roles (
     tenant_id UUID NOT NULL,
     member_id UUID NOT NULL,
     role_id UUID NOT NULL,
-    
+
     -- II. PHẠM VI DỮ LIỆU (DATA SCOPING)
     scope_type VARCHAR(50) NOT NULL DEFAULT 'GLOBAL',
     scope_values TEXT[] NOT NULL DEFAULT '{}',
-    
+
     -- III. TRUY VẾT (AUDIT)
     assigned_by UUID,
     assigned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -9902,10 +9902,10 @@ CREATE TABLE user_roles (
     CONSTRAINT fk_ur_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
     CONSTRAINT fk_ur_member FOREIGN KEY (member_id) REFERENCES tenant_members(_id) ON DELETE CASCADE,
     CONSTRAINT fk_ur_role FOREIGN KEY (role_id) REFERENCES roles(_id) ON DELETE CASCADE,
-    
+
     -- Đảm bảo không gán trùng lặp 1 Role với cùng 1 Scope cho 1 người
     CONSTRAINT uq_member_role_scope UNIQUE (member_id, role_id, scope_type),
-    
+
     -- Kiểm tra giá trị hợp lệ cho scope_type
     CONSTRAINT chk_ur_scope_type CHECK (scope_type IN ('GLOBAL', 'DEPARTMENT', 'LOCATION', 'PROJECT'))
 );
@@ -9913,12 +9913,12 @@ CREATE TABLE user_roles (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index quan trọng nhất: Lấy toàn bộ Role và Scope của nhân viên khi đăng nhập để tính toán quyền (Flattening)
-CREATE INDEX idx_ur_member_lookup 
+CREATE INDEX idx_ur_member_lookup
 ON user_roles (member_id, tenant_id);
 
 -- Index hỗ trợ tìm kiếm: "Ai là Manager của Department X?"
-CREATE INDEX idx_ur_scope_search 
-ON user_roles USING GIN (scope_values) 
+CREATE INDEX idx_ur_scope_search
+ON user_roles USING GIN (scope_values)
 WHERE scope_type = 'DEPARTMENT';
 ```
 
@@ -9965,25 +9965,25 @@ Thiết kế này sử dụng **Khóa chính phức hợp (Composite Primary Key
 -- 1. CÂU LỆNH TẠO BẢNG
 CREATE TABLE relationship_tuples (
     tenant_id UUID NOT NULL,
-    
+
     -- THÔNG TIN TÀI NGUYÊN (OBJECT)
     namespace VARCHAR(50) NOT NULL,
     object_id UUID NOT NULL,
-    
+
     -- MỐI QUAN HỆ (RELATION)
     relation VARCHAR(50) NOT NULL,
-    
+
     -- ĐỐI TƯỢNG NHẬN QUYỀN (SUBJECT)
     subject_namespace VARCHAR(50) NOT NULL,
     subject_id UUID NOT NULL,
     subject_relation VARCHAR(50),
-    
+
     -- THỜI GIAN
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     -- RÀNG BUỘC (CONSTRAINTS)
     CONSTRAINT fk_tuples_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
-    
+
     -- Khóa chính phức hợp tối ưu cho việc truy vấn từ Object sang Subject
     PRIMARY KEY (tenant_id, namespace, object_id, relation, subject_namespace, subject_id)
 );
@@ -9992,11 +9992,11 @@ CREATE TABLE relationship_tuples (
 
 -- Index đảo ngược (Reverse Lookup Index)
 -- Hỗ trợ trả lời cực nhanh câu hỏi: "Người dùng A có quyền xem những tài liệu nào?"
-CREATE INDEX idx_tuples_reverse_lookup 
+CREATE INDEX idx_tuples_reverse_lookup
 ON relationship_tuples (tenant_id, subject_id, relation, namespace);
 
 -- Index hỗ trợ kiểm tra quyền theo loại tài nguyên (Namespace)
-CREATE INDEX idx_tuples_namespace_lookup 
+CREATE INDEX idx_tuples_namespace_lookup
 ON relationship_tuples (tenant_id, namespace, relation);
 ```
 
@@ -10048,19 +10048,19 @@ CREATE TABLE access_control_lists (
     -- I. ĐỊNH DANH & TENANCY
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application
     tenant_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN TÀI NGUYÊN (RESOURCE)
     resource_type VARCHAR(50) NOT NULL,
     resource_id UUID NOT NULL,
-    
+
     -- III. THÔNG TIN ĐỐI TƯỢNG (SUBJECT)
     subject_type VARCHAR(20) NOT NULL,
     subject_id UUID NOT NULL,
-    
+
     -- IV. QUYỀN HẠN
     action VARCHAR(50) NOT NULL,
     is_allowed BOOLEAN NOT NULL DEFAULT TRUE,
-    
+
     -- V. TRUY VẾT
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
@@ -10074,11 +10074,11 @@ CREATE TABLE access_control_lists (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ kiểm tra quyền của một Member đối với một tài nguyên cụ thể (AuthZ Check)
-CREATE INDEX idx_acl_lookup 
+CREATE INDEX idx_acl_lookup
 ON access_control_lists (tenant_id, resource_id, subject_id);
 
 -- Index hỗ trợ việc lấy danh sách tất cả các tài nguyên mà một Member/Group có quyền truy cập
-CREATE INDEX idx_acl_subject_search 
+CREATE INDEX idx_acl_subject_search
 ON access_control_lists (tenant_id, subject_id, subject_type);
 ```
 
@@ -10128,18 +10128,18 @@ CREATE TABLE tenant_domains (
     -- I. ĐỊNH DANH & LIÊN KẾT
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
     tenant_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN TÊN MIỀN
     domain VARCHAR(255) NOT NULL,
-    
+
     -- III. QUY TRÌNH XÁC THỰC
     verification_status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     verification_method VARCHAR(20),
     verification_token VARCHAR(100),
-    
+
     -- IV. CHÍNH SÁCH HÀNH VI
     policy VARCHAR(20) NOT NULL DEFAULT 'NONE',
-    
+
     -- V. TRUY VẾT THỜI GIAN
     verified_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -10156,12 +10156,12 @@ CREATE TABLE tenant_domains (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ tìm nhanh Tenant sở hữu một tên miền khi User đăng ký hoặc đăng nhập
-CREATE UNIQUE INDEX idx_tenant_domain_lookup 
-ON tenant_domains (domain) 
+CREATE UNIQUE INDEX idx_tenant_domain_lookup
+ON tenant_domains (domain)
 WHERE verification_status = 'VERIFIED';
 
 -- Index hỗ trợ việc quản lý danh sách domain của một Tenant cụ thể
-CREATE INDEX idx_tenant_domain_list 
+CREATE INDEX idx_tenant_domain_list
 ON tenant_domains (tenant_id);
 ```
 
@@ -10210,17 +10210,17 @@ CREATE TABLE tenant_invitations (
     -- I. ĐỊNH DANH & LIÊN KẾT (IDENTITY & LINKING)
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application [3]
     tenant_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN NGƯỜI NHẬN & VAI TRÒ
     email VARCHAR(255) NOT NULL,
     role_ids TEXT[] DEFAULT '{}',
     department_id UUID,
-    
+
     -- III. KIỂM SOÁT XÁC THỰC & TRẠNG THÁI
     token VARCHAR(100) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     expires_at TIMESTAMPTZ NOT NULL,
-    
+
     -- IV. TRUY VẾT (AUDIT)
     invited_by UUID,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -10236,17 +10236,17 @@ CREATE TABLE tenant_invitations (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ tìm kiếm nhanh khi người dùng click vào link mời (Token Lookup)
-CREATE UNIQUE INDEX idx_invitation_token_lookup 
-ON tenant_invitations (token) 
+CREATE UNIQUE INDEX idx_invitation_token_lookup
+ON tenant_invitations (token)
 WHERE status = 'PENDING';
 
 -- Index hỗ trợ Admin quản lý danh sách lời mời của một Tenant (Theo dõi tiến độ Onboarding)
-CREATE INDEX idx_invitation_tenant_list 
+CREATE INDEX idx_invitation_tenant_list
 ON tenant_invitations (tenant_id, created_at DESC);
 
 -- Index hỗ trợ Job dọn dẹp hoặc tự động cập nhật trạng thái hết hạn
-CREATE INDEX idx_invitation_expiry_cleanup 
-ON tenant_invitations (expires_at) 
+CREATE INDEX idx_invitation_expiry_cleanup
+ON tenant_invitations (expires_at)
 WHERE status = 'PENDING' AND expires_at < NOW();
 ```
 
@@ -10295,12 +10295,12 @@ CREATE TABLE access_reviews (
     -- I. ĐỊNH DANH & TENANCY
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application để tối ưu hiệu năng ghi
     tenant_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN NGHIỆP VỤ
     name VARCHAR(255) NOT NULL,
     description TEXT,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    
+
     -- III. KIỂM SOÁT THỜI GIAN & PHIÊN BẢN
     deadline TIMESTAMPTZ NOT NULL,
     created_by UUID NOT NULL,
@@ -10320,13 +10320,13 @@ CREATE TABLE access_reviews (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ tìm kiếm các đợt rà soát của một Tenant (Sắp xếp theo thời gian mới nhất)
-CREATE INDEX idx_access_reviews_tenant_lookup 
+CREATE INDEX idx_access_reviews_tenant_lookup
 ON access_reviews (tenant_id, created_at DESC);
 
 -- Index hỗ trợ hệ thống quản trị theo dõi các đợt rà soát sắp đến hạn
 -- Giúp chạy các Background Jobs gửi thông báo nhắc nhở (Reminder)
-CREATE INDEX idx_access_reviews_deadline 
-ON access_reviews (status, deadline) 
+CREATE INDEX idx_access_reviews_deadline
+ON access_reviews (status, deadline)
 WHERE status IN ('PENDING', 'IN_PROGRESS');
 ```
 
@@ -10404,17 +10404,17 @@ CREATE TABLE access_review_items (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ trang Dashboard của người rà soát: "Lấy tất cả mục tôi cần xử lý trong đợt này"
-CREATE INDEX idx_review_items_reviewer_task 
-ON access_review_items (reviewer_id, review_id) 
+CREATE INDEX idx_review_items_reviewer_task
+ON access_review_items (reviewer_id, review_id)
 WHERE decision = 'PENDING';
 
 -- Index hỗ trợ báo cáo tiến độ: "Có bao nhiêu mục đã hoàn thành trong đợt rà soát X?"
-CREATE INDEX idx_review_items_status 
+CREATE INDEX idx_review_items_status
 ON access_review_items (review_id, decision);
 
 -- Index hỗ trợ lịch sử nhân viên: "Nhân viên A đã từng bị thu hồi những quyền gì trong quá khứ?"
-CREATE INDEX idx_review_items_target_history 
-ON access_review_items (target_member_id) 
+CREATE INDEX idx_review_items_target_history
+ON access_review_items (target_member_id)
 WHERE decision = 'REVOKE';
 ```
 
@@ -10465,11 +10465,11 @@ CREATE TABLE scim_directories (
     -- I. ĐỊNH DANH & TENANCY
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
     tenant_id UUID NOT NULL,
-    
+
     -- II. CẤU HÌNH KẾT NỐI
     provider_type VARCHAR(20) NOT NULL,
     scim_token_hash TEXT NOT NULL,
-    
+
     -- III. TRẠNG THÁI & TRUY VẾT
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     last_synced_at TIMESTAMPTZ,
@@ -10487,12 +10487,12 @@ CREATE TABLE scim_directories (
 
 -- Index hỗ trợ xác thực cực nhanh khi IdP gọi API SCIM (Bearer Token Lookup)
 -- Truy vấn: SELECT tenant_id FROM scim_directories WHERE scim_token_hash = ? AND is_active = TRUE;
-CREATE INDEX idx_scim_auth_lookup 
-ON scim_directories (scim_token_hash) 
+CREATE INDEX idx_scim_auth_lookup
+ON scim_directories (scim_token_hash)
 WHERE is_active = TRUE;
 
 -- Index hỗ trợ trang quản trị: Hiển thị danh sách kết nối thư mục của một Tenant
-CREATE INDEX idx_scim_tenant_list 
+CREATE INDEX idx_scim_tenant_list
 ON scim_directories (tenant_id);
 ```
 
@@ -10542,12 +10542,12 @@ CREATE TABLE scim_mappings (
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
     tenant_id UUID NOT NULL,
     directory_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN ÁNH XẠ (MAPPING DATA)
     external_id VARCHAR(255) NOT NULL,
     internal_entity_type VARCHAR(20) NOT NULL,
     internal_entity_id UUID NOT NULL,
-    
+
     -- III. TRUY VẾT & ĐỒNG BỘ
     data_hash VARCHAR(64),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -10556,7 +10556,7 @@ CREATE TABLE scim_mappings (
     CONSTRAINT fk_scim_map_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
     CONSTRAINT fk_scim_map_dir FOREIGN KEY (directory_id) REFERENCES scim_directories(_id) ON DELETE CASCADE,
     CONSTRAINT chk_scim_entity_type CHECK (internal_entity_type IN ('USER', 'GROUP')),
-    
+
     -- Đảm bảo một đối tượng ngoại không bị ánh xạ trùng lặp cho một thư mục
     CONSTRAINT uq_scim_external_lookup UNIQUE (directory_id, external_id, internal_entity_type)
 );
@@ -10565,12 +10565,12 @@ CREATE TABLE scim_mappings (
 
 -- Index hỗ trợ tìm nhanh thực thể nội bộ khi nhận được request từ IdP (Provisioning)
 -- Query: SELECT internal_entity_id FROM scim_mappings WHERE directory_id = ? AND external_id = ?;
-CREATE UNIQUE INDEX idx_scim_external_sync 
+CREATE UNIQUE INDEX idx_scim_external_sync
 ON scim_mappings (directory_id, external_id, internal_entity_type);
 
 -- Index hỗ trợ tìm ngược từ hệ thống nội bộ để gửi update sang IdP (Deprovisioning)
 -- Query: SELECT external_id FROM scim_mappings WHERE internal_entity_id = ?;
-CREATE INDEX idx_scim_internal_lookup 
+CREATE INDEX idx_scim_internal_lookup
 ON scim_mappings (internal_entity_id);
 ```
 
@@ -10702,11 +10702,11 @@ CREATE TABLE legal_documents (
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application
     type VARCHAR(50) NOT NULL,
     version VARCHAR(20) NOT NULL,
-    
+
     -- II. NỘI DUNG
     title TEXT NOT NULL,
     content_url TEXT NOT NULL,
-    
+
     -- III. TRẠNG THÁI & THỜI GIAN
     is_active BOOLEAN NOT NULL DEFAULT FALSE,
     published_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -10716,10 +10716,10 @@ CREATE TABLE legal_documents (
     -- IV. CÁC RÀNG BUỘC (CONSTRAINTS)
     -- Đảm bảo không trùng lặp phiên bản cho cùng một loại văn bản
     CONSTRAINT uq_doc_type_version UNIQUE (type, version),
-    
+
     -- Kiểm tra loại văn bản hợp lệ
     CONSTRAINT chk_legal_type CHECK (type IN ('TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'COOKIE_POLICY', 'EULA')),
-    
+
     -- Kiểm tra định dạng URL cơ bản
     CONSTRAINT chk_legal_url_fmt CHECK (content_url ~* '^https?://')
 );
@@ -10728,12 +10728,12 @@ CREATE TABLE legal_documents (
 
 -- Index hỗ trợ lấy nhanh phiên bản đang hoạt động (Partial Index)
 -- Query: SELECT * FROM legal_documents WHERE type = 'TERMS_OF_SERVICE' AND is_active = TRUE;
-CREATE UNIQUE INDEX idx_legal_active_version 
-ON legal_documents (type) 
+CREATE UNIQUE INDEX idx_legal_active_version
+ON legal_documents (type)
 WHERE is_active = TRUE;
 
 -- Index hỗ trợ tra cứu lịch sử thay đổi của một loại văn bản theo thời gian
-CREATE INDEX idx_legal_history_lookup 
+CREATE INDEX idx_legal_history_lookup
 ON legal_documents (type, published_at DESC);
 ```
 
@@ -10782,22 +10782,22 @@ CREATE TABLE user_consents (
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application [3]
     user_id UUID NOT NULL,
     document_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN XÁC THỰC (EVIDENCE)
     agreed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     ip_address INET NOT NULL,
     user_agent TEXT,
-    
+
     -- III. QUẢN TRỊ
     version BIGINT NOT NULL DEFAULT 1,
 
     -- IV. CÁC RÀNG BUỘC (CONSTRAINTS)
     CONSTRAINT fk_consent_user FOREIGN KEY (user_id) REFERENCES users(_id) ON DELETE CASCADE,
     CONSTRAINT fk_consent_doc FOREIGN KEY (document_id) REFERENCES legal_documents(_id),
-    
+
     -- Đảm bảo mỗi user chỉ đồng ý một lần với một phiên bản tài liệu nhất định [4]
     CONSTRAINT uq_user_document_consent UNIQUE (user_id, document_id),
-    
+
     CONSTRAINT chk_consent_version CHECK (version >= 1)
 );
 
@@ -10805,12 +10805,12 @@ CREATE TABLE user_consents (
 
 -- Index hỗ trợ kiểm tra nhanh: "Người dùng này đã đồng ý với phiên bản TOS hiện tại chưa?"
 -- Query: SELECT 1 FROM user_consents WHERE user_id = ? AND document_id = ?;
-CREATE UNIQUE INDEX idx_consent_lookup 
+CREATE UNIQUE INDEX idx_consent_lookup
 ON user_consents (user_id, document_id);
 
 -- Index hỗ trợ báo cáo tuân thủ và truy vết pháp lý (Audit Trail)
 -- Query: SELECT * FROM user_consents WHERE agreed_at BETWEEN ? AND ?;
-CREATE INDEX idx_consent_audit_history 
+CREATE INDEX idx_consent_audit_history
 ON user_consents (agreed_at DESC);
 ```
 
@@ -10863,16 +10863,16 @@ CREATE TABLE user_delegations (
     -- I. ĐỊNH DANH & TENANCY
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application [3]
     tenant_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN ỦY QUYỀN
     delegator_id UUID NOT NULL,
     delegatee_id UUID NOT NULL,
-    
+
     -- III. PHẠM VI & THỜI GIAN
     scopes TEXT[] NOT NULL DEFAULT '{}',
     starts_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL,
-    
+
     -- IV. TRẠNG THÁI & AUDIT
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     reason TEXT,
@@ -10889,12 +10889,12 @@ CREATE TABLE user_delegations (
 
 -- Index hỗ trợ tìm nhanh các tài khoản mà người dùng hiện tại có thể "nhập vai" (Switch account)
 -- Truy vấn: SELECT delegator_id FROM user_delegations WHERE delegatee_id = ? AND is_active = TRUE AND expires_at > NOW();
-CREATE INDEX idx_delegation_lookup_delegatee 
-ON user_delegations (tenant_id, delegatee_id) 
+CREATE INDEX idx_delegation_lookup_delegatee
+ON user_delegations (tenant_id, delegatee_id)
 WHERE is_active = TRUE AND expires_at > NOW();
 
 -- Index hỗ trợ người ủy quyền kiểm tra xem mình đã cấp quyền cho những ai
-CREATE INDEX idx_delegation_lookup_delegator 
+CREATE INDEX idx_delegation_lookup_delegator
 ON user_delegations (tenant_id, delegator_id);
 ```
 
@@ -11027,22 +11027,22 @@ CREATE TABLE tenants (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ tìm kiếm Tenant theo domain/slug cực nhanh (Login/Routing)
-CREATE UNIQUE INDEX idx_tenants_code_active 
-ON tenants (code) 
+CREATE UNIQUE INDEX idx_tenants_code_active
+ON tenants (code)
 WHERE deleted_at IS NULL;
 
 -- Index hỗ trợ tìm tất cả các Tenant do một User quản lý
-CREATE INDEX idx_tenants_owner 
-ON tenants (owner_id) 
+CREATE INDEX idx_tenants_owner
+ON tenants (owner_id)
 WHERE deleted_at IS NULL;
 
 -- Index hỗ trợ quản trị hệ thống lọc khách hàng theo vùng và trạng thái
-CREATE INDEX idx_tenants_region_status 
+CREATE INDEX idx_tenants_region_status
 ON tenants (data_region, status);
 
 -- Index GIN hỗ trợ tìm nhanh các Tenant đang sử dụng một ứng dụng cụ thể
 -- Giúp query: WHERE 'HRM' = ANY(active_apps)
-CREATE INDEX idx_tenants_active_apps 
+CREATE INDEX idx_tenants_active_apps
 ON tenants USING GIN (active_apps);
 ```
 
@@ -11104,14 +11104,14 @@ CREATE TABLE tenants (
     _id UUID PRIMARY KEY,
     code VARCHAR(64) NOT NULL,
     name TEXT NOT NULL,
-    
+
     -- Phân tách rõ ràng Profile và Settings
     profile JSONB NOT NULL DEFAULT '{}', -- Thông tin thương hiệu
     settings JSONB NOT NULL DEFAULT '{}', -- Cấu hình logic & bảo mật
-    
+
     status VARCHAR(20) NOT NULL DEFAULT 'TRIAL',
     active_apps TEXT[] DEFAULT '{}',
-    
+
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     version BIGINT NOT NULL DEFAULT 1,
@@ -11212,20 +11212,20 @@ CREATE TABLE tenants (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ xác thực và điều hướng (Login/Routing) theo subdomain/slug
-CREATE UNIQUE INDEX idx_tenants_code_active 
-ON tenants (code) 
+CREATE UNIQUE INDEX idx_tenants_code_active
+ON tenants (code)
 WHERE deleted_at IS NULL;
 
 -- Index GIN hỗ trợ tìm kiếm linh hoạt bên trong cấu hình Settings (Ví dụ: tìm tenant bắt buộc MFA)
-CREATE INDEX idx_tenants_settings_gin 
+CREATE INDEX idx_tenants_settings_gin
 ON tenants USING GIN (settings);
 
 -- Index GIN hỗ trợ tìm kiếm trong Profile (Ví dụ: tìm theo Mã số thuế trong JSON)
-CREATE INDEX idx_tenants_profile_gin 
+CREATE INDEX idx_tenants_profile_gin
 ON tenants USING GIN (profile);
 
 -- Index hỗ trợ báo cáo quản trị hệ thống theo khu vực và gói cước
-CREATE INDEX idx_tenants_infra_stats 
+CREATE INDEX idx_tenants_infra_stats
 ON tenants (data_region, tier, status);
 ```
 
@@ -11499,16 +11499,16 @@ CREATE TABLE api_keys (
     -- I. ĐỊNH DANH & LIÊN KẾT
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application layer
     tenant_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN ĐỊNH DANH (IDENTIFICATION)
     name TEXT NOT NULL,
     key_prefix VARCHAR(10) NOT NULL,
     key_hash TEXT NOT NULL,
-    
+
     -- III. QUYỀN HẠN & BẢO MẬT (SECURITY)
     scopes TEXT[] NOT NULL DEFAULT '{}',
     allowed_ips CIDR[], -- Kiểu dữ liệu chuyên dụng cho IP/Mạng trong Postgres
-    
+
     -- IV. TRẠNG THÁI & TRUY VẾT (AUDIT)
     expires_at TIMESTAMPTZ,
     last_used_at TIMESTAMPTZ,
@@ -11528,16 +11528,16 @@ CREATE TABLE api_keys (
 
 -- Index quan trọng nhất: Hỗ trợ API Gateway tra cứu Key cực nhanh khi xác thực request
 -- Query: SELECT tenant_id, scopes, allowed_ips FROM api_keys WHERE key_hash = ? AND (expires_at IS NULL OR expires_at > NOW());
-CREATE INDEX idx_api_key_lookup 
-ON api_keys (key_hash) 
+CREATE INDEX idx_api_key_lookup
+ON api_keys (key_hash)
 WHERE expires_at IS NULL OR expires_at > NOW();
 
 -- Index hỗ trợ Tenant quản lý danh sách Key của mình trong trang cấu hình
-CREATE INDEX idx_api_key_tenant_list 
+CREATE INDEX idx_api_key_tenant_list
 ON api_keys (tenant_id, created_at DESC);
 
 -- Index GIN hỗ trợ tìm kiếm các Key có quyền (scope) cụ thể
-CREATE INDEX idx_api_key_scopes 
+CREATE INDEX idx_api_key_scopes
 ON api_keys USING GIN (scopes);
 ```
 
@@ -11590,13 +11590,13 @@ CREATE TABLE service_accounts (
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application
     tenant_id UUID NOT NULL,
     member_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN XÁC THỰC
     name TEXT NOT NULL,
     description TEXT,
     client_id VARCHAR(64) NOT NULL,
     client_secret_hash TEXT NOT NULL,
-    
+
     -- III. TRẠNG THÁI & AUDIT
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -11615,12 +11615,12 @@ CREATE TABLE service_accounts (
 
 -- Index hỗ trợ xác thực cực nhanh khi Bot gọi API
 -- Query: SELECT * FROM service_accounts WHERE client_id = ? AND is_active = TRUE;
-CREATE INDEX idx_service_account_auth 
-ON service_accounts (client_id) 
+CREATE INDEX idx_service_account_auth
+ON service_accounts (client_id)
 WHERE is_active = TRUE;
 
 -- Index hỗ trợ quản trị viên liệt kê các tài khoản máy theo Tenant
-CREATE INDEX idx_service_account_tenant_list 
+CREATE INDEX idx_service_account_tenant_list
 ON service_accounts (tenant_id, created_at DESC);
 ```
 
@@ -11668,16 +11668,16 @@ CREATE TABLE user_devices (
     -- I. ĐỊNH DANH & LIÊN KẾT
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
     user_id UUID NOT NULL,
-    
+
     -- II. THÔNG TIN THIẾT BỊ (DEVICE INFO)
     device_fingerprint VARCHAR(255) NOT NULL,
     name TEXT,
     user_agent_parsed JSONB NOT NULL DEFAULT '{}',
-    
+
     -- III. TRẠNG THÁI BẢO MẬT (SECURITY STATUS)
     trust_status VARCHAR(20) NOT NULL DEFAULT 'UNTRUSTED',
     last_ip INET,
-    
+
     -- IV. TRUY VẾT THỜI GIAN (AUDIT)
     last_active_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -11692,16 +11692,16 @@ CREATE TABLE user_devices (
 
 -- Index hỗ trợ xác thực nhanh thiết bị khi người dùng đăng nhập
 -- Truy vấn: SELECT trust_status FROM user_devices WHERE user_id = ? AND device_fingerprint = ?;
-CREATE INDEX idx_user_device_lookup 
+CREATE INDEX idx_user_device_lookup
 ON user_devices (user_id, device_fingerprint);
 
 -- Index hỗ trợ người dùng quản lý danh sách thiết bị của mình (Để thu hồi/Logout)
-CREATE INDEX idx_user_devices_list 
+CREATE INDEX idx_user_devices_list
 ON user_devices (user_id, last_active_at DESC);
 
 -- Index hỗ trợ Admin hệ thống tìm kiếm các thiết bị đang bị chặn (BLOCKED)
-CREATE INDEX idx_blocked_devices 
-ON user_devices (trust_status) 
+CREATE INDEX idx_blocked_devices
+ON user_devices (trust_status)
 WHERE trust_status = 'BLOCKED';
 ```
 
@@ -11867,21 +11867,21 @@ CREATE TABLE auth_logs (
     email_attempted String,
     ip_address IPv6,
     user_agent String,
-    
+
     -- III. KẾT QUẢ & PHƯƠNG THỨC (Dùng Enum để tối ưu)
     is_success Bool,
     login_method Enum8(
-        'PASSWORD' = 1, 
-        'GOOGLE' = 2, 
-        'SSO' = 3, 
-        'MAGIC_LINK' = 4, 
+        'PASSWORD' = 1,
+        'GOOGLE' = 2,
+        'SSO' = 3,
+        'MAGIC_LINK' = 4,
         'PASSKEY' = 5
     ),
     failure_reason Enum8(
-        'NONE' = 0, 
-        'WRONG_PASSWORD' = 1, 
-        'MFA_FAILED' = 2, 
-        'USER_LOCKED' = 3, 
+        'NONE' = 0,
+        'WRONG_PASSWORD' = 1,
+        'MFA_FAILED' = 2,
+        'USER_LOCKED' = 3,
         'INVALID_TOKEN' = 4
     ),
 
@@ -11946,10 +11946,10 @@ CREATE TABLE security_audit_logs (
 
     -- II. CHI TIẾT SỰ KIỆN (Dùng Enum để nén dữ liệu cực tốt)
     event_category Enum8(
-        'IAM' = 1, 
-        'AUTH' = 2, 
-        'BILLING' = 3, 
-        'DATA' = 4, 
+        'IAM' = 1,
+        'AUTH' = 2,
+        'BILLING' = 3,
+        'DATA' = 4,
         'SYSTEM' = 5
     ),
     event_action String,
@@ -11974,11 +11974,11 @@ SETTINGS index_granularity = 8192;
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX BỔ SUNG (SKIPPING INDEX)
 
 -- Index giúp tìm kiếm nhanh các hành động cụ thể trong hàng tỷ bản ghi
-ALTER TABLE security_audit_logs 
+ALTER TABLE security_audit_logs
 ADD INDEX idx_event_action event_action TYPE bloom_filter(0.01) GRANULARITY 1;
 
 -- Index hỗ trợ tra cứu lịch sử tác động lên một tài nguyên cụ thể (target_id)
-ALTER TABLE security_audit_logs 
+ALTER TABLE security_audit_logs
 ADD INDEX idx_target_lookup target_id TYPE bloom_filter(0.01) GRANULARITY 1;
 ```
 
@@ -12131,12 +12131,12 @@ CREATE TABLE tenant_app_routes (
     -- II. CẤU HÌNH ĐỊNH TUYẾN
     domain VARCHAR(255) NOT NULL,
     path_prefix VARCHAR(100) NOT NULL DEFAULT '/',
-    
+
     -- III. THÔNG TIN PHỤ TRỢ
     is_primary BOOLEAN NOT NULL DEFAULT FALSE,
     is_custom_domain BOOLEAN NOT NULL DEFAULT FALSE,
     ssl_status VARCHAR(20) NOT NULL DEFAULT 'NONE',
-    
+
     -- IV. AUDIT & VERSIONING
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -12155,12 +12155,12 @@ CREATE TABLE tenant_app_routes (
 -- Index "Thần thánh" cho Router (Covering Index)
 -- Giúp API Gateway tìm nhanh tenant_id và app_code từ domain + path
 -- Query: SELECT tenant_id, app_code FROM tenant_app_routes WHERE domain = ? AND path_prefix = ?;
-CREATE UNIQUE INDEX idx_routes_fast_lookup 
-ON tenant_app_routes (domain, path_prefix) 
+CREATE UNIQUE INDEX idx_routes_fast_lookup
+ON tenant_app_routes (domain, path_prefix)
 INCLUDE (tenant_id, app_code, is_custom_domain); [15, 16]
 
 -- Index hỗ trợ quản lý danh sách Route của một Tenant
-CREATE INDEX idx_routes_tenant_list 
+CREATE INDEX idx_routes_tenant_list
 ON tenant_app_routes (tenant_id, created_at DESC); [4]
 ```
 
@@ -12214,12 +12214,12 @@ CREATE TABLE tenant_rate_limits (
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
     tenant_id UUID,
     package_id UUID,
-    
+
     -- II. CẤU HÌNH GIỚI HẠN
     api_group VARCHAR(50) NOT NULL,
     limit_count INT NOT NULL,
     window_seconds INT NOT NULL DEFAULT 60,
-    
+
     -- III. TRẠNG THÁI & TRUY VẾT
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -12230,10 +12230,10 @@ CREATE TABLE tenant_rate_limits (
     CONSTRAINT fk_rate_limit_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
     -- Lưu ý: Cần bảng packages tồn tại trước
     -- CONSTRAINT fk_rate_limit_package FOREIGN KEY (package_id) REFERENCES packages(_id),
-    
+
     -- Đảm bảo mỗi cặp Tenant + Nhóm API chỉ có 1 cấu hình giới hạn duy nhất
     CONSTRAINT uq_tenant_api_group UNIQUE (tenant_id, api_group),
-    
+
     CONSTRAINT chk_limit_count CHECK (limit_count > 0),
     CONSTRAINT chk_window_seconds CHECK (window_seconds > 0),
     CONSTRAINT chk_api_group_name CHECK (LENGTH(api_group) > 0)
@@ -12243,13 +12243,13 @@ CREATE TABLE tenant_rate_limits (
 
 -- Index hỗ trợ API Gateway tra cứu cấu hình giới hạn cực nhanh
 -- Query: SELECT limit_count, window_seconds FROM tenant_rate_limits WHERE tenant_id = ? AND api_group = ? AND is_active = TRUE;
-CREATE INDEX idx_rate_limit_lookup 
-ON tenant_rate_limits (tenant_id, api_group) 
+CREATE INDEX idx_rate_limit_lookup
+ON tenant_rate_limits (tenant_id, api_group)
 WHERE is_active = TRUE;
 
 -- Index hỗ trợ quản trị viên hệ thống lọc cấu hình theo gói cước
-CREATE INDEX idx_rate_limit_package 
-ON tenant_rate_limits (package_id) 
+CREATE INDEX idx_rate_limit_package
+ON tenant_rate_limits (package_id)
 WHERE package_id IS NOT NULL;
 ```
 
@@ -12297,18 +12297,18 @@ CREATE TABLE oauth_clients (
     -- I. ĐỊNH DANH & TENANCY
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ phía Application
     tenant_id UUID,
-    
+
     -- II. THÔNG TIN XÁC THỰC (OAuth2 Core)
     client_id VARCHAR(64) NOT NULL,
     client_secret_hash TEXT NOT NULL,
-    
+
     -- III. THÔNG TIN HIỂN THỊ & CẤU HÌNH
     name TEXT NOT NULL,
     logo_url TEXT,
     redirect_uris TEXT[] NOT NULL,
     allowed_scopes TEXT[],
     is_trusted BOOLEAN NOT NULL DEFAULT FALSE,
-    
+
     -- IV. TRUY VẾT & AUDIT
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -12323,13 +12323,13 @@ CREATE TABLE oauth_clients (
 
 -- Index quan trọng nhất: Phục vụ việc kiểm tra Client khi bắt đầu luồng login
 -- Sử dụng Covering Index để Gateway lấy thông tin mà không cần đọc bảng gốc
-CREATE UNIQUE INDEX idx_oauth_clients_lookup 
-ON oauth_clients (client_id) 
+CREATE UNIQUE INDEX idx_oauth_clients_lookup
+ON oauth_clients (client_id)
 INCLUDE (client_secret_hash, redirect_uris, is_trusted);
 
 -- Index hỗ trợ quản lý: Admin xem danh sách các ứng dụng thuộc Tenant
-CREATE INDEX idx_oauth_clients_tenant 
-ON oauth_clients (tenant_id, created_at DESC) 
+CREATE INDEX idx_oauth_clients_tenant
+ON oauth_clients (tenant_id, created_at DESC)
 WHERE tenant_id IS NOT NULL;
 ```
 
@@ -12378,16 +12378,16 @@ CREATE TABLE webhooks (
     -- I. ĐỊNH DANH & TENANCY
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
     tenant_id UUID NOT NULL,
-    
+
     -- II. CẤU HÌNH KỸ THUẬT
     target_url TEXT NOT NULL,
     secret_key TEXT NOT NULL,
     subscribed_events TEXT[] NOT NULL,
-    
+
     -- III. TRẠNG THÁI VẬN HÀNH
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     failure_count INT NOT NULL DEFAULT 0,
-    
+
     -- IV. AUDIT & VERSIONING
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -12404,12 +12404,12 @@ CREATE TABLE webhooks (
 
 -- Index hỗ trợ Event Worker tìm nhanh các webhook đang đăng ký một sự kiện cụ thể
 -- Query: SELECT target_url, secret_key FROM webhooks WHERE is_active = TRUE AND 'user.created' = ANY(subscribed_events);
-CREATE INDEX idx_webhooks_active_events 
-ON webhooks USING GIN (subscribed_events) 
+CREATE INDEX idx_webhooks_active_events
+ON webhooks USING GIN (subscribed_events)
 WHERE is_active = TRUE;
 
 -- Index hỗ trợ Tenant quản lý danh sách Webhook của mình
-CREATE INDEX idx_webhooks_tenant_list 
+CREATE INDEX idx_webhooks_tenant_list
 ON webhooks (tenant_id, created_at DESC);
 ```
 
@@ -12464,27 +12464,27 @@ CREATE TABLE api_usage_logs (
     _id UUID,
     tenant_id UUID,
     app_code String,
-    
+
     -- II. CHI TIẾT GIAO DỊCH API
     api_endpoint String,
     api_method Enum8(
-        'GET' = 1, 
-        'POST' = 2, 
-        'PUT' = 3, 
-        'DELETE' = 4, 
-        'PATCH' = 5, 
+        'GET' = 1,
+        'POST' = 2,
+        'PUT' = 3,
+        'DELETE' = 4,
+        'PATCH' = 5,
         'OPTIONS' = 6
     ),
     status_code Int16,
-    
+
     -- III. METRICS (Để tính tiền Bandwidth & Quota)
     request_size Int64 DEFAULT 0,
     response_size Int64 DEFAULT 0,
     latency_ms Int32,
-    
+
     -- IV. TRUY VẾT XÁC THỰC
     api_key_id Nullable(UUID),
-    
+
     -- V. THỜI GIAN
     created_at DateTime64(3) DEFAULT now()
 )
@@ -12498,12 +12498,12 @@ SETTINGS index_granularity = 8192;
 
 -- 2. Tạo Skipping Index (Bloom Filter) cho api_endpoint
 -- Giúp tìm kiếm nhanh các endpoint cụ thể khi phân tích hiệu năng mà không cần quét toàn bảng
-ALTER TABLE api_usage_logs 
+ALTER TABLE api_usage_logs
 ADD INDEX idx_endpoint_search api_endpoint TYPE bloom_filter(0.01) GRANULARITY 1;
 
 -- 3. Tạo Skipping Index cho status_code
 -- Phục vụ việc lọc nhanh các yêu cầu lỗi (status_code >= 400)
-ALTER TABLE api_usage_logs 
+ALTER TABLE api_usage_logs
 ADD INDEX idx_status_code status_code TYPE minmax GRANULARITY 1;
 ```
 
@@ -12561,7 +12561,7 @@ CREATE TABLE webhook_delivery_logs (
     target_url String,
     payload String,
     response_body String,
-    
+
     -- III. KẾT QUẢ VẬN HÀNH
     status_code Int16,
     is_success Bool,
@@ -12582,15 +12582,15 @@ SETTINGS index_granularity = 8192;
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX BỔ SUNG (SKIPPING INDEX)
 
 -- Index giúp tìm kiếm nhanh các log liên quan đến một Webhook cụ thể trong hàng tỷ bản ghi
-ALTER TABLE webhook_delivery_logs 
+ALTER TABLE webhook_delivery_logs
 ADD INDEX idx_webhook_lookup webhook_id TYPE bloom_filter(0.01) GRANULARITY 1;
 
 -- Index hỗ trợ lọc nhanh các yêu cầu bị lỗi (status_code >= 400) để bắn cảnh báo [2]
-ALTER TABLE webhook_delivery_logs 
+ALTER TABLE webhook_delivery_logs
 ADD INDEX idx_status_code status_code TYPE minmax GRANULARITY 1;
 
 -- Index hỗ trợ tìm kiếm theo URL đích nếu khách hàng dùng nhiều endpoint
-ALTER TABLE webhook_delivery_logs 
+ALTER TABLE webhook_delivery_logs
 ADD INDEX idx_url_search target_url TYPE tokenbf_v1(4096, 2, 0) GRANULARITY 1;
 ```
 
@@ -12733,14 +12733,14 @@ CREATE TABLE audit_logs (
     tenant_id UUID,
     user_id UUID,
     impersonator_id Nullable(UUID),
-    
+
     -- II. CHI TIẾT SỰ KIỆN
     event_time DateTime64(3) DEFAULT now(),
     action String,
     resource String,
     resource_id Nullable(String),
     details String,
-    
+
     -- III. CONTEXT & SECURITY
     ip_address String,
     user_agent String,
@@ -12756,12 +12756,12 @@ SETTINGS index_granularity = 8192;
 
 -- 2. Tạo Skipping Index cho trường 'action'
 -- Giúp tìm kiếm nhanh các hành động cụ thể trong hàng tỷ bản ghi mà không cần quét toàn bảng
-ALTER TABLE audit_logs 
+ALTER TABLE audit_logs
 ADD INDEX idx_action_search action TYPE bloom_filter(0.01) GRANULARITY 1;
 
 -- 3. Tạo Skipping Index cho trường 'user_id'
 -- Giúp tra soát lịch sử của một nhân viên cụ thể nhanh hơn
-ALTER TABLE audit_logs 
+ALTER TABLE audit_logs
 ADD INDEX idx_user_search user_id TYPE minmax GRANULARITY 1;
 ```
 
@@ -12845,16 +12845,16 @@ CREATE TABLE outbox_events (
     -- I. ĐỊNH DANH & TENANCY
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
     tenant_id UUID NOT NULL,
-    
+
     -- II. CHI TIẾT SỰ KIỆN (EVENT SPEC)
     aggregate_type VARCHAR(50) NOT NULL,
     aggregate_id UUID NOT NULL,
     event_type VARCHAR(50) NOT NULL,
-    
+
     -- III. DỮ LIỆU & TRẠNG THÁI
     payload JSONB NOT NULL DEFAULT '{}',
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    
+
     -- IV. TRUY VẾT THỜI GIAN
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     published_at TIMESTAMPTZ,
@@ -12869,12 +12869,12 @@ CREATE TABLE outbox_events (
 
 -- Index quan trọng nhất: Dùng cho Worker quét các sự kiện chưa bắn (Partial Index)
 -- Giúp tìm nhanh những gì cần làm mà không phải quét toàn bộ bảng triệu dòng.
-CREATE INDEX idx_outbox_pending_events 
-ON outbox_events (created_at ASC) 
+CREATE INDEX idx_outbox_pending_events
+ON outbox_events (created_at ASC)
 WHERE status = 'PENDING';
 
 -- Index hỗ trợ tra soát (Audit): Tìm lịch sử sự kiện theo Tenant hoặc một đối tượng cụ thể
-CREATE INDEX idx_outbox_audit_lookup 
+CREATE INDEX idx_outbox_audit_lookup
 ON outbox_events (tenant_id, aggregate_type, aggregate_id);
 ```
 
@@ -12989,7 +12989,7 @@ ORDER BY (tenant_id, created_at, _id)
 SETTINGS index_granularity = 8192;
 
 -- Index bổ sung để lọc nhanh theo vùng địa lý
-ALTER TABLE user_registration_logs 
+ALTER TABLE user_registration_logs
 ADD INDEX idx_region data_region TYPE bloom_filter(0.01) GRANULARITY 1;
 ```
 
@@ -13242,7 +13242,7 @@ CREATE INDEX idx_wallet_history ON wallet_transactions (tenant_id, created_at DE
 
 ```
 -- Sử dụng HNSW để tìm kiếm tương đồng cực nhanh
-CREATE INDEX idx_vector_search ON tenant_knowledge_vectors 
+CREATE INDEX idx_vector_search ON tenant_knowledge_vectors
 USING hnsw (embedding vector_cosine_ops);
 ```
 
@@ -13430,7 +13430,7 @@ CREATE TABLE tenant_service_deliveries (
     -- III. TRẠNG THÁI & THÔNG TIN ĐỘNG
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     service_metadata JSONB NOT NULL DEFAULT '{}',
-    
+
     -- IV. AUDIT
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -13443,12 +13443,12 @@ CREATE TABLE tenant_service_deliveries (
 
 -- 2. Tạo chỉ mục tối ưu cho tra cứu
 -- Index giúp tìm nhanh các dịch vụ chưa hoàn thành của một khách hàng
-CREATE INDEX idx_services_pending 
-ON tenant_service_deliveries (tenant_id, status) 
+CREATE INDEX idx_services_pending
+ON tenant_service_deliveries (tenant_id, status)
 WHERE status != 'COMPLETED';
 
 -- Index hỗ trợ báo cáo doanh thu theo sản phẩm
-CREATE INDEX idx_services_product_lookup 
+CREATE INDEX idx_services_product_lookup
 ON tenant_service_deliveries (product_id, created_at DESC);
 ```
 
@@ -13548,21 +13548,21 @@ CREATE TABLE products (
     -- I. Định danh & Tenancy
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application
     tenant_id UUID NOT NULL,
-    
+
     -- II. Thông tin nghiệp vụ
     code VARCHAR(50) NOT NULL,
     name VARCHAR(255) NOT NULL,
     product_type VARCHAR(20) NOT NULL DEFAULT 'APP',
     description TEXT,
-    
+
     -- III. Tài chính (Sử dụng NUMERIC cho độ chính xác cao)
     base_price NUMERIC(19, 4) NOT NULL DEFAULT 0,
     currency VARCHAR(3) NOT NULL DEFAULT 'VND',
-    
+
     -- IV. Trạng thái & Dữ liệu động
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     metadata JSONB NOT NULL DEFAULT '{}',
-    
+
     -- V. Audit Mixins & Versioning
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -13581,18 +13581,18 @@ CREATE TABLE products (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ lọc sản phẩm theo Tenant (Bắt buộc cho SaaS)
-CREATE INDEX idx_products_tenant ON products (tenant_id) 
+CREATE INDEX idx_products_tenant ON products (tenant_id)
 WHERE deleted_at IS NULL;
 
 -- Index hỗ trợ tìm kiếm nhanh theo mã sản phẩm trong một Tenant
-CREATE INDEX idx_products_lookup ON products (tenant_id, code) 
+CREATE INDEX idx_products_lookup ON products (tenant_id, code)
 WHERE deleted_at IS NULL;
 
 -- Index GIN để tìm kiếm trong các thuộc tính động của metadata
 CREATE INDEX idx_products_metadata ON products USING GIN (metadata);
 
 -- Index hỗ trợ thống kê theo loại sản phẩm và trạng thái
-CREATE INDEX idx_products_analytics ON products (product_type, is_active) 
+CREATE INDEX idx_products_analytics ON products (product_type, is_active)
 WHERE deleted_at IS NULL;
 ```
 
@@ -13666,13 +13666,13 @@ CREATE TABLE applications (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ tìm kiếm nhanh theo mã ứng dụng (thường dùng khi Routing hoặc Check quyền)
-CREATE UNIQUE INDEX idx_applications_code 
-ON applications (code) 
+CREATE UNIQUE INDEX idx_applications_code
+ON applications (code)
 WHERE deleted_at IS NULL;
 
 -- Index hỗ trợ liệt kê các ứng dụng đang hoạt động
-CREATE INDEX idx_applications_active 
-ON applications (is_active) 
+CREATE INDEX idx_applications_active
+ON applications (is_active)
 WHERE deleted_at IS NULL;
 
 -- Comment mô tả bảng (tùy chọn để hỗ trợ Documentation)
@@ -13784,17 +13784,17 @@ CREATE TABLE app_capabilities (
     -- I. Định danh & Liên kết
     _id UUID PRIMARY KEY, -- Sinh UUID v7 từ tầng Application
     app_code VARCHAR(50) NOT NULL,
-    
+
     -- II. Thông tin nghiệp vụ
     code VARCHAR(50) NOT NULL,
     name VARCHAR(255) NOT NULL,
     type VARCHAR(20) NOT NULL,
     default_value JSONB NOT NULL,
     description TEXT,
-    
+
     -- III. Trạng thái & Vận hành
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    
+
     -- IV. Audit & Versioning (Standard Mixins)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -13812,15 +13812,15 @@ CREATE TABLE app_capabilities (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ tìm kiếm tất cả khả năng của một ứng dụng
-CREATE INDEX idx_app_capabilities_app ON app_capabilities (app_code) 
+CREATE INDEX idx_app_capabilities_app ON app_capabilities (app_code)
 WHERE deleted_at IS NULL;
 
 -- Index hỗ trợ tra cứu nhanh khi cấu hình gói cước
-CREATE UNIQUE INDEX idx_app_capabilities_lookup ON app_capabilities (app_code, code) 
+CREATE UNIQUE INDEX idx_app_capabilities_lookup ON app_capabilities (app_code, code)
 WHERE deleted_at IS NULL;
 
 -- Index cho phép lọc theo loại (Feature vs Limit)
-CREATE INDEX idx_app_capabilities_type ON app_capabilities (type) 
+CREATE INDEX idx_app_capabilities_type ON app_capabilities (type)
 WHERE is_active = TRUE AND deleted_at IS NULL;
 ```
 
@@ -13875,23 +13875,23 @@ CREATE TABLE service_packages (
     -- I. Định danh & Liên kết
     _id UUID PRIMARY KEY, -- Sinh UUID v7 từ tầng Application
     product_id UUID NOT NULL,
-    
+
     -- II. Thông tin thương mại
     code VARCHAR(50) NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    
+
     -- III. Tài chính (Sử dụng NUMERIC theo chuẩn nguồn [4])
     price_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
     currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
-    
+
     -- IV. Cấu hình quyền hạn (Sử dụng JSONB theo chuẩn nguồn [2])
     entitlements_config JSONB NOT NULL DEFAULT '{}',
-    
+
     -- V. Trạng thái vận hành
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     is_public BOOLEAN NOT NULL DEFAULT TRUE,
-    
+
     -- VI. Audit & Versioning
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -13909,18 +13909,18 @@ CREATE TABLE service_packages (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ tìm kiếm tất cả các gói thuộc một dòng sản phẩm (VD: Lấy các gói của 'HRM Suite')
-CREATE INDEX idx_packages_product ON service_packages (product_id) 
+CREATE INDEX idx_packages_product ON service_packages (product_id)
 WHERE deleted_at IS NULL;
 
 -- Index hỗ trợ tra cứu nhanh gói cước qua mã (Dùng khi checkout/mua hàng)
-CREATE UNIQUE INDEX idx_packages_code_lookup ON service_packages (code) 
+CREATE UNIQUE INDEX idx_packages_code_lookup ON service_packages (code)
 WHERE deleted_at IS NULL;
 
 -- Index GIN hỗ trợ tìm kiếm bên trong JSONB (VD: Tìm tất cả gói có chứa App 'CRM') [18, 19]
 CREATE INDEX idx_packages_entitlements ON service_packages USING GIN (entitlements_config);
 
 -- Index hỗ trợ lọc các gói đang hoạt động và công khai cho trang chủ/giá cả
-CREATE INDEX idx_packages_active_public ON service_packages (status, is_public) 
+CREATE INDEX idx_packages_active_public ON service_packages (status, is_public)
 WHERE status = 'ACTIVE' AND is_public = TRUE AND deleted_at IS NULL;
 ```
 
@@ -14246,21 +14246,21 @@ Câu lệnh này tích hợp các quy tắc về kiểu dữ liệu chính xác 
 CREATE TABLE saas_products (
     -- I. Định danh (Identity)
     _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ phía Application
-    
+
     -- II. Thông tin nghiệp vụ (Business Data)
     code VARCHAR(50) NOT NULL,
     name TEXT NOT NULL,
     product_type VARCHAR(20) NOT NULL DEFAULT 'APP',
     description TEXT,
-    
+
     -- III. Tài chính (Strict Money Rules)
     base_price NUMERIC(19, 4) NOT NULL DEFAULT 0,
     currency VARCHAR(3) NOT NULL DEFAULT 'VND',
-    
+
     -- IV. Trạng thái & Dữ liệu động
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     metadata JSONB NOT NULL DEFAULT '{}',
-    
+
     -- V. Audit & Versioning (Standard Mixins)
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -14279,17 +14279,17 @@ CREATE TABLE saas_products (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ tìm kiếm nhanh theo mã sản phẩm (thường dùng cho Routing/Checkout)
-CREATE UNIQUE INDEX idx_saas_products_code 
-ON saas_products (code) 
+CREATE UNIQUE INDEX idx_saas_products_code
+ON saas_products (code)
 WHERE deleted_at IS NULL;
 
 -- Index hỗ trợ lọc danh sách sản phẩm đang kinh doanh theo loại
-CREATE INDEX idx_saas_products_active_type 
-ON saas_products (product_type, is_active) 
+CREATE INDEX idx_saas_products_active_type
+ON saas_products (product_type, is_active)
 WHERE deleted_at IS NULL;
 
 -- Index GIN để hỗ trợ truy vấn sâu vào các thuộc tính động trong metadata
-CREATE INDEX idx_saas_products_metadata 
+CREATE INDEX idx_saas_products_metadata
 ON saas_products USING GIN (metadata);
 
 -- Comment mô tả bảng hỗ trợ tài liệu hóa (Documentation)
@@ -14346,15 +14346,15 @@ CREATE TABLE service_packages (
     -- I. Định danh & Liên kết dòng giải pháp
     _id UUID PRIMARY KEY, -- Sinh UUID v7 từ Application
     saas_product_id UUID NOT NULL,
-    
+
     -- II. Thông tin thương mại
     code VARCHAR(50) NOT NULL,
     name VARCHAR(255) NOT NULL,
-    
+
     -- III. Tài chính
     price_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
     currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
-    
+
     -- IV. Cấu hình Giải pháp (Đa ứng dụng + Đa tính năng/hạn mức)
     -- Ví dụ cấu trúc:
     -- {
@@ -14362,7 +14362,7 @@ CREATE TABLE service_packages (
     --   "HRM_APP": {"features": {"payroll": true}, "limits": {"max_employees": 50}}
     -- }
     entitlements_config JSONB NOT NULL DEFAULT '{}',
-    
+
     -- V. Trạng thái & Versioning
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -14382,7 +14382,7 @@ CREATE TABLE service_packages (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ lấy danh sách các gói thuộc một giải pháp (VD: Các gói của 'Giải pháp trường học')
-CREATE INDEX idx_service_packages_saas_product ON service_packages (saas_product_id) 
+CREATE INDEX idx_service_packages_saas_product ON service_packages (saas_product_id)
 WHERE deleted_at IS NULL;
 
 -- Index GIN để tìm kiếm nhanh các giải pháp có chứa một ứng dụng cụ thể
@@ -14390,7 +14390,7 @@ WHERE deleted_at IS NULL;
 CREATE INDEX idx_service_packages_entitlements ON service_packages USING GIN (entitlements_config);
 
 -- Index hỗ trợ tra cứu nhanh gói theo mã khi khách hàng đăng ký
-CREATE UNIQUE INDEX idx_service_packages_lookup ON service_packages (code) 
+CREATE UNIQUE INDEX idx_service_packages_lookup ON service_packages (code)
 WHERE status = 'ACTIVE' AND deleted_at IS NULL;
 ```
 
@@ -14596,13 +14596,13 @@ CREATE TABLE saas_products (
 );
 
 -- Index hỗ trợ tra cứu nhanh theo mã dòng sản phẩm [9]
-CREATE UNIQUE INDEX idx_saas_products_code 
-ON saas_products (code) 
+CREATE UNIQUE INDEX idx_saas_products_code
+ON saas_products (code)
 WHERE deleted_at IS NULL;
 
 -- Index hỗ trợ lọc danh sách sản phẩm theo trạng thái [9]
-CREATE INDEX idx_saas_products_active 
-ON saas_products (is_active) 
+CREATE INDEX idx_saas_products_active
+ON saas_products (is_active)
 WHERE deleted_at IS NULL;
 ```
 
@@ -15013,7 +15013,7 @@ CREATE INDEX idx_subs_granted_apps ON tenant_subscriptions USING GIN (granted_ap
 CREATE INDEX idx_wallet_tx_history ON wallet_transactions (wallet_id, created_at DESC);
 
 -- Index hỗ trợ Worker tính tiền Metering theo chu kỳ
-CREATE INDEX idx_usage_billing_scan ON tenant_usages (status, usage_period_end) 
+CREATE INDEX idx_usage_billing_scan ON tenant_usages (status, usage_period_end)
 WHERE status = 'PENDING_BILLING';
 ```
 
@@ -15065,15 +15065,15 @@ CREATE TABLE service_packages (
     -- I. Định danh & Liên kết giải pháp
     _id UUID PRIMARY KEY, -- Sử dụng UUID v7 sinh từ Application
     saas_product_id UUID NOT NULL,
-    
+
     -- II. Thông tin thương mại
     code VARCHAR(50) NOT NULL,
     name TEXT NOT NULL,
-    
+
     -- III. Tài chính (Đảm bảo chính xác tuyệt đối)
     price_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
     currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
-    
+
     -- IV. Cấu hình quyền hạn đa ứng dụng (Entitlements)
     -- Ví dụ cấu trúc JSONB:
     -- {
@@ -15081,7 +15081,7 @@ CREATE TABLE service_packages (
     --   "HRM_APP": {"features": {"payroll": true}, "limits": {"max_employees": 50}}
     -- }
     entitlements_config JSONB NOT NULL DEFAULT '{}',
-    
+
     -- V. Trạng thái & Quản trị
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     version BIGINT NOT NULL DEFAULT 1,
@@ -15102,7 +15102,7 @@ CREATE TABLE service_packages (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ tìm kiếm gói cước theo dòng sản phẩm (Giải pháp)
-CREATE INDEX idx_service_packages_saas_product ON service_packages (saas_product_id) 
+CREATE INDEX idx_service_packages_saas_product ON service_packages (saas_product_id)
 WHERE deleted_at IS NULL;
 
 -- Index GIN để tìm kiếm cực nhanh các gói có chứa một ứng dụng cụ thể trong cấu hình JSONB
@@ -15110,7 +15110,7 @@ WHERE deleted_at IS NULL;
 CREATE INDEX idx_service_packages_entitlements ON service_packages USING GIN (entitlements_config);
 
 -- Index hỗ trợ tra cứu nhanh gói theo mã khi khách hàng đăng ký hoặc xem chi tiết
-CREATE UNIQUE INDEX idx_service_packages_lookup ON service_packages (code) 
+CREATE UNIQUE INDEX idx_service_packages_lookup ON service_packages (code)
 WHERE status = 'ACTIVE' AND deleted_at IS NULL;
 ```
 
@@ -15227,23 +15227,23 @@ CREATE TABLE tenant_subscriptions (
     _id UUID PRIMARY KEY, -- UUID v7 sinh từ Application
     tenant_id UUID NOT NULL,
     package_id UUID NOT NULL,
-    
+
     -- Tài chính (Snapshot)
     price_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
     currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
-    
+
     -- Quyền hạn & Cache (Snapshot & Computed)
     granted_entitlements JSONB NOT NULL DEFAULT '{}',
     -- Tự động trích xuất mã các App từ JSONB để index
     granted_app_codes TEXT[] GENERATED ALWAYS AS (
         ARRAY(SELECT jsonb_object_keys(granted_entitlements))
     ) STORED,
-    
+
     -- Thời gian & Trạng thái
     start_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     end_at TIMESTAMPTZ,
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    
+
     -- Quản trị & Audit
     version BIGINT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -15262,17 +15262,17 @@ CREATE TABLE tenant_subscriptions (
 
 -- Index kiểm tra quyền truy cập App (Sử dụng GIN Index cho mảng cache)
 -- Giúp query: WHERE 'HRM_APP' = ANY(granted_app_codes) chạy cực nhanh [11]
-CREATE INDEX idx_subs_granted_apps 
+CREATE INDEX idx_subs_granted_apps
 ON tenant_subscriptions USING GIN (granted_app_codes);
 
 -- Index tra cứu các thuê bao đang hoạt động của 1 Tenant
-CREATE INDEX idx_subs_tenant_active 
-ON tenant_subscriptions (tenant_id) 
+CREATE INDEX idx_subs_tenant_active
+ON tenant_subscriptions (tenant_id)
 WHERE status = 'ACTIVE' AND deleted_at IS NULL;
 
 -- Index hỗ trợ Worker tính tiền Metering hoặc quét thuê bao hết hạn
-CREATE INDEX idx_subs_expiry_scan 
-ON tenant_subscriptions (status, end_at) 
+CREATE INDEX idx_subs_expiry_scan
+ON tenant_subscriptions (status, end_at)
 WHERE end_at IS NOT NULL;
 ```
 
@@ -15356,18 +15356,18 @@ CREATE TABLE subscription_invoices (
 -- CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- 1. Index quan trọng nhất cho SaaS: Tra cứu hóa đơn của một Tenant
-CREATE INDEX idx_invoices_tenant_lookup 
-ON subscription_invoices (tenant_id, created_at DESC) 
+CREATE INDEX idx_invoices_tenant_lookup
+ON subscription_invoices (tenant_id, created_at DESC)
 WHERE deleted_at IS NULL;
 
 -- 2. Index hỗ trợ nhắc nợ: Tìm các hóa đơn chưa thanh toán đã quá hạn
-CREATE INDEX idx_invoices_overdue_tracker 
-ON subscription_invoices (status, due_date) 
+CREATE INDEX idx_invoices_overdue_tracker
+ON subscription_invoices (status, due_date)
 WHERE status = 'OPEN' AND deleted_at IS NULL;
 
 -- 3. Index hỗ trợ tìm kiếm theo mã hóa đơn nghiệp vụ
-CREATE UNIQUE INDEX idx_invoices_number_search 
-ON subscription_invoices (invoice_number) 
+CREATE UNIQUE INDEX idx_invoices_number_search
+ON subscription_invoices (invoice_number)
 WHERE deleted_at IS NULL;
 ```
 
@@ -15422,17 +15422,17 @@ CREATE TABLE subscription_orders (
     _id UUID PRIMARY KEY, -- UUID v7 sinh từ ứng dụng
     tenant_id UUID NOT NULL,
     package_id UUID NOT NULL,
-    
+
     -- Thông tin đơn hàng
     order_number VARCHAR(50) NOT NULL,
     total_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
     currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     payment_method VARCHAR(30),
-    
+
     -- Dữ liệu Snapshot (Quan trọng để bảo toàn giá/quyền lợi khi mua)
     package_snapshot JSONB NOT NULL DEFAULT '{}',
-    
+
     -- Quản trị & Audit
     version BIGINT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -15451,18 +15451,18 @@ CREATE TABLE subscription_orders (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ Tenant xem lịch sử đơn hàng (Sắp xếp mới nhất lên đầu)
-CREATE INDEX idx_orders_tenant_lookup 
-ON subscription_orders (tenant_id, created_at DESC) 
+CREATE INDEX idx_orders_tenant_lookup
+ON subscription_orders (tenant_id, created_at DESC)
 WHERE deleted_at IS NULL;
 
 -- Index hỗ trợ Admin/Worker quét các đơn hàng chưa thanh toán
-CREATE INDEX idx_orders_pending_status 
-ON subscription_orders (status, created_at) 
+CREATE INDEX idx_orders_pending_status
+ON subscription_orders (status, created_at)
 WHERE status = 'PENDING' AND deleted_at IS NULL;
 
 -- Index tìm kiếm nhanh theo mã đơn hàng nghiệp vụ
-CREATE UNIQUE INDEX idx_orders_number_search 
-ON subscription_orders (order_number) 
+CREATE UNIQUE INDEX idx_orders_number_search
+ON subscription_orders (order_number)
 WHERE deleted_at IS NULL;
 ```
 
@@ -15514,13 +15514,13 @@ CREATE TABLE usage_events (
     _id UUID,
     tenant_id UUID,
     subscription_id UUID,
-    
+
     -- 2. Thông tin nghiệp vụ
     app_code String,
     event_type String, -- Hoặc Enum8('EMAIL_SENT' = 1, 'FILE_UPLOAD' = 2) để tối ưu dung lượng [11]
     quantity Decimal128(4),
     unit String,
-    
+
     -- 3. Thông tin kỹ thuật & Metadata
     metadata String, -- Lưu JSON String, dùng hàm JSONExtract để truy vấn [11]
     data_region String,
@@ -15534,7 +15534,7 @@ ORDER BY (tenant_id, app_code, event_type, timestamp)
 -- Cấu hình nén dữ liệu (Mặc định ClickHouse nén rất tốt, tỷ lệ ~10:1) [3]
 SETTINGS index_granularity = 8192;
 
--- Lưu ý: ClickHouse không dùng Index truyền thống như SQL. 
+-- Lưu ý: ClickHouse không dùng Index truyền thống như SQL.
 -- Sorting Key (ORDER BY) đóng vai trò là Primary Index giúp lọc dữ liệu trong mili-giây [3, 4].
 ```
 
@@ -15587,12 +15587,12 @@ CREATE TABLE tenant_usages (
     _id UUID PRIMARY KEY, -- Sinh UUID v7 từ Application
     tenant_id UUID NOT NULL,
     subscription_id UUID NOT NULL,
-    
+
     -- Dữ liệu tiêu dùng
     usage_period_start TIMESTAMPTZ NOT NULL,
     usage_period_end TIMESTAMPTZ NOT NULL,
     metrics_data JSONB NOT NULL DEFAULT '{}',
-    
+
     -- Trạng thái & Audit
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -15609,12 +15609,12 @@ CREATE TABLE tenant_usages (
 
 -- Index hỗ trợ Job Billing quét nhanh các bản ghi chưa tính tiền theo kỳ
 -- Giúp tăng tốc độ xuất hóa đơn hàng tháng
-CREATE INDEX idx_usage_billing_scan 
-ON tenant_usages (status, usage_period_end) 
+CREATE INDEX idx_usage_billing_scan
+ON tenant_usages (status, usage_period_end)
 WHERE status = 'PENDING';
 
 -- Index hỗ trợ Tenant xem lịch sử tiêu dùng theo thời gian
-CREATE INDEX idx_usage_tenant_history 
+CREATE INDEX idx_usage_tenant_history
 ON tenant_usages (tenant_id, usage_period_start DESC);
 
 -- Index GIN để truy vấn sâu vào các chỉ số cụ thể trong JSONB nếu cần
@@ -15665,11 +15665,11 @@ CREATE TABLE tenant_wallets (
     -- Định danh & Tenancy
     _id UUID PRIMARY KEY, -- Sinh UUID v7 từ Application
     tenant_id UUID NOT NULL,
-    
+
     -- Tài chính & Tiền tệ
     balance NUMERIC(19, 4) NOT NULL DEFAULT 0,
     currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
-    
+
     -- Trạng thái & Quản trị
     is_frozen BOOLEAN NOT NULL DEFAULT FALSE,
     version BIGINT NOT NULL DEFAULT 1,
@@ -15690,11 +15690,11 @@ CREATE TABLE tenant_wallets (
 CREATE INDEX idx_wallets_tenant_lookup ON tenant_wallets (tenant_id);
 
 -- Index hỗ trợ bộ phận kế toán lọc các ví có số dư thấp để gửi cảnh báo nạp tiền
-CREATE INDEX idx_wallets_low_balance ON tenant_wallets (balance) 
+CREATE INDEX idx_wallets_low_balance ON tenant_wallets (balance)
 WHERE balance < 100000 AND is_frozen = FALSE;
 
 -- Index hỗ trợ kiểm tra các ví bị đóng băng để xử lý nghiệp vụ
-CREATE INDEX idx_wallets_frozen_status ON tenant_wallets (is_frozen) 
+CREATE INDEX idx_wallets_frozen_status ON tenant_wallets (is_frozen)
 WHERE is_frozen = TRUE;
 ```
 
@@ -15743,16 +15743,16 @@ CREATE TABLE wallet_transactions (
     _id UUID PRIMARY KEY, -- Sinh UUID v7 từ Application
     tenant_id UUID NOT NULL,
     wallet_id UUID NOT NULL,
-    
+
     -- Chi tiết giao dịch
     type VARCHAR(30) NOT NULL,
     amount NUMERIC(19, 4) NOT NULL,
     balance_after NUMERIC(19, 4) NOT NULL,
-    
+
     -- Tham chiếu & Mô tả
     reference_id UUID,
     description TEXT,
-    
+
     -- Thời gian
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
@@ -15768,17 +15768,17 @@ CREATE TABLE wallet_transactions (
 
 -- Index quan trọng nhất: Tra cứu lịch sử biến động của 1 ví theo thời gian giảm dần
 -- Phục vụ tính năng "Sao kê tài khoản" cho khách hàng
-CREATE INDEX idx_wallet_history 
+CREATE INDEX idx_wallet_history
 ON wallet_transactions (wallet_id, created_at DESC);
 
 -- Index hỗ trợ bộ phận kế toán đối soát theo loại giao dịch (VD: Tìm tất cả REFUND)
-CREATE INDEX idx_wallet_tx_type 
-ON wallet_transactions (tenant_id, type) 
+CREATE INDEX idx_wallet_tx_type
+ON wallet_transactions (tenant_id, type)
 WHERE type IN ('REFUND', 'BONUS');
 
 -- Index hỗ trợ tra cứu nhanh từ hóa đơn/đơn hàng sang giao dịch ví
-CREATE INDEX idx_wallet_tx_reference 
-ON wallet_transactions (reference_id) 
+CREATE INDEX idx_wallet_tx_reference
+ON wallet_transactions (reference_id)
 WHERE reference_id IS NOT NULL;
 ```
 
@@ -15836,11 +15836,11 @@ CREATE TABLE license_allocations (
     license_type VARCHAR(30) NOT NULL DEFAULT 'BILLABLE',
     purchased_quantity INTEGER NOT NULL DEFAULT 0,
     assigned_quantity INTEGER NOT NULL DEFAULT 0,
-    
+
     -- Trạng thái & Thời gian
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     expires_at TIMESTAMPTZ,
-    
+
     -- Quản trị & Audit
     version BIGINT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -15858,17 +15858,17 @@ CREATE TABLE license_allocations (
 
 -- Index hỗ trợ kiểm tra hạn ngạch cực nhanh khi Admin mời thêm người dùng mới
 -- Giúp query: WHERE tenant_id = ? AND license_type = 'BILLABLE' AND status = 'ACTIVE'
-CREATE INDEX idx_license_check_limit 
-ON license_allocations (tenant_id, license_type, status) 
+CREATE INDEX idx_license_check_limit
+ON license_allocations (tenant_id, license_type, status)
 WHERE status = 'ACTIVE';
 
 -- Index hỗ trợ hệ thống Billing quét các giấy phép sắp hết hạn để gửi thông báo
-CREATE INDEX idx_license_expiry_scan 
-ON license_allocations (expires_at, status) 
+CREATE INDEX idx_license_expiry_scan
+ON license_allocations (expires_at, status)
 WHERE expires_at IS NOT NULL;
 
 -- Index hỗ trợ truy vấn lịch sử giấy phép của một Tenant cụ thể
-CREATE INDEX idx_license_tenant_history 
+CREATE INDEX idx_license_tenant_history
 ON license_allocations (tenant_id, created_at DESC);
 ```
 
@@ -15922,17 +15922,17 @@ CREATE TABLE price_adjustments (
     _id UUID PRIMARY KEY, -- Sinh UUID v7 từ Application [2]
     tenant_id UUID NOT NULL,
     subscription_id UUID NOT NULL,
-    invoice_id UUID, 
-    
+    invoice_id UUID,
+
     -- Chi tiết tài chính
     type VARCHAR(20) NOT NULL,
     amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
     currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
-    
+
     -- Nghiệp vụ & Giải trình
     reason TEXT NOT NULL,
     source VARCHAR(30) NOT NULL DEFAULT 'MANUAL',
-    
+
     -- Quản trị & Audit
     version BIGINT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -15957,7 +15957,7 @@ CREATE INDEX idx_price_adj_tenant ON price_adjustments (tenant_id, created_at DE
 CREATE INDEX idx_price_adj_subscription ON price_adjustments (subscription_id);
 
 -- Index hỗ trợ đối soát hóa đơn: Tìm các điều chỉnh thuộc về một hóa đơn nhất định
-CREATE INDEX idx_price_adj_invoice ON price_adjustments (invoice_id) 
+CREATE INDEX idx_price_adj_invoice ON price_adjustments (invoice_id)
 WHERE invoice_id IS NOT NULL;
 ```
 
@@ -16025,11 +16025,11 @@ SETTINGS index_granularity = 8192;
 
 -- 2. TẠO DATA SKIPPING INDEX (Tối ưu hóa tìm kiếm sâu)
 -- Giúp tăng tốc khi tìm kiếm các chỉ số cụ thể trong tập dữ liệu khổng lồ
-ALTER TABLE business_reports 
+ALTER TABLE business_reports
 ADD INDEX idx_metric_name metric_name TYPE set(1000) GRANULARITY 2;
 
 -- Giúp tăng tốc lọc theo giá trị lớn (Ví dụ: Tìm các báo cáo có doanh thu đột biến)
-ALTER TABLE business_reports 
+ALTER TABLE business_reports
 ADD INDEX idx_value_minmax metric_value TYPE minmax GRANULARITY 2;
 ```
 
@@ -16082,16 +16082,16 @@ CREATE TABLE saas_business_reports (
     -- Định danh & Thời gian
     _id UUID PRIMARY KEY, -- UUID v7
     report_date DATE NOT NULL,
-    
+
     -- Phân loại & Giá trị
     revenue_category VARCHAR(50) NOT NULL,
     total_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
     currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
     tenant_count INTEGER NOT NULL DEFAULT 0,
-    
+
     -- Dữ liệu chi tiết (Phân tách theo gói cước)
     details_breakdown JSONB NOT NULL DEFAULT '{}',
-    
+
     -- Quản trị
     version BIGINT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -16108,15 +16108,15 @@ CREATE TABLE saas_business_reports (
 
 -- Index hỗ trợ vẽ biểu đồ xu hướng doanh thu theo thời gian
 -- Giúp query: WHERE report_date BETWEEN '2024-01-01' AND '2024-12-31'
-CREATE INDEX idx_saas_report_timeline 
+CREATE INDEX idx_saas_report_timeline
 ON saas_business_reports (report_date DESC, revenue_category);
 
 -- Index hỗ trợ phân tích hiệu quả của từng loại doanh thu
-CREATE INDEX idx_saas_revenue_type 
+CREATE INDEX idx_saas_revenue_type
 ON saas_business_reports (revenue_category, total_amount DESC);
 
 -- Index GIN để truy vấn sâu vào doanh thu của từng mã gói cước trong JSONB
-CREATE INDEX idx_saas_report_details 
+CREATE INDEX idx_saas_report_details
 ON saas_business_reports USING GIN (details_breakdown);
 ```
 
@@ -16308,11 +16308,11 @@ SETTINGS index_granularity = 8192;
 
 -- 2. TẠO DATA SKIPPING INDEX (Hỗ trợ truy vấn sâu)
 -- Giúp tăng tốc khi lọc các báo cáo có doanh thu lớn bất thường
-ALTER TABLE saas_business_reports 
+ALTER TABLE saas_business_reports
 ADD INDEX idx_revenue_minmax total_revenue TYPE minmax GRANULARITY 2;
 
 -- Giúp tăng tốc khi tìm kiếm thông tin trong chuỗi JSON chi tiết
-ALTER TABLE saas_business_reports 
+ALTER TABLE saas_business_reports
 ADD INDEX idx_details_search details_json TYPE tokenbf_v1(256, 2, 0) GRANULARITY 1;
 ```
 
@@ -16440,11 +16440,11 @@ SETTINGS index_granularity = 8192;
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (DATA SKIPPING INDEX)
 
 -- Index hỗ trợ tìm kiếm nhanh các khóa đã bị thu hồi (Revoked) để kiểm tra tính tuân thủ
-ALTER TABLE tenant_encryption_keys 
+ALTER TABLE tenant_encryption_keys
 ADD INDEX idx_revoked_keys status TYPE set(0) GRANULARITY 2;
 
 -- Index hỗ trợ bộ phận an ninh tìm kiếm các khóa sắp hết hạn xoay vòng
-ALTER TABLE tenant_encryption_keys 
+ALTER TABLE tenant_encryption_keys
 ADD INDEX idx_rotation_scan rotation_at TYPE minmax GRANULARITY 4;
 ```
 
@@ -16495,16 +16495,16 @@ CREATE TABLE tenant_encryption_keys (
     -- Định danh & Liên kết
     _id UUID PRIMARY KEY, -- Sinh UUID v7 từ phía Application
     tenant_id UUID NOT NULL,
-    
+
     -- Dữ liệu khóa nhạy cảm
     encrypted_data_key BYTEA NOT NULL,
     key_version INTEGER NOT NULL DEFAULT 1,
     algorithm VARCHAR(50) NOT NULL DEFAULT 'AES-256-GCM',
-    
+
     -- Trạng thái & Vòng đời
     status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
     rotation_at TIMESTAMPTZ,
-    
+
     -- Quản trị & Audit
     version BIGINT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -16520,17 +16520,17 @@ CREATE TABLE tenant_encryption_keys (
 
 -- Index hỗ trợ lấy khóa mới nhất (phiên bản cao nhất) của một Tenant nhanh chóng
 -- Phục vụ logic: Lấy khóa để giải mã dữ liệu mỗi khi có request
-CREATE INDEX idx_tenant_key_active 
-ON tenant_encryption_keys (tenant_id, key_version DESC) 
+CREATE INDEX idx_tenant_key_active
+ON tenant_encryption_keys (tenant_id, key_version DESC)
 WHERE status = 'ACTIVE';
 
 -- Index hỗ trợ hệ thống bảo mật quét các khóa sắp đến hạn xoay vòng
-CREATE INDEX idx_key_rotation_scan 
-ON tenant_encryption_keys (rotation_at) 
+CREATE INDEX idx_key_rotation_scan
+ON tenant_encryption_keys (rotation_at)
 WHERE rotation_at IS NOT NULL AND status = 'ACTIVE';
 
 -- Index phục vụ Audit log: Tìm kiếm lịch sử khóa của Tenant theo thời gian
-CREATE INDEX idx_key_audit_history 
+CREATE INDEX idx_key_audit_history
 ON tenant_encryption_keys (tenant_id, created_at DESC);
 ```
 
@@ -16582,12 +16582,12 @@ CREATE TABLE tenant_i18n_overrides (
     -- Định danh & Liên kết
     _id UUID PRIMARY KEY, -- UUID v7 sinh từ phía Application
     tenant_id UUID NOT NULL,
-    
+
     -- Nội dung Đa ngôn ngữ
     locale VARCHAR(10) NOT NULL DEFAULT 'vi-VN',
     translation_key VARCHAR(255) NOT NULL,
     custom_value TEXT NOT NULL,
-    
+
     -- Quản trị & Audit
     version BIGINT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -16606,11 +16606,11 @@ CREATE TABLE tenant_i18n_overrides (
 
 -- Index hỗ trợ lấy toàn bộ các thuật ngữ ghi đè của một Tenant khi đăng nhập
 -- Giúp Backend load nhanh dữ liệu để cache lên Redis/Session [13, 14]
-CREATE INDEX idx_i18n_tenant_lookup 
+CREATE INDEX idx_i18n_tenant_lookup
 ON tenant_i18n_overrides (tenant_id, locale);
 
 -- Index hỗ trợ tra cứu lịch sử thay đổi (nếu cần audit)
-CREATE INDEX idx_i18n_created_at 
+CREATE INDEX idx_i18n_created_at
 ON tenant_i18n_overrides (created_at DESC);
 ```
 
@@ -16667,21 +16667,21 @@ CREATE TABLE system_jobs (
     _id UUID PRIMARY KEY, -- Sinh UUID v7 từ phía Application
     tenant_id UUID,
     job_type VARCHAR(50) NOT NULL,
-    
+
     -- Dữ liệu & Trạng thái
     payload JSONB NOT NULL DEFAULT '{}',
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    
+
     -- Thời gian (Sử dụng TIMESTAMPTZ theo chuẩn UTC)
     scheduled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     started_at TIMESTAMPTZ,
     finished_at TIMESTAMPTZ,
-    
+
     -- Quản lý lỗi & Thử lại
     retry_count INT NOT NULL DEFAULT 0,
     max_retries INT NOT NULL DEFAULT 3,
     last_error TEXT,
-    
+
     -- Quản trị
     created_by UUID,
     version BIGINT NOT NULL DEFAULT 1,
@@ -16696,17 +16696,17 @@ CREATE TABLE system_jobs (
 
 -- Index quan trọng nhất: Giúp Worker tìm nhanh các job đang chờ để xử lý
 -- Sử dụng Partial Index để giữ index nhỏ gọn và nhanh
-CREATE INDEX idx_jobs_fetch 
-ON system_jobs (scheduled_at ASC) 
+CREATE INDEX idx_jobs_fetch
+ON system_jobs (scheduled_at ASC)
 WHERE status = 'PENDING';
 
 -- Index hỗ trợ Tenant theo dõi tiến độ các công việc của họ trên UI
-CREATE INDEX idx_jobs_tenant_monitor 
+CREATE INDEX idx_jobs_tenant_monitor
 ON system_jobs (tenant_id, status, scheduled_at DESC);
 
 -- Index hỗ trợ tìm kiếm các công việc bị lỗi để hệ thống tự động xử lý/báo cáo
-CREATE INDEX idx_jobs_failed_analysis 
-ON system_jobs (job_type) 
+CREATE INDEX idx_jobs_failed_analysis
+ON system_jobs (job_type)
 WHERE status = 'FAILED';
 ```
 
@@ -16758,11 +16758,11 @@ CREATE TABLE feature_flags (
     _id UUID PRIMARY KEY, -- Sinh UUID v7 từ phía Application
     flag_key VARCHAR(50) NOT NULL,
     description TEXT,
-    
+
     -- Trạng thái & Quy tắc
     is_global_enabled BOOLEAN NOT NULL DEFAULT FALSE,
     rules JSONB NOT NULL DEFAULT '{}',
-    
+
     -- Quản trị hệ thống
     version BIGINT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -16783,7 +16783,7 @@ CREATE INDEX idx_flags_lookup ON feature_flags (flag_key);
 CREATE INDEX idx_flags_rules_search ON feature_flags USING GIN (rules);
 
 -- Index hỗ trợ lọc các tính năng đang hoạt động (Partial Index)
-CREATE INDEX idx_flags_active_global ON feature_flags (flag_key) 
+CREATE INDEX idx_flags_active_global ON feature_flags (flag_key)
 WHERE is_global_enabled = TRUE;
 ```
 
@@ -16879,15 +16879,15 @@ CREATE TABLE tenant_rate_limits (
     _id UUID PRIMARY KEY, -- Sinh UUID v7 từ Application
     tenant_id UUID NULL,
     api_group VARCHAR(50) NOT NULL,
-    
+
     -- Tham số giới hạn
     limit_count INT NOT NULL,
     window_seconds INT NOT NULL DEFAULT 60,
-    
+
     -- Trạng thái & Vận hành
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     description TEXT,
-    
+
     -- Audit & Concurrency
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -16904,7 +16904,7 @@ CREATE TABLE tenant_rate_limits (
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
 -- Index hỗ trợ tìm kiếm nhanh các giới hạn theo Tenant [6, 13]
-CREATE INDEX idx_rate_limit_tenant ON tenant_rate_limits (tenant_id) 
+CREATE INDEX idx_rate_limit_tenant ON tenant_rate_limits (tenant_id)
 WHERE is_active = TRUE;
 
 -- Index hỗ trợ Worker đồng bộ dữ liệu sang Redis
@@ -17145,7 +17145,7 @@ Các chỉ mục này giúp tối ưu hóa việc tra cứu cấu hình cho từ
 ```
 // 1. Index duy nhất: Đảm bảo một Tenant chỉ có một bộ cấu hình cho mỗi App
 db.tenant_app_configs.createIndex(
-    { "tenant_id": 1, "app_code": 1 }, 
+    { "tenant_id": 1, "app_code": 1 },
     { unique: true, name: "idx_tenant_app_unique" }
 );
 
