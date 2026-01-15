@@ -2564,6 +2564,195 @@ ON tenant_i18n_overrides (created_at DESC);
 
 
 
+CREATE TABLE routing_slugs (
+    -- I. ĐỊNH DANH & TENANCY
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
+    tenant_id UUID NOT NULL,
+
+    -- II. THÔNG TIN ĐỊNH TUYẾN (ROUTING INFO)
+    slug VARCHAR(255) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL, -- VD: 'PRODUCT', 'ARTICLE'
+    entity_id UUID NOT NULL,          -- ID của Product hoặc Article
+
+    -- III. TRẠNG THÁI & ĐIỀU HƯỚNG
+    is_canonical BOOLEAN NOT NULL DEFAULT TRUE,
+    redirect_to VARCHAR(255), -- Slug đích nếu đây là Alias (301 Redirect)
+
+    -- IV. SNAPSHOT & METADATA (Tối ưu hiệu năng đọc)
+    -- Ví dụ: { "title": "Áo thun nam", "thumbnail": "url...", "seo_title": "..." }
+    items_snapshot JSONB NOT NULL DEFAULT '{}',
+
+    -- V. AUDIT
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    -- VI. CÁC RÀNG BUỘC (CONSTRAINTS)
+    
+    -- Ràng buộc khóa ngoại: Xóa Tenant là xóa hết slug
+    CONSTRAINT fk_routing_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
+
+    -- Ràng buộc duy nhất: Trong 1 Tenant, Slug không được trùng lặp
+    CONSTRAINT uq_tenant_slug UNIQUE (tenant_id, slug),
+
+    -- Kiểm tra định dạng Slug (URL Friendly)
+    CONSTRAINT chk_routing_slug_fmt CHECK (slug ~ '^[a-z0-9-]+$'),
+
+    -- Kiểm tra logic redirect
+    CONSTRAINT chk_routing_redirect CHECK (
+        (is_canonical = TRUE AND redirect_to IS NULL) OR 
+        (is_canonical = FALSE AND redirect_to IS NOT NULL)
+    )
+);
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+
+-- Index quan trọng nhất: "Resolve Slug"
+-- Giúp tìm ra Entity từ URL: "tenant A + slug /ao-thun -> Là Product ID nào?"
+-- (Lưu ý: Constraint UNIQUE ở trên đã tự tạo index, nhưng nếu cần Covering Index để lấy luôn entity_id thì tạo thêm)
+-- YugabyteDB tự động dùng index của Constraint UNIQUE cho query này.
+
+-- Index hỗ trợ tìm kiếm ngược (Reverse Lookup)
+-- Mục đích: Khi đổi tên bài viết, cần tìm tất cả slug cũ của bài viết đó để cập nhật redirect.
+-- Query: SELECT * FROM routing_slugs WHERE tenant_id = ? AND entity_type = ? AND entity_id = ?;
+CREATE INDEX idx_routing_reverse_lookup 
+ON routing_slugs (tenant_id, entity_type, entity_id);
+
+-- Index GIN cho items_snapshot (Tùy chọn)
+-- Mục đích: Tìm tất cả slug có chứa từ khóa nào đó trong tiêu đề (snapshot)
+CREATE INDEX idx_routing_snapshot 
+ON routing_slugs USING GIN (items_snapshot);
+
+
+CREATE TABLE storage_files (
+    -- I. ĐỊNH DANH & TENANCY
+    _id UUID PRIMARY KEY, -- Sinh UUID v7 từ Application
+    tenant_id UUID NOT NULL,
+    folder_id UUID, -- Link to storage_folders (nếu có bảng này)
+
+    -- II. THÔNG TIN FILE & ĐỊNH VỊ
+    original_name TEXT NOT NULL,
+    storage_path TEXT NOT NULL, -- S3 Key
+    public_url TEXT, -- CDN URL đầy đủ cho việc hiển thị nhanh
+    
+    category VARCHAR(20) NOT NULL DEFAULT 'MEDIA',
+    mime_type VARCHAR(100) NOT NULL,
+    extension VARCHAR(20),
+    file_size BIGINT NOT NULL DEFAULT 0,
+    
+    -- III. DỮ LIỆU MỞ RỘNG & NỘI DUNG
+    -- Lưu cấu trúc bên trong của file nén hoặc preview data
+    items_snapshot JSONB NOT NULL DEFAULT '[]', 
+    
+    -- Lưu dimensions, duration, exif, ai_tags, variants
+    metadata JSONB NOT NULL DEFAULT '{}',
+
+    -- IV. STORAGE & VẬN HÀNH
+    storage_provider VARCHAR(20) NOT NULL DEFAULT 'S3',
+    visibility VARCHAR(20) NOT NULL DEFAULT 'PRIVATE',
+    status VARCHAR(20) NOT NULL DEFAULT 'PROCESSING',
+
+    -- V. AUDIT & VERSIONING
+    uploaded_by UUID,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ,
+    version BIGINT NOT NULL DEFAULT 1,
+
+    -- RÀNG BUỘC TOÀN VẸN
+    CONSTRAINT fk_storage_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
+    CONSTRAINT uq_storage_path UNIQUE (tenant_id, storage_path),
+    
+    CONSTRAINT chk_storage_cat CHECK (category IN ('MEDIA', 'DOCUMENT', 'ARCHIVE', 'EXPORT', 'SYSTEM')),
+    CONSTRAINT chk_storage_status CHECK (status IN ('UPLOADING', 'PROCESSING', 'READY', 'FAILED')),
+    CONSTRAINT chk_storage_provider CHECK (storage_provider IN ('S3', 'R2', 'MINIO', 'CLOUDFLARE')),
+    CONSTRAINT chk_storage_version CHECK (version >= 1)
+);
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+
+-- A. Index cốt lõi: Browsing thư viện file theo thư mục
+-- Sắp xếp file mới nhất lên đầu trong một thư mục cụ thể của Tenant
+CREATE INDEX idx_storage_browse_folder 
+ON storage_files (tenant_id, folder_id, created_at DESC) 
+WHERE deleted_at IS NULL;
+
+-- B. Index tìm kiếm: Tìm theo tên file
+CREATE INDEX idx_storage_name_search 
+ON storage_files USING GIN (original_name gin_trgm_ops);
+
+-- C. Index lọc theo loại file và category (VD: Lấy tất cả ảnh trong phần Media)
+CREATE INDEX idx_storage_category_mime 
+ON storage_files (tenant_id, category, mime_type)
+WHERE deleted_at IS NULL;
+
+-- D. Index dọn dẹp rác (Garbage Collection)
+CREATE INDEX idx_storage_cleanup 
+ON storage_files (deleted_at) 
+WHERE deleted_at IS NOT NULL;
+
+
+CREATE TABLE reserved_slugs (
+    -- I. Định danh (Identity)
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application Layer để tối ưu Sharding [1]
+
+    -- II. Thông tin Từ khóa (Slug Info)
+    slug VARCHAR(100) NOT NULL,
+    type VARCHAR(20) NOT NULL DEFAULT 'SYSTEM',
+    match_type VARCHAR(20) NOT NULL DEFAULT 'EXACT',
+    
+    -- III. Ngữ cảnh & Snapshot (Context)
+    -- items_snapshot: Lưu trữ metadata linh hoạt. 
+    -- Ví dụ: { "affected_routes": ["/api/v1", "/static"], "reserved_by": "System Admin", "ticket_id": "OPS-123" }
+    items_snapshot JSONB NOT NULL DEFAULT '{}',
+    
+    reason TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- IV. Audit & Versioning
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    version BIGINT NOT NULL DEFAULT 1,
+
+    -- V. Ràng buộc dữ liệu (Constraints)
+    
+    -- Từ khóa cấm phải là duy nhất
+    CONSTRAINT uq_reserved_slug UNIQUE (slug),
+    
+    -- Chỉ cho phép ký tự URL friendly (chữ thường, số, gạch ngang) [2]
+    CONSTRAINT chk_reserved_slug_format CHECK (slug ~ '^[a-z0-9-]+$'),
+    
+    -- Kiểm tra giá trị hợp lệ cho phân loại
+    CONSTRAINT chk_reserved_type CHECK (type IN ('SYSTEM', 'BUSINESS', 'OFFENSIVE', 'FUTURE')),
+    
+    -- Kiểm tra cách thức so khớp
+    CONSTRAINT chk_match_type CHECK (match_type IN ('EXACT', 'PREFIX', 'REGEX')),
+    
+    -- Kiểm tra logic thời gian
+    CONSTRAINT chk_reserved_dates CHECK (updated_at >= created_at),
+    
+    -- Kiểm tra phiên bản
+    CONSTRAINT chk_reserved_version CHECK (version >= 1)
+);
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+
+-- Index quan trọng nhất: Tra cứu nhanh xem một từ khóa có bị cấm không
+-- Sử dụng Hash Index nếu chỉ check EXACT match, hoặc B-Tree (mặc định) để hỗ trợ LIKE/Range
+CREATE UNIQUE INDEX idx_reserved_slug_lookup 
+ON reserved_slugs (slug) 
+WHERE is_active = TRUE;
+
+-- Index hỗ trợ tìm kiếm các từ khóa cấm theo loại (VD: Lấy danh sách từ cấm Offensive để filter chat)
+CREATE INDEX idx_reserved_type 
+ON reserved_slugs (type) 
+WHERE is_active = TRUE;
+
+-- Index GIN cho items_snapshot: Hỗ trợ tìm kiếm dựa trên nội dung snapshot 
+-- (Ví dụ: Tìm tất cả slug ảnh hưởng đến route '/api') [3]
+CREATE INDEX idx_reserved_snapshot 
+ON reserved_slugs USING GIN (items_snapshot);
+
+
 CREATE TABLE system_jobs (
     -- Định danh & Phân loại
     _id UUID PRIMARY KEY, -- Sinh UUID v7 từ phía Application
