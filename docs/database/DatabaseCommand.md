@@ -2114,116 +2114,156 @@ WHERE end_at IS NOT NULL;
 
 
 CREATE TABLE subscription_orders (
-    -- Định danh & Tenancy
-    _id UUID PRIMARY KEY, -- UUID v7 sinh từ ứng dụng
+    -- I. ĐỊNH DANH & TENANCY
+    _id UUID PRIMARY KEY, -- UUID v7 sinh từ Application
     tenant_id UUID NOT NULL,
-    package_id UUID NOT NULL,
-
-    -- Thông tin đơn hàng
+    created_by UUID,
+    
+    -- II. THÔNG TIN NGHIỆP VỤ
     order_number VARCHAR(50) NOT NULL,
-    total_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
-    currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
+    po_number	VARCHAR(50),
+    type VARCHAR(20) NOT NULL DEFAULT 'NEW',
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    
+    -- III. TÀI CHÍNH (Sử dụng NUMERIC để đảm bảo độ chính xác)
+    currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
+    subtotal_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    tax_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    discount_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    credit_applied	NUMERIC(19,4)	NOT NULL DEFAULT 0,	-- Số tiền trừ từ ví tín dụng (tenant_wallets).
+    total_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    
+    -- IV. SNAPSHOT DỮ LIỆU (JSONB thay thế bảng con)
+    -- Cấu trúc: [{ "product_id": "...", "name": "Gói Pro", "price": 100, "qty": 1 }]
+    items_snapshot JSONB NOT NULL DEFAULT '[]', 
+    
+    -- Cấu trúc: { "tax_id": "010...", "company_name": "ABC Corp", "address": "..." }
+    billing_info JSONB NOT NULL DEFAULT '{}',
+    
+    -- V. THANH TOÁN
     payment_method VARCHAR(30),
-
-    -- Dữ liệu Snapshot (Quan trọng để bảo toàn giá/quyền lợi khi mua)
-    package_snapshot JSONB NOT NULL DEFAULT '{}',
-
-    -- Quản trị & Audit
+    payment_ref_id VARCHAR(100),
+    
+    -- VI. AUDIT & VERSIONING
     version BIGINT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
 
-    -- Các ràng buộc toàn vẹn
+    -- RÀNG BUỘC TOÀN VẸN
     CONSTRAINT fk_order_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id),
-    CONSTRAINT fk_order_package FOREIGN KEY (package_id) REFERENCES service_packages(_id),
+    CONSTRAINT fk_order_user FOREIGN KEY (created_by) REFERENCES users(_id),
+    
     CONSTRAINT uq_order_number UNIQUE (order_number),
-    CONSTRAINT chk_order_amount CHECK (total_amount >= 0),
+    
+    CONSTRAINT chk_order_amounts CHECK (total_amount >= 0 AND subtotal_amount >= 0 AND credit_applied >= 0),
     CONSTRAINT chk_order_currency CHECK (LENGTH(currency_code) = 3),
-    CONSTRAINT chk_order_status CHECK (status IN ('PENDING', 'PAID', 'CANCELLED', 'FAILED'))
+    CONSTRAINT chk_order_status CHECK (status IN ('DRAFT', 'PENDING', 'PAID', 'CANCELLED', 'FAILED', 'REFUNDED')),
+    CONSTRAINT chk_order_type CHECK (type IN ('NEW', 'RENEWAL', 'UPGRADE', 'DOWNGRADE', 'ADD_ON'))
 );
 
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
--- Index hỗ trợ Tenant xem lịch sử đơn hàng (Sắp xếp mới nhất lên đầu)
-CREATE INDEX idx_orders_tenant_lookup
-ON subscription_orders (tenant_id, created_at DESC)
+-- Index 1: Hỗ trợ Tenant xem lịch sử đơn hàng (Sắp xếp mới nhất lên đầu)
+CREATE INDEX idx_orders_tenant_history 
+ON subscription_orders (tenant_id, created_at DESC) 
 WHERE deleted_at IS NULL;
 
--- Index hỗ trợ Admin/Worker quét các đơn hàng chưa thanh toán
-CREATE INDEX idx_orders_pending_status
-ON subscription_orders (status, created_at)
+-- Index 2: Hỗ trợ Worker quét các đơn hàng treo (PENDING) quá lâu để hủy
+CREATE INDEX idx_orders_pending_process 
+ON subscription_orders (status, created_at) 
 WHERE status = 'PENDING' AND deleted_at IS NULL;
 
--- Index tìm kiếm nhanh theo mã đơn hàng nghiệp vụ
-CREATE UNIQUE INDEX idx_orders_number_search
-ON subscription_orders (order_number)
-WHERE deleted_at IS NULL;
+-- Index 3: Tìm kiếm nhanh theo mã đơn hàng nghiệp vụ
+CREATE UNIQUE INDEX idx_orders_number_lookup 
+ON subscription_orders (order_number);
+
+-- Index 4: GIN Index hỗ trợ tìm kiếm đơn hàng có chứa sản phẩm cụ thể trong JSONB
+-- Ví dụ: Tìm các đơn hàng có mua gói "ENTERPRISE_PACK"
+CREATE INDEX idx_orders_items_gin 
+ON subscription_orders USING GIN (items_snapshot);
 
 
 CREATE TABLE subscription_invoices (
-    -- I. ĐỊNH DANH & LIÊN KẾT (IDENTITY & LINKING)
-    _id UUID PRIMARY KEY, -- Sinh UUID v7 từ tầng Application
+    -- I. ĐỊNH DANH
+    _id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    partner_id UUID, -- Dùng cho mô hình phân phối đa tầng
-    subscription_id UUID NOT NULL,
+    subscription_id UUID,
+    order_id UUID, -- Liên kết tới đơn hàng (Optional)
+    
+    -- II. THÔNG TIN NGHIỆP VỤ
     invoice_number VARCHAR(50) NOT NULL,
-
-    -- II. TÀI CHÍNH (STRICT FINANCIAL RULES)
-    amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
     currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
-    status VARCHAR(20) NOT NULL DEFAULT 'OPEN',
+    
+    -- III. CHI TIẾT TÀI CHÍNH (FINANCIAL BREAKDOWN)
+    -- Sử dụng NUMERIC(19,4) để đảm bảo độ chính xác tuyệt đối
+    subtotal NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    tax_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    discount_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    total_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    amount_paid NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    
+    -- Cột tính toán tự động (Generated Column) để truy vấn nợ nhanh
+    amount_due NUMERIC(19, 4) GENERATED ALWAYS AS (total_amount - amount_paid) STORED,
+    
+    -- IV. SNAPSHOT DỮ LIỆU (IMMUTABLE DATA)
+    -- Cấu trúc: { "name": "Cty A", "tax_id": "123", "address": "Hanoi" }
+    billing_info JSONB NOT NULL DEFAULT '{}', 
+    
+    -- Cấu trúc: [{ "name": "Gói Pro", "qty": 1, "price": 100, "total": 100 }]
+    items_snapshot JSONB NOT NULL DEFAULT '[]',
+    
+    -- Cấu trúc: [{ "name": "VAT", "rate": 10, "amount": 10 }]
+    tax_breakdown JSONB NOT NULL DEFAULT '[]',
 
-    -- III. CHU KỲ & HẠN THANH TOÁN
+    -- V. THỜI GIAN & CHU KỲ (REVENUE RECOGNITION)
     billing_period_start TIMESTAMPTZ NOT NULL,
     billing_period_end TIMESTAMPTZ NOT NULL,
     due_date TIMESTAMPTZ NOT NULL,
     paid_at TIMESTAMPTZ,
-
-    -- IV. DỮ LIỆU SNAPSHOT & MỞ RỘNG
+    
+    -- VI. HỆ THỐNG & AUDIT
+    metadata JSONB NOT NULL DEFAULT '{}', -- Stripe ID, Note
     price_adjustments JSONB NOT NULL DEFAULT '[]',
-    metadata JSONB NOT NULL DEFAULT '{}',
-
-    -- V. QUẢN TRỊ & AUDIT
-    version BIGINT NOT NULL DEFAULT 1,
+    pdf_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
+    version BIGINT NOT NULL DEFAULT 1,
 
-    -- RÀNG BUỘC (CONSTRAINTS)
+    -- RÀNG BUỘC
     CONSTRAINT uq_invoice_number UNIQUE (invoice_number),
-    CONSTRAINT fk_invoice_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id),
-    CONSTRAINT fk_invoice_partner FOREIGN KEY (partner_id) REFERENCES tenants(_id),
-    CONSTRAINT fk_invoice_subscription FOREIGN KEY (subscription_id) REFERENCES tenant_subscriptions(_id),
-    CONSTRAINT chk_invoice_status CHECK (status IN ('DRAFT', 'OPEN', 'PAID', 'VOID', 'UNCOLLECTIBLE')),
-    CONSTRAINT chk_billing_dates CHECK (billing_period_end > billing_period_start),
-    CONSTRAINT chk_invoice_currency CHECK (LENGTH(currency_code) = 3),
-    CONSTRAINT chk_invoice_version CHECK (version >= 1),
-    CONSTRAINT chk_invoice_updated CHECK (updated_at >= created_at)
+    CONSTRAINT fk_inv_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id),
+    CONSTRAINT fk_inv_sub FOREIGN KEY (subscription_id) REFERENCES tenant_subscriptions(_id),
+    CONSTRAINT fk_inv_order FOREIGN KEY (order_id) REFERENCES subscription_orders(_id),
+    
+    CONSTRAINT chk_inv_status CHECK (status IN ('DRAFT', 'OPEN', 'PAID', 'VOID', 'UNCOLLECTIBLE')),
+    CONSTRAINT chk_inv_amounts CHECK (subtotal >= 0 AND total_amount >= 0),
+    CONSTRAINT chk_inv_dates CHECK (billing_period_end >= billing_period_start),
+    CONSTRAINT chk_inv_currency CHECK (LENGTH(currency_code) = 3)
 );
 
--- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+-- CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
--- Index hỗ trợ Tenant/Partner tra cứu lịch sử hóa đơn cực nhanh (SaaS Isolation)
-CREATE INDEX idx_invoices_tenant_lookup
-ON subscription_invoices (tenant_id, created_at DESC)
+-- 1. Index tìm kiếm hóa đơn của khách hàng (Sắp xếp mới nhất lên đầu)
+CREATE INDEX idx_invoices_tenant_history 
+ON subscription_invoices (tenant_id, created_at DESC) 
 WHERE deleted_at IS NULL;
 
--- Index hỗ trợ đối soát công nợ cho Đối tác phân phối (Distribution Partner)
-CREATE INDEX idx_invoices_partner_debt
-ON subscription_invoices (partner_id, status)
-WHERE partner_id IS NOT NULL AND status != 'PAID';
+-- 2. Index hỗ trợ nhắc nợ: Tìm các hóa đơn đang mở và đã quá hạn thanh toán
+CREATE INDEX idx_invoices_overdue 
+ON subscription_invoices (status, due_date) 
+WHERE status = 'OPEN' AND due_date < NOW() AND deleted_at IS NULL;
 
--- Index hỗ trợ nhắc nợ tự động: Tìm các hóa đơn 'OPEN' đã quá hạn thanh toán
-CREATE INDEX idx_invoices_overdue_tracker
-ON subscription_invoices (status, due_date)
-WHERE status = 'OPEN' AND deleted_at IS NULL;
+-- 3. Index hỗ trợ tìm kiếm theo Mã hóa đơn nghiệp vụ
+CREATE UNIQUE INDEX idx_invoices_number_lookup 
+ON subscription_invoices (invoice_number);
 
--- Index tìm kiếm nhanh theo mã hóa đơn (Search UI)
-CREATE UNIQUE INDEX idx_invoices_number_search
-ON subscription_invoices (invoice_number)
-WHERE deleted_at IS NULL;
+-- 4. Index hỗ trợ tra cứu hóa đơn từ đơn hàng gốc
+CREATE INDEX idx_invoices_order_lookup 
+ON subscription_invoices (order_id) 
+WHERE order_id IS NOT NULL;
 
 
 
@@ -2524,6 +2564,195 @@ ON tenant_i18n_overrides (created_at DESC);
 
 
 
+CREATE TABLE routing_slugs (
+    -- I. ĐỊNH DANH & TENANCY
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
+    tenant_id UUID NOT NULL,
+
+    -- II. THÔNG TIN ĐỊNH TUYẾN (ROUTING INFO)
+    slug VARCHAR(255) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL, -- VD: 'PRODUCT', 'ARTICLE'
+    entity_id UUID NOT NULL,          -- ID của Product hoặc Article
+
+    -- III. TRẠNG THÁI & ĐIỀU HƯỚNG
+    is_canonical BOOLEAN NOT NULL DEFAULT TRUE,
+    redirect_to VARCHAR(255), -- Slug đích nếu đây là Alias (301 Redirect)
+
+    -- IV. SNAPSHOT & METADATA (Tối ưu hiệu năng đọc)
+    -- Ví dụ: { "title": "Áo thun nam", "thumbnail": "url...", "seo_title": "..." }
+    items_snapshot JSONB NOT NULL DEFAULT '{}',
+
+    -- V. AUDIT
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    -- VI. CÁC RÀNG BUỘC (CONSTRAINTS)
+    
+    -- Ràng buộc khóa ngoại: Xóa Tenant là xóa hết slug
+    CONSTRAINT fk_routing_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
+
+    -- Ràng buộc duy nhất: Trong 1 Tenant, Slug không được trùng lặp
+    CONSTRAINT uq_tenant_slug UNIQUE (tenant_id, slug),
+
+    -- Kiểm tra định dạng Slug (URL Friendly)
+    CONSTRAINT chk_routing_slug_fmt CHECK (slug ~ '^[a-z0-9-]+$'),
+
+    -- Kiểm tra logic redirect
+    CONSTRAINT chk_routing_redirect CHECK (
+        (is_canonical = TRUE AND redirect_to IS NULL) OR 
+        (is_canonical = FALSE AND redirect_to IS NOT NULL)
+    )
+);
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+
+-- Index quan trọng nhất: "Resolve Slug"
+-- Giúp tìm ra Entity từ URL: "tenant A + slug /ao-thun -> Là Product ID nào?"
+-- (Lưu ý: Constraint UNIQUE ở trên đã tự tạo index, nhưng nếu cần Covering Index để lấy luôn entity_id thì tạo thêm)
+-- YugabyteDB tự động dùng index của Constraint UNIQUE cho query này.
+
+-- Index hỗ trợ tìm kiếm ngược (Reverse Lookup)
+-- Mục đích: Khi đổi tên bài viết, cần tìm tất cả slug cũ của bài viết đó để cập nhật redirect.
+-- Query: SELECT * FROM routing_slugs WHERE tenant_id = ? AND entity_type = ? AND entity_id = ?;
+CREATE INDEX idx_routing_reverse_lookup 
+ON routing_slugs (tenant_id, entity_type, entity_id);
+
+-- Index GIN cho items_snapshot (Tùy chọn)
+-- Mục đích: Tìm tất cả slug có chứa từ khóa nào đó trong tiêu đề (snapshot)
+CREATE INDEX idx_routing_snapshot 
+ON routing_slugs USING GIN (items_snapshot);
+
+
+CREATE TABLE storage_files (
+    -- I. ĐỊNH DANH & TENANCY
+    _id UUID PRIMARY KEY, -- Sinh UUID v7 từ Application
+    tenant_id UUID NOT NULL,
+    folder_id UUID, -- Link to storage_folders (nếu có bảng này)
+
+    -- II. THÔNG TIN FILE & ĐỊNH VỊ
+    original_name TEXT NOT NULL,
+    storage_path TEXT NOT NULL, -- S3 Key
+    public_url TEXT, -- CDN URL đầy đủ cho việc hiển thị nhanh
+    
+    category VARCHAR(20) NOT NULL DEFAULT 'MEDIA',
+    mime_type VARCHAR(100) NOT NULL,
+    extension VARCHAR(20),
+    file_size BIGINT NOT NULL DEFAULT 0,
+    
+    -- III. DỮ LIỆU MỞ RỘNG & NỘI DUNG
+    -- Lưu cấu trúc bên trong của file nén hoặc preview data
+    items_snapshot JSONB NOT NULL DEFAULT '[]', 
+    
+    -- Lưu dimensions, duration, exif, ai_tags, variants
+    metadata JSONB NOT NULL DEFAULT '{}',
+
+    -- IV. STORAGE & VẬN HÀNH
+    storage_provider VARCHAR(20) NOT NULL DEFAULT 'S3',
+    visibility VARCHAR(20) NOT NULL DEFAULT 'PRIVATE',
+    status VARCHAR(20) NOT NULL DEFAULT 'PROCESSING',
+
+    -- V. AUDIT & VERSIONING
+    uploaded_by UUID,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ,
+    version BIGINT NOT NULL DEFAULT 1,
+
+    -- RÀNG BUỘC TOÀN VẸN
+    CONSTRAINT fk_storage_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
+    CONSTRAINT uq_storage_path UNIQUE (tenant_id, storage_path),
+    
+    CONSTRAINT chk_storage_cat CHECK (category IN ('MEDIA', 'DOCUMENT', 'ARCHIVE', 'EXPORT', 'SYSTEM')),
+    CONSTRAINT chk_storage_status CHECK (status IN ('UPLOADING', 'PROCESSING', 'READY', 'FAILED')),
+    CONSTRAINT chk_storage_provider CHECK (storage_provider IN ('S3', 'R2', 'MINIO', 'CLOUDFLARE')),
+    CONSTRAINT chk_storage_version CHECK (version >= 1)
+);
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+
+-- A. Index cốt lõi: Browsing thư viện file theo thư mục
+-- Sắp xếp file mới nhất lên đầu trong một thư mục cụ thể của Tenant
+CREATE INDEX idx_storage_browse_folder 
+ON storage_files (tenant_id, folder_id, created_at DESC) 
+WHERE deleted_at IS NULL;
+
+-- B. Index tìm kiếm: Tìm theo tên file
+CREATE INDEX idx_storage_name_search 
+ON storage_files USING GIN (original_name gin_trgm_ops);
+
+-- C. Index lọc theo loại file và category (VD: Lấy tất cả ảnh trong phần Media)
+CREATE INDEX idx_storage_category_mime 
+ON storage_files (tenant_id, category, mime_type)
+WHERE deleted_at IS NULL;
+
+-- D. Index dọn dẹp rác (Garbage Collection)
+CREATE INDEX idx_storage_cleanup 
+ON storage_files (deleted_at) 
+WHERE deleted_at IS NOT NULL;
+
+
+CREATE TABLE reserved_slugs (
+    -- I. Định danh (Identity)
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application Layer để tối ưu Sharding [1]
+
+    -- II. Thông tin Từ khóa (Slug Info)
+    slug VARCHAR(100) NOT NULL,
+    type VARCHAR(20) NOT NULL DEFAULT 'SYSTEM',
+    match_type VARCHAR(20) NOT NULL DEFAULT 'EXACT',
+    
+    -- III. Ngữ cảnh & Snapshot (Context)
+    -- items_snapshot: Lưu trữ metadata linh hoạt. 
+    -- Ví dụ: { "affected_routes": ["/api/v1", "/static"], "reserved_by": "System Admin", "ticket_id": "OPS-123" }
+    items_snapshot JSONB NOT NULL DEFAULT '{}',
+    
+    reason TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+
+    -- IV. Audit & Versioning
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    version BIGINT NOT NULL DEFAULT 1,
+
+    -- V. Ràng buộc dữ liệu (Constraints)
+    
+    -- Từ khóa cấm phải là duy nhất
+    CONSTRAINT uq_reserved_slug UNIQUE (slug),
+    
+    -- Chỉ cho phép ký tự URL friendly (chữ thường, số, gạch ngang) [2]
+    CONSTRAINT chk_reserved_slug_format CHECK (slug ~ '^[a-z0-9-]+$'),
+    
+    -- Kiểm tra giá trị hợp lệ cho phân loại
+    CONSTRAINT chk_reserved_type CHECK (type IN ('SYSTEM', 'BUSINESS', 'OFFENSIVE', 'FUTURE')),
+    
+    -- Kiểm tra cách thức so khớp
+    CONSTRAINT chk_match_type CHECK (match_type IN ('EXACT', 'PREFIX', 'REGEX')),
+    
+    -- Kiểm tra logic thời gian
+    CONSTRAINT chk_reserved_dates CHECK (updated_at >= created_at),
+    
+    -- Kiểm tra phiên bản
+    CONSTRAINT chk_reserved_version CHECK (version >= 1)
+);
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+
+-- Index quan trọng nhất: Tra cứu nhanh xem một từ khóa có bị cấm không
+-- Sử dụng Hash Index nếu chỉ check EXACT match, hoặc B-Tree (mặc định) để hỗ trợ LIKE/Range
+CREATE UNIQUE INDEX idx_reserved_slug_lookup 
+ON reserved_slugs (slug) 
+WHERE is_active = TRUE;
+
+-- Index hỗ trợ tìm kiếm các từ khóa cấm theo loại (VD: Lấy danh sách từ cấm Offensive để filter chat)
+CREATE INDEX idx_reserved_type 
+ON reserved_slugs (type) 
+WHERE is_active = TRUE;
+
+-- Index GIN cho items_snapshot: Hỗ trợ tìm kiếm dựa trên nội dung snapshot 
+-- (Ví dụ: Tìm tất cả slug ảnh hưởng đến route '/api') [3]
+CREATE INDEX idx_reserved_snapshot 
+ON reserved_slugs USING GIN (items_snapshot);
+
+
 CREATE TABLE system_jobs (
     -- Định danh & Phân loại
     _id UUID PRIMARY KEY, -- Sinh UUID v7 từ phía Application
@@ -2605,6 +2834,184 @@ CREATE INDEX idx_flags_rules_search ON feature_flags USING GIN (rules);
 -- Index hỗ trợ lọc các tính năng đang hoạt động (Partial Index)
 CREATE INDEX idx_flags_active_global ON feature_flags (flag_key)
 WHERE is_global_enabled = TRUE;
+
+
+CREATE TABLE digital_asset_types (
+    -- I. ĐỊNH DANH
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application
+    
+    -- II. THÔNG TIN LOẠI TÀI SẢN
+    code VARCHAR(50) NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    
+    -- III. CẤU HÌNH KỸ THUẬT & LOGIC
+    -- Định nghĩa cấu trúc dữ liệu bắt buộc cho tài sản thuộc loại này
+    attributes_schema JSONB NOT NULL DEFAULT '{}',
+    
+    -- Cấu hình nhà cung cấp (VD: Credential của Namecheap/Cloudflare)
+    provider_config JSONB NOT NULL DEFAULT '{}',
+    
+    -- Tên Job xử lý logic cấp phát (Provisioning)
+    provisioning_job VARCHAR(100),
+    
+    -- IV. TRẠNG THÁI & LOGIC KINH DOANH
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_renewable BOOLEAN NOT NULL DEFAULT TRUE, -- True: Có hết hạn, False: Vĩnh viễn
+
+    -- V. AUDIT
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    version BIGINT NOT NULL DEFAULT 1,
+
+    -- RÀNG BUỘC
+    CONSTRAINT uq_asset_type_code UNIQUE (code),
+    CONSTRAINT chk_asset_type_code_fmt CHECK (code ~ '^[A-Z0-9_]+$'),
+    CONSTRAINT chk_asset_type_version CHECK (version >= 1)
+);
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX
+-- Index để tra cứu nhanh theo mã (code)
+CREATE UNIQUE INDEX idx_digital_asset_types_code 
+ON digital_asset_types (code);
+
+-- 3. DỮ LIỆU MẪU (SEED DATA)
+INSERT INTO digital_asset_types (_id, code, name, is_renewable, attributes_schema)
+VALUES 
+(
+    uuid_generate_v7(), 
+    'DOMAIN', 
+    'Tên miền', 
+    TRUE,
+    '{ "required": ["domain_name", "nameservers", "auth_code"] }'
+),
+(
+    uuid_generate_v7(), 
+    'SSL', 
+    'Chứng chỉ bảo mật', 
+    TRUE,
+    '{ "required": ["csr_content", "validation_method"] }'
+);
+
+
+
+CREATE TABLE tenant_digital_assets (
+    -- I. Định danh & Sở hữu
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
+    tenant_id UUID NOT NULL,
+    order_id UUID,
+
+    -- II. Thông tin Tài sản
+    asset_type VARCHAR(50) NOT NULL,
+    name TEXT NOT NULL,
+    
+    -- III. Cấu hình & Trạng thái
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    auto_renew BOOLEAN NOT NULL DEFAULT TRUE,
+    asset_metadata JSONB NOT NULL DEFAULT '{}',
+
+    -- IV. Vòng đời & Thời gian
+    activated_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ,
+    
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    version BIGINT NOT NULL DEFAULT 1,
+
+    -- V. Các Ràng buộc (Constraints)
+    CONSTRAINT fk_asset_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
+    CONSTRAINT fk_asset_order FOREIGN KEY (order_id) REFERENCES subscription_orders(_id),
+
+    CONSTRAINT fk_asset_type_ref 
+FOREIGN KEY (asset_type) REFERENCES digital_asset_types(code) 
+ON UPDATE CASCADE,
+
+    CONSTRAINT chk_asset_status CHECK (status IN ('PENDING', 'PROVISIONING', 'ACTIVE', 'EXPIRED', 'SUSPENDED', 'TRANSFERRING')),
+    
+    -- Logic thời gian: Ngày hết hạn phải sau ngày kích hoạt (nếu đã kích hoạt)
+    CONSTRAINT chk_asset_expiry CHECK (expires_at IS NULL OR activated_at IS NULL OR expires_at > activated_at),
+    
+    CONSTRAINT chk_asset_version CHECK (version >= 1)
+);
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+
+-- Index 1: Hỗ trợ Tenant xem danh sách tài sản của họ trên Portal
+CREATE INDEX idx_assets_tenant_list 
+ON tenant_digital_assets (tenant_id, asset_type, created_at DESC);
+
+-- Index 2: Hỗ trợ Job quét các tài sản sắp hết hạn để gửi thông báo hoặc tự động gia hạn
+-- Chỉ quét các tài sản đang hoạt động (ACTIVE)
+CREATE INDEX idx_assets_expiry_scan 
+ON tenant_digital_assets (expires_at) 
+WHERE status = 'ACTIVE';
+
+-- Index 3: Đảm bảo tính duy nhất của tên miền/tài sản trong hệ thống (tránh 2 người mua cùng 1 domain)
+-- Chỉ áp dụng cho các tài sản đang hoạt động hoặc đang xử lý
+CREATE UNIQUE INDEX idx_assets_unique_name 
+ON tenant_digital_assets (name) 
+WHERE status IN ('PENDING', 'PROVISIONING', 'ACTIVE', 'TRANSFERRING') 
+AND asset_type = 'DOMAIN';
+
+-- Index 4: Tìm kiếm trong Metadata (VD: Tìm theo Registrar ID)
+CREATE INDEX idx_assets_metadata_gin 
+ON tenant_digital_assets USING GIN (asset_metadata);
+
+
+
+CREATE TABLE tenant_service_deliveries (
+    -- I. ĐỊNH DANH & LIÊN KẾT
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
+    tenant_id UUID NOT NULL,
+    product_id UUID NOT NULL,
+    subscription_id UUID,
+
+    -- II. CHI TIẾT SỐ LƯỢNG & GIÁ
+    unit_type VARCHAR(20) NOT NULL,
+    total_units NUMERIC(15,2) NOT NULL DEFAULT 0,
+    delivered_units NUMERIC(15,2) NOT NULL DEFAULT 0,
+    unit_price NUMERIC(19,4) NOT NULL DEFAULT 0,
+    currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
+
+    -- III. TRẠNG THÁI & DỮ LIỆU ĐỘNG
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    service_metadata JSONB NOT NULL DEFAULT '{}',
+
+    -- IV. AUDIT & VERSIONING
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    version BIGINT NOT NULL DEFAULT 1,
+
+    -- V. CÁC RÀNG BUỘC (CONSTRAINTS)
+    CONSTRAINT fk_service_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
+    CONSTRAINT fk_service_product FOREIGN KEY (product_id) REFERENCES saas_products(_id), -- Hoặc service_packages tùy mô hình
+    CONSTRAINT fk_service_sub FOREIGN KEY (subscription_id) REFERENCES tenant_subscriptions(_id),
+
+    CONSTRAINT chk_service_status CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
+    CONSTRAINT chk_service_units CHECK (total_units > 0 AND delivered_units >= 0),
+    CONSTRAINT chk_delivery_logic CHECK (delivered_units <= total_units), -- Không thể giao quá số lượng mua
+    CONSTRAINT chk_service_version CHECK (version >= 1),
+    CONSTRAINT chk_service_updated CHECK (updated_at >= created_at)
+);
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+
+-- Index 1: Giúp bộ phận triển khai (Delivery Team) tìm nhanh các dịch vụ chưa hoàn thành của một khách hàng
+-- Query: SELECT * FROM tenant_service_deliveries WHERE tenant_id = ? AND status != 'COMPLETED';
+CREATE INDEX idx_services_pending 
+ON tenant_service_deliveries (tenant_id, status) 
+WHERE status != 'COMPLETED';
+
+-- Index 2: Hỗ trợ báo cáo doanh thu theo sản phẩm và thời gian
+-- Query: Thống kê doanh thu dịch vụ đào tạo trong tháng này
+CREATE INDEX idx_services_product_revenue 
+ON tenant_service_deliveries (product_id, created_at DESC);
+
+-- Index 3: Hỗ trợ tra cứu theo gói thuê bao (nếu dịch vụ được bán kèm gói)
+CREATE INDEX idx_services_subscription 
+ON tenant_service_deliveries (subscription_id) 
+WHERE subscription_id IS NOT NULL;
+
 
 
 

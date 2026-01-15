@@ -23,14 +23,13 @@ function sendPrompt() {
 	// Tìm ô nhập liệu của Figma Make (thường là thẻ có contenteditable hoặc textarea)
 	const inputField = document.getElementById('code-chat-chat-box-form');
 	const sendButton = document.querySelector('[data-testid="code-chat-send-button"]');
-	if(!sendButton) {
+	if(!sendButton || inputField.value) {
 		setTimeout(sendPrompt, 15000);
 		return;
 	}
 	if (inputField && sendButton) {
 		inputField.focus();
 		setReactInputValue(inputField, prompts[currentIdx]);
-
 		// Kích hoạt sự kiện input để AI nhận diện có văn bản mới
 		inputField.dispatchEvent(new Event('input', { bubbles: true }));
 
