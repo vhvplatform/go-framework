@@ -2114,52 +2114,74 @@ WHERE end_at IS NOT NULL;
 
 
 CREATE TABLE subscription_orders (
-    -- Định danh & Tenancy
-    _id UUID PRIMARY KEY, -- UUID v7 sinh từ ứng dụng
+    -- I. ĐỊNH DANH & TENANCY
+    _id UUID PRIMARY KEY, -- UUID v7 sinh từ Application
     tenant_id UUID NOT NULL,
-    package_id UUID NOT NULL,
-
-    -- Thông tin đơn hàng
+    created_by UUID,
+    
+    -- II. THÔNG TIN NGHIỆP VỤ
     order_number VARCHAR(50) NOT NULL,
-    total_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
-    currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
+    po_number	VARCHAR(50),
+    type VARCHAR(20) NOT NULL DEFAULT 'NEW',
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    
+    -- III. TÀI CHÍNH (Sử dụng NUMERIC để đảm bảo độ chính xác)
+    currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
+    subtotal_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    tax_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    discount_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    credit_applied	NUMERIC(19,4)	NOT NULL DEFAULT 0,	-- Số tiền trừ từ ví tín dụng (tenant_wallets).
+    total_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    
+    -- IV. SNAPSHOT DỮ LIỆU (JSONB thay thế bảng con)
+    -- Cấu trúc: [{ "product_id": "...", "name": "Gói Pro", "price": 100, "qty": 1 }]
+    items_snapshot JSONB NOT NULL DEFAULT '[]', 
+    
+    -- Cấu trúc: { "tax_id": "010...", "company_name": "ABC Corp", "address": "..." }
+    billing_info JSONB NOT NULL DEFAULT '{}',
+    
+    -- V. THANH TOÁN
     payment_method VARCHAR(30),
-
-    -- Dữ liệu Snapshot (Quan trọng để bảo toàn giá/quyền lợi khi mua)
-    package_snapshot JSONB NOT NULL DEFAULT '{}',
-
-    -- Quản trị & Audit
+    payment_ref_id VARCHAR(100),
+    
+    -- VI. AUDIT & VERSIONING
     version BIGINT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
 
-    -- Các ràng buộc toàn vẹn
+    -- RÀNG BUỘC TOÀN VẸN
     CONSTRAINT fk_order_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id),
-    CONSTRAINT fk_order_package FOREIGN KEY (package_id) REFERENCES service_packages(_id),
+    CONSTRAINT fk_order_user FOREIGN KEY (created_by) REFERENCES users(_id),
+    
     CONSTRAINT uq_order_number UNIQUE (order_number),
-    CONSTRAINT chk_order_amount CHECK (total_amount >= 0),
+    
+    CONSTRAINT chk_order_amounts CHECK (total_amount >= 0 AND subtotal_amount >= 0 AND credit_applied >= 0),
     CONSTRAINT chk_order_currency CHECK (LENGTH(currency_code) = 3),
-    CONSTRAINT chk_order_status CHECK (status IN ('PENDING', 'PAID', 'CANCELLED', 'FAILED'))
+    CONSTRAINT chk_order_status CHECK (status IN ('DRAFT', 'PENDING', 'PAID', 'CANCELLED', 'FAILED', 'REFUNDED')),
+    CONSTRAINT chk_order_type CHECK (type IN ('NEW', 'RENEWAL', 'UPGRADE', 'DOWNGRADE', 'ADD_ON'))
 );
 
 -- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
--- Index hỗ trợ Tenant xem lịch sử đơn hàng (Sắp xếp mới nhất lên đầu)
-CREATE INDEX idx_orders_tenant_lookup
-ON subscription_orders (tenant_id, created_at DESC)
+-- Index 1: Hỗ trợ Tenant xem lịch sử đơn hàng (Sắp xếp mới nhất lên đầu)
+CREATE INDEX idx_orders_tenant_history 
+ON subscription_orders (tenant_id, created_at DESC) 
 WHERE deleted_at IS NULL;
 
--- Index hỗ trợ Admin/Worker quét các đơn hàng chưa thanh toán
-CREATE INDEX idx_orders_pending_status
-ON subscription_orders (status, created_at)
+-- Index 2: Hỗ trợ Worker quét các đơn hàng treo (PENDING) quá lâu để hủy
+CREATE INDEX idx_orders_pending_process 
+ON subscription_orders (status, created_at) 
 WHERE status = 'PENDING' AND deleted_at IS NULL;
 
--- Index tìm kiếm nhanh theo mã đơn hàng nghiệp vụ
-CREATE UNIQUE INDEX idx_orders_number_search
-ON subscription_orders (order_number)
-WHERE deleted_at IS NULL;
+-- Index 3: Tìm kiếm nhanh theo mã đơn hàng nghiệp vụ
+CREATE UNIQUE INDEX idx_orders_number_lookup 
+ON subscription_orders (order_number);
+
+-- Index 4: GIN Index hỗ trợ tìm kiếm đơn hàng có chứa sản phẩm cụ thể trong JSONB
+-- Ví dụ: Tìm các đơn hàng có mua gói "ENTERPRISE_PACK"
+CREATE INDEX idx_orders_items_gin 
+ON subscription_orders USING GIN (items_snapshot);
 
 
 CREATE TABLE subscription_invoices (
