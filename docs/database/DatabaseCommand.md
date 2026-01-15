@@ -2209,10 +2209,10 @@ CREATE TABLE subscription_invoices (
     
     -- IV. SNAPSHOT DỮ LIỆU (IMMUTABLE DATA)
     -- Cấu trúc: { "name": "Cty A", "tax_id": "123", "address": "Hanoi" }
-    customer_snapshot JSONB NOT NULL DEFAULT '{}', 
+    billing_info JSONB NOT NULL DEFAULT '{}', 
     
     -- Cấu trúc: [{ "name": "Gói Pro", "qty": 1, "price": 100, "total": 100 }]
-    line_items JSONB NOT NULL DEFAULT '[]',
+    items_snapshot JSONB NOT NULL DEFAULT '[]',
     
     -- Cấu trúc: [{ "name": "VAT", "rate": 10, "amount": 10 }]
     tax_breakdown JSONB NOT NULL DEFAULT '[]',
