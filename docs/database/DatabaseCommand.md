@@ -2836,6 +2836,184 @@ CREATE INDEX idx_flags_active_global ON feature_flags (flag_key)
 WHERE is_global_enabled = TRUE;
 
 
+CREATE TABLE digital_asset_types (
+    -- I. ĐỊNH DANH
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ Application
+    
+    -- II. THÔNG TIN LOẠI TÀI SẢN
+    code VARCHAR(50) NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    
+    -- III. CẤU HÌNH KỸ THUẬT & LOGIC
+    -- Định nghĩa cấu trúc dữ liệu bắt buộc cho tài sản thuộc loại này
+    attributes_schema JSONB NOT NULL DEFAULT '{}',
+    
+    -- Cấu hình nhà cung cấp (VD: Credential của Namecheap/Cloudflare)
+    provider_config JSONB NOT NULL DEFAULT '{}',
+    
+    -- Tên Job xử lý logic cấp phát (Provisioning)
+    provisioning_job VARCHAR(100),
+    
+    -- IV. TRẠNG THÁI & LOGIC KINH DOANH
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_renewable BOOLEAN NOT NULL DEFAULT TRUE, -- True: Có hết hạn, False: Vĩnh viễn
+
+    -- V. AUDIT
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    version BIGINT NOT NULL DEFAULT 1,
+
+    -- RÀNG BUỘC
+    CONSTRAINT uq_asset_type_code UNIQUE (code),
+    CONSTRAINT chk_asset_type_code_fmt CHECK (code ~ '^[A-Z0-9_]+$'),
+    CONSTRAINT chk_asset_type_version CHECK (version >= 1)
+);
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX
+-- Index để tra cứu nhanh theo mã (code)
+CREATE UNIQUE INDEX idx_digital_asset_types_code 
+ON digital_asset_types (code);
+
+-- 3. DỮ LIỆU MẪU (SEED DATA)
+INSERT INTO digital_asset_types (_id, code, name, is_renewable, attributes_schema)
+VALUES 
+(
+    uuid_generate_v7(), 
+    'DOMAIN', 
+    'Tên miền', 
+    TRUE,
+    '{ "required": ["domain_name", "nameservers", "auth_code"] }'
+),
+(
+    uuid_generate_v7(), 
+    'SSL', 
+    'Chứng chỉ bảo mật', 
+    TRUE,
+    '{ "required": ["csr_content", "validation_method"] }'
+);
+
+
+
+CREATE TABLE tenant_digital_assets (
+    -- I. Định danh & Sở hữu
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
+    tenant_id UUID NOT NULL,
+    order_id UUID,
+
+    -- II. Thông tin Tài sản
+    asset_type VARCHAR(50) NOT NULL,
+    name TEXT NOT NULL,
+    
+    -- III. Cấu hình & Trạng thái
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    auto_renew BOOLEAN NOT NULL DEFAULT TRUE,
+    asset_metadata JSONB NOT NULL DEFAULT '{}',
+
+    -- IV. Vòng đời & Thời gian
+    activated_at TIMESTAMPTZ,
+    expires_at TIMESTAMPTZ,
+    
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    version BIGINT NOT NULL DEFAULT 1,
+
+    -- V. Các Ràng buộc (Constraints)
+    CONSTRAINT fk_asset_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
+    CONSTRAINT fk_asset_order FOREIGN KEY (order_id) REFERENCES subscription_orders(_id),
+
+    CONSTRAINT fk_asset_type_ref 
+FOREIGN KEY (asset_type) REFERENCES digital_asset_types(code) 
+ON UPDATE CASCADE,
+
+    CONSTRAINT chk_asset_status CHECK (status IN ('PENDING', 'PROVISIONING', 'ACTIVE', 'EXPIRED', 'SUSPENDED', 'TRANSFERRING')),
+    
+    -- Logic thời gian: Ngày hết hạn phải sau ngày kích hoạt (nếu đã kích hoạt)
+    CONSTRAINT chk_asset_expiry CHECK (expires_at IS NULL OR activated_at IS NULL OR expires_at > activated_at),
+    
+    CONSTRAINT chk_asset_version CHECK (version >= 1)
+);
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+
+-- Index 1: Hỗ trợ Tenant xem danh sách tài sản của họ trên Portal
+CREATE INDEX idx_assets_tenant_list 
+ON tenant_digital_assets (tenant_id, asset_type, created_at DESC);
+
+-- Index 2: Hỗ trợ Job quét các tài sản sắp hết hạn để gửi thông báo hoặc tự động gia hạn
+-- Chỉ quét các tài sản đang hoạt động (ACTIVE)
+CREATE INDEX idx_assets_expiry_scan 
+ON tenant_digital_assets (expires_at) 
+WHERE status = 'ACTIVE';
+
+-- Index 3: Đảm bảo tính duy nhất của tên miền/tài sản trong hệ thống (tránh 2 người mua cùng 1 domain)
+-- Chỉ áp dụng cho các tài sản đang hoạt động hoặc đang xử lý
+CREATE UNIQUE INDEX idx_assets_unique_name 
+ON tenant_digital_assets (name) 
+WHERE status IN ('PENDING', 'PROVISIONING', 'ACTIVE', 'TRANSFERRING') 
+AND asset_type = 'DOMAIN';
+
+-- Index 4: Tìm kiếm trong Metadata (VD: Tìm theo Registrar ID)
+CREATE INDEX idx_assets_metadata_gin 
+ON tenant_digital_assets USING GIN (asset_metadata);
+
+
+
+CREATE TABLE tenant_service_deliveries (
+    -- I. ĐỊNH DANH & LIÊN KẾT
+    _id UUID PRIMARY KEY, -- Khuyến nghị sinh UUID v7 từ tầng Application
+    tenant_id UUID NOT NULL,
+    product_id UUID NOT NULL,
+    subscription_id UUID,
+
+    -- II. CHI TIẾT SỐ LƯỢNG & GIÁ
+    unit_type VARCHAR(20) NOT NULL,
+    total_units NUMERIC(15,2) NOT NULL DEFAULT 0,
+    delivered_units NUMERIC(15,2) NOT NULL DEFAULT 0,
+    unit_price NUMERIC(19,4) NOT NULL DEFAULT 0,
+    currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
+
+    -- III. TRẠNG THÁI & DỮ LIỆU ĐỘNG
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    service_metadata JSONB NOT NULL DEFAULT '{}',
+
+    -- IV. AUDIT & VERSIONING
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    version BIGINT NOT NULL DEFAULT 1,
+
+    -- V. CÁC RÀNG BUỘC (CONSTRAINTS)
+    CONSTRAINT fk_service_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id) ON DELETE CASCADE,
+    CONSTRAINT fk_service_product FOREIGN KEY (product_id) REFERENCES saas_products(_id), -- Hoặc service_packages tùy mô hình
+    CONSTRAINT fk_service_sub FOREIGN KEY (subscription_id) REFERENCES tenant_subscriptions(_id),
+
+    CONSTRAINT chk_service_status CHECK (status IN ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
+    CONSTRAINT chk_service_units CHECK (total_units > 0 AND delivered_units >= 0),
+    CONSTRAINT chk_delivery_logic CHECK (delivered_units <= total_units), -- Không thể giao quá số lượng mua
+    CONSTRAINT chk_service_version CHECK (version >= 1),
+    CONSTRAINT chk_service_updated CHECK (updated_at >= created_at)
+);
+
+-- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+
+-- Index 1: Giúp bộ phận triển khai (Delivery Team) tìm nhanh các dịch vụ chưa hoàn thành của một khách hàng
+-- Query: SELECT * FROM tenant_service_deliveries WHERE tenant_id = ? AND status != 'COMPLETED';
+CREATE INDEX idx_services_pending 
+ON tenant_service_deliveries (tenant_id, status) 
+WHERE status != 'COMPLETED';
+
+-- Index 2: Hỗ trợ báo cáo doanh thu theo sản phẩm và thời gian
+-- Query: Thống kê doanh thu dịch vụ đào tạo trong tháng này
+CREATE INDEX idx_services_product_revenue 
+ON tenant_service_deliveries (product_id, created_at DESC);
+
+-- Index 3: Hỗ trợ tra cứu theo gói thuê bao (nếu dịch vụ được bán kèm gói)
+CREATE INDEX idx_services_subscription 
+ON tenant_service_deliveries (subscription_id) 
+WHERE subscription_id IS NOT NULL;
+
+
+
 
 
 
