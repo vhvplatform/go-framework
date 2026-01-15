@@ -2163,66 +2163,54 @@ WHERE deleted_at IS NULL;
 
 
 CREATE TABLE subscription_invoices (
-    -- I. ĐỊNH DANH & LIÊN KẾT (IDENTITY & LINKING)
-    _id UUID PRIMARY KEY, -- Sinh UUID v7 từ tầng Application
+    _id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    partner_id UUID, -- Dùng cho mô hình phân phối đa tầng
     subscription_id UUID NOT NULL,
+    
     invoice_number VARCHAR(50) NOT NULL,
-
-    -- II. TÀI CHÍNH (STRICT FINANCIAL RULES)
     amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
     currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
     status VARCHAR(20) NOT NULL DEFAULT 'OPEN',
-
-    -- III. CHU KỲ & HẠN THANH TOÁN
+    
     billing_period_start TIMESTAMPTZ NOT NULL,
     billing_period_end TIMESTAMPTZ NOT NULL,
     due_date TIMESTAMPTZ NOT NULL,
     paid_at TIMESTAMPTZ,
-
-    -- IV. DỮ LIỆU SNAPSHOT & MỞ RỘNG
+    
     price_adjustments JSONB NOT NULL DEFAULT '[]',
     metadata JSONB NOT NULL DEFAULT '{}',
-
-    -- V. QUẢN TRỊ & AUDIT
+    
     version BIGINT NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
 
-    -- RÀNG BUỘC (CONSTRAINTS)
+    -- Các ràng buộc dữ liệu
     CONSTRAINT uq_invoice_number UNIQUE (invoice_number),
-    CONSTRAINT fk_invoice_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id),
-    CONSTRAINT fk_invoice_partner FOREIGN KEY (partner_id) REFERENCES tenants(_id),
-    CONSTRAINT fk_invoice_subscription FOREIGN KEY (subscription_id) REFERENCES tenant_subscriptions(_id),
+    CONSTRAINT chk_invoice_amount CHECK (amount >= 0),
+    CONSTRAINT chk_invoice_currency CHECK (LENGTH(currency_code) = 3),
     CONSTRAINT chk_invoice_status CHECK (status IN ('DRAFT', 'OPEN', 'PAID', 'VOID', 'UNCOLLECTIBLE')),
     CONSTRAINT chk_billing_dates CHECK (billing_period_end > billing_period_start),
-    CONSTRAINT chk_invoice_currency CHECK (LENGTH(currency_code) = 3),
-    CONSTRAINT chk_invoice_version CHECK (version >= 1),
-    CONSTRAINT chk_invoice_updated CHECK (updated_at >= created_at)
+    
+    CONSTRAINT fk_invoice_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id),
+    CONSTRAINT fk_invoice_subscription FOREIGN KEY (subscription_id) REFERENCES tenant_subscriptions(_id)
 );
 
--- 2. CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
+-- CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
--- Index hỗ trợ Tenant/Partner tra cứu lịch sử hóa đơn cực nhanh (SaaS Isolation)
-CREATE INDEX idx_invoices_tenant_lookup
-ON subscription_invoices (tenant_id, created_at DESC)
+-- 1. Index quan trọng nhất cho SaaS: Tra cứu hóa đơn của một Tenant
+CREATE INDEX idx_invoices_tenant_lookup 
+ON subscription_invoices (tenant_id, created_at DESC) 
 WHERE deleted_at IS NULL;
 
--- Index hỗ trợ đối soát công nợ cho Đối tác phân phối (Distribution Partner)
-CREATE INDEX idx_invoices_partner_debt
-ON subscription_invoices (partner_id, status)
-WHERE partner_id IS NOT NULL AND status != 'PAID';
-
--- Index hỗ trợ nhắc nợ tự động: Tìm các hóa đơn 'OPEN' đã quá hạn thanh toán
-CREATE INDEX idx_invoices_overdue_tracker
-ON subscription_invoices (status, due_date)
+-- 2. Index hỗ trợ nhắc nợ: Tìm các hóa đơn chưa thanh toán đã quá hạn
+CREATE INDEX idx_invoices_overdue_tracker 
+ON subscription_invoices (status, due_date) 
 WHERE status = 'OPEN' AND deleted_at IS NULL;
 
--- Index tìm kiếm nhanh theo mã hóa đơn (Search UI)
-CREATE UNIQUE INDEX idx_invoices_number_search
-ON subscription_invoices (invoice_number)
+-- 3. Index hỗ trợ tìm kiếm theo mã hóa đơn nghiệp vụ
+CREATE UNIQUE INDEX idx_invoices_number_search 
+ON subscription_invoices (invoice_number) 
 WHERE deleted_at IS NULL;
 
 
