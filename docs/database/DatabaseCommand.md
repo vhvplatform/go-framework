@@ -2163,55 +2163,85 @@ WHERE deleted_at IS NULL;
 
 
 CREATE TABLE subscription_invoices (
+    -- I. ĐỊNH DANH
     _id UUID PRIMARY KEY,
     tenant_id UUID NOT NULL,
-    subscription_id UUID NOT NULL,
+    subscription_id UUID,
+    order_id UUID, -- Liên kết tới đơn hàng (Optional)
     
+    -- II. THÔNG TIN NGHIỆP VỤ
     invoice_number VARCHAR(50) NOT NULL,
-    amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
     currency_code VARCHAR(3) NOT NULL DEFAULT 'VND',
-    status VARCHAR(20) NOT NULL DEFAULT 'OPEN',
     
+    -- III. CHI TIẾT TÀI CHÍNH (FINANCIAL BREAKDOWN)
+    -- Sử dụng NUMERIC(19,4) để đảm bảo độ chính xác tuyệt đối
+    subtotal NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    tax_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    discount_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    total_amount NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    amount_paid NUMERIC(19, 4) NOT NULL DEFAULT 0,
+    
+    -- Cột tính toán tự động (Generated Column) để truy vấn nợ nhanh
+    amount_due NUMERIC(19, 4) GENERATED ALWAYS AS (total_amount - amount_paid) STORED,
+    
+    -- IV. SNAPSHOT DỮ LIỆU (IMMUTABLE DATA)
+    -- Cấu trúc: { "name": "Cty A", "tax_id": "123", "address": "Hanoi" }
+    customer_snapshot JSONB NOT NULL DEFAULT '{}', 
+    
+    -- Cấu trúc: [{ "name": "Gói Pro", "qty": 1, "price": 100, "total": 100 }]
+    line_items JSONB NOT NULL DEFAULT '[]',
+    
+    -- Cấu trúc: [{ "name": "VAT", "rate": 10, "amount": 10 }]
+    tax_breakdown JSONB NOT NULL DEFAULT '[]',
+
+    -- V. THỜI GIAN & CHU KỲ (REVENUE RECOGNITION)
     billing_period_start TIMESTAMPTZ NOT NULL,
     billing_period_end TIMESTAMPTZ NOT NULL,
     due_date TIMESTAMPTZ NOT NULL,
     paid_at TIMESTAMPTZ,
     
+    -- VI. HỆ THỐNG & AUDIT
+    metadata JSONB NOT NULL DEFAULT '{}', -- Stripe ID, Note
     price_adjustments JSONB NOT NULL DEFAULT '[]',
-    metadata JSONB NOT NULL DEFAULT '{}',
-    
-    version BIGINT NOT NULL DEFAULT 1,
+    pdf_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ,
+    version BIGINT NOT NULL DEFAULT 1,
 
-    -- Các ràng buộc dữ liệu
+    -- RÀNG BUỘC
     CONSTRAINT uq_invoice_number UNIQUE (invoice_number),
-    CONSTRAINT chk_invoice_amount CHECK (amount >= 0),
-    CONSTRAINT chk_invoice_currency CHECK (LENGTH(currency_code) = 3),
-    CONSTRAINT chk_invoice_status CHECK (status IN ('DRAFT', 'OPEN', 'PAID', 'VOID', 'UNCOLLECTIBLE')),
-    CONSTRAINT chk_billing_dates CHECK (billing_period_end > billing_period_start),
+    CONSTRAINT fk_inv_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id),
+    CONSTRAINT fk_inv_sub FOREIGN KEY (subscription_id) REFERENCES tenant_subscriptions(_id),
+    CONSTRAINT fk_inv_order FOREIGN KEY (order_id) REFERENCES subscription_orders(_id),
     
-    CONSTRAINT fk_invoice_tenant FOREIGN KEY (tenant_id) REFERENCES tenants(_id),
-    CONSTRAINT fk_invoice_subscription FOREIGN KEY (subscription_id) REFERENCES tenant_subscriptions(_id)
+    CONSTRAINT chk_inv_status CHECK (status IN ('DRAFT', 'OPEN', 'PAID', 'VOID', 'UNCOLLECTIBLE')),
+    CONSTRAINT chk_inv_amounts CHECK (subtotal >= 0 AND total_amount >= 0),
+    CONSTRAINT chk_inv_dates CHECK (billing_period_end >= billing_period_start),
+    CONSTRAINT chk_inv_currency CHECK (LENGTH(currency_code) = 3)
 );
 
 -- CHIẾN LƯỢC ĐÁNH INDEX (INDEXING STRATEGY)
 
--- 1. Index quan trọng nhất cho SaaS: Tra cứu hóa đơn của một Tenant
-CREATE INDEX idx_invoices_tenant_lookup 
+-- 1. Index tìm kiếm hóa đơn của khách hàng (Sắp xếp mới nhất lên đầu)
+CREATE INDEX idx_invoices_tenant_history 
 ON subscription_invoices (tenant_id, created_at DESC) 
 WHERE deleted_at IS NULL;
 
--- 2. Index hỗ trợ nhắc nợ: Tìm các hóa đơn chưa thanh toán đã quá hạn
-CREATE INDEX idx_invoices_overdue_tracker 
+-- 2. Index hỗ trợ nhắc nợ: Tìm các hóa đơn đang mở và đã quá hạn thanh toán
+CREATE INDEX idx_invoices_overdue 
 ON subscription_invoices (status, due_date) 
-WHERE status = 'OPEN' AND deleted_at IS NULL;
+WHERE status = 'OPEN' AND due_date < NOW() AND deleted_at IS NULL;
 
--- 3. Index hỗ trợ tìm kiếm theo mã hóa đơn nghiệp vụ
-CREATE UNIQUE INDEX idx_invoices_number_search 
-ON subscription_invoices (invoice_number) 
-WHERE deleted_at IS NULL;
+-- 3. Index hỗ trợ tìm kiếm theo Mã hóa đơn nghiệp vụ
+CREATE UNIQUE INDEX idx_invoices_number_lookup 
+ON subscription_invoices (invoice_number);
+
+-- 4. Index hỗ trợ tra cứu hóa đơn từ đơn hàng gốc
+CREATE INDEX idx_invoices_order_lookup 
+ON subscription_invoices (order_id) 
+WHERE order_id IS NOT NULL;
 
 
 
