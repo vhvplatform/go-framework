@@ -625,18 +625,27 @@
 | subscription\_invoices | YSQL | Collection |  |  |  | (Hóa đơn thuê bao): Lưu trữ lịch sử hóa đơn, số tiền, trạng thái thanh toán và mã tiền tệ (ISO 4217) |
 | subscription\_invoices | \_id | UUID | NO |  | PRIMARY KEY | Định danh hóa đơn chuẩn UUID v7, hỗ trợ sắp xếp theo thời gian. |
 | subscription\_invoices | tenant\_id | UUID | NO |  | FOREIGN KEY tham chiếu tenants(\_id) | Xác định hóa đơn thuộc về khách hàng nào. Cần thiết để sharding/filtering. |
-| subscription\_invoices | partner\_id | UUID | YES | NULL | REFERENCES tenants(\_id) | ID đối tác phân phối (nếu có) phục vụ đối soát công nợ đa tầng [Lịch sử]. |
+| subscription\_invoices | order\_id | UUID | YES |  | FK tham chiếu subscription\_orders(\_id) | Liên kết tới đơn hàng gốc (nếu hóa đơn phát sinh từ hành động mua/nâng cấp). |
 | subscription\_invoices | subscription\_id | UUID | NO |  | FOREIGN KEY tham chiếu tenant\_subscriptions(\_id) | Liên kết hóa đơn với gói thuê bao cụ thể của khách hàng. |
 | subscription\_invoices | invoice\_number | VARCHAR(50) | NO |  | UNIQUE | Mã hóa đơn nghiệp vụ (VD: INV-2024-0001) để đối soát với kế toán. |
-| subscription\_invoices | amount | NUMERIC(19,4) | NO | 0 | CHECK (amount >= 0) | Tổng số tiền cần thanh toán. Độ chính xác 4 số lẻ. |
-| subscription\_invoices | currency\_code | VARCHAR(3) | NO | VND' | CHECK (length(currency\_code) = 3) | Mã tiền tệ ISO 4217 (VND, USD,...). |
-| subscription\_invoices | status | VARCHAR(20) | NO | OPEN' | CHECK (IN ('DRAFT', 'OPEN', 'PAID', 'VOID', 'UNCOLLECTIBLE')) | Trạng thái hóa đơn: Nháp, Đang mở, Đã trả, Hủy, Nợ xấu. |
+| subscription\_invoices | subtotal | NUMERIC(19,4) | NO | 0 | \>= 0 | Tổng tiền hàng trước thuế và giảm giá. |
+| subscription\_invoices | tax\_amount | NUMERIC(19,4) | NO | 0 | \>= 0 | Tổng tiền thuế (VAT/GST). |
+| subscription\_invoices | discount\_amount | NUMERIC(19,4) | NO | 0 | \>= 0 | Tổng tiền được giảm giá. |
+| subscription\_invoices | total\_amount | NUMERIC(19,4) | NO | 0 | total = sub + tax - discount | Tổng tiền phải thanh toán (Final Amount). |
+| subscription\_invoices | amount\_paid | NUMERIC(19,4) | NO | 0 | \>= 0 | Số tiền khách đã thanh toán thực tế. |
+| subscription\_invoices | amount\_due | NUMERIC(19,4) | NO | 0 | due = total - paid | Số tiền còn nợ (Hỗ trợ thanh toán một phần). |
+| subscription\_invoices | customer\_snapshot | JSONB | NO | {}' |  | Quan trọng: Lưu tên công ty, MST, địa chỉ tại thời điểm xuất hóa đơn. |
+| subscription\_invoices | items\_snapshot | JSONB | NO | []' |  | Danh sách sản phẩm/dịch vụ, đơn giá, số lượng tại thời điểm mua (Snapshot). |
+| subscription\_invoices | tax\_breakdown | JSONB | NO | []' |  | Chi tiết các loại thuế áp dụng (VD: VAT 10%, Thuế nhà thầu 5%). |
 | subscription\_invoices | billing\_period\_start | TIMESTAMPTZ | NO |  |  | Ngày bắt đầu chu kỳ tính tiền (UTC). |
 | subscription\_invoices | billing\_period\_end | TIMESTAMPTZ | NO |  | CHECK (end > start) | Ngày kết thúc chu kỳ tính tiền (UTC). |
+| subscription\_invoices | currency\_code | VARCHAR(3) | NO | VND' | CHECK (length(currency\_code) = 3) | Mã tiền tệ ISO 4217 (VND, USD,...). |
+| subscription\_invoices | status | VARCHAR(20) | NO | OPEN' | CHECK (IN ('DRAFT', 'OPEN', 'PAID', 'VOID', 'UNCOLLECTIBLE')) | Trạng thái hóa đơn: Nháp, Đang mở, Đã trả, Hủy, Nợ xấu. |
 | subscription\_invoices | due\_date | TIMESTAMPTZ | NO |  |  | Hạn chót thanh toán. |
 | subscription\_invoices | paid\_at | TIMESTAMPTZ | YES |  |  | Thời điểm thực tế khách hàng thanh toán thành công. |
-| subscription\_invoices | price\_adjustments | JSONB | NO | []' |  | Lưu chi tiết giảm giá, chiết khấu để minh bạch hóa đơn. |
+| subscription\_invoices | price\_adjustments | JSONB | NO | []' |  | Lưu chi tiết giảm giá, chiết khấu để minh bạch hóa đơn,. |
 | subscription\_invoices | metadata | JSONB | NO | {}' |  | Lưu thông tin bổ sung tùy linh hoạt (VD: ghi chú, thông tin Gateway). |
+| subscription\_invoices | pdf\_url | TEXT | YES |  |  | Link file PDF hóa đơn lưu trữ trên S3. |
 | subscription\_invoices | version | BIGINT | NO | 1 | CHECK (version >= 1) | Dùng cho Optimistic Locking chống ghi đè dữ liệu. |
 | subscription\_invoices | created\_at | TIMESTAMPTZ | NO | now() |  | Thời điểm tạo hóa đơn. |
 | subscription\_invoices | updated\_at | TIMESTAMPTZ | NO | now() |  | Thời điểm cập nhật cuối cùng. |
@@ -644,14 +653,23 @@
 | subscription\_orders | YSQL | Collection |  |  |  | (Lệnh mua gói): Ghi lại các lệnh thực hiện mua hoặc nâng cấp gói cước từ phía Tenant. |
 | subscription\_orders | \_id | UUID | NO |  | PRIMARY KEY | Định danh đơn hàng chuẩn UUID v7. |
 | subscription\_orders | tenant\_id | UUID | NO |  | FOREIGN KEY tham chiếu tenants(\_id) | Xác định đơn hàng thuộc về khách hàng nào. |
-| subscription\_orders | package\_id | UUID | NO |  | FOREIGN KEY tham chiếu service\_packages(\_id) | Gói cước mà khách hàng đang đặt mua. |
+| subscription\_orders | type | VARCHAR(20) | NO | NEW' | CHECK (IN ('NEW', 'RENEWAL', 'UPGRADE', 'DOWNGRADE', 'ADD\_ON')) | Phân loại tính chất đơn hàng để tính toán doanh thu. |
 | subscription\_orders | order\_number | VARCHAR(50) | NO |  | UNIQUE | Mã đơn hàng nghiệp vụ (VD: ORD-2024-1029) để đối soát. |
+| subscription\_orders | po\_number | VARCHAR(50) | YES |  |  | Số Purchase Order (Yêu cầu bắt buộc với khách hàng Enterprise). |
+| subscription\_orders | subtotal\_amount | NUMERIC(19,4) | NO | 0 | \>= 0 | Tổng tiền hàng trước thuế và giảm giá. |
+| subscription\_orders | discount\_amount | NUMERIC(19,4) | NO | 0 | \>= 0 | Tổng tiền được giảm (Voucher/Khuyến mãi). |
+| subscription\_orders | tax\_amount | NUMERIC(19,4) | NO | 0 | \>= 0 | Tổng tiền thuế. |
+| subscription\_orders | credit\_applied | NUMERIC(19,4) | NO | 0 | \>= 0 | Số tiền trừ từ ví tín dụng (tenant\_wallets). |
 | subscription\_orders | total\_amount | NUMERIC(19,4) | NO | 0 | CHECK (total\_amount >= 0) | Tổng số tiền đơn hàng. Chính xác 4 số lẻ. |
 | subscription\_orders | currency\_code | VARCHAR(3) | NO | VND' | CHECK (length = 3) | Mã tiền tệ ISO 4217 (VND, USD...). |
-| subscription\_orders | status | VARCHAR(20) | NO | PENDING' | CHECK (IN ('PENDING', 'PAID', 'CANCELLED', 'FAILED')) | Trạng thái đơn hàng. |
+| subscription\_orders | status | VARCHAR(20) | NO | PENDING' | CHECK (IN ('DRAFT', 'PENDING', 'PAID', 'FAILED', 'CANCELLED', 'REFUNDED')) | Trạng thái vòng đời đơn hàng. |
+| subscription\_orders | items\_snapshot | JSONB | NO | []' |  | Danh sách sản phẩm, đơn giá, số lượng tại thời điểm mua (Immutable). |
+| subscription\_orders | billing\_info | JSONB | NO | {}' |  | Snapshot thông tin xuất hóa đơn (Tên công ty, MST, Địa chỉ) tại thời điểm đặt hàng. |
+| subscription\_orders | payment\_ref\_id | VARCHAR(100) | YES |  |  | Mã giao dịch từ cổng thanh toán (Stripe PaymentIntent ID, PayPal ID). |
 | subscription\_orders | payment\_method | VARCHAR(30) | YES |  |  | Phương thức: CREDIT\_CARD, BANK\_TRANSFER, WALLET. |
-| subscription\_orders | package\_snapshot | JSONB | NO | {}' |  | Snapshot: Lưu cấu hình gói (giá, quyền hạn) tại thời điểm đặt hàng. |
+| subscription\_orders | metadata | JSONB | NO | {}' |  | Thông tin mở rộng (IP đặt hàng, User Agent...). |
 | subscription\_orders | version | BIGINT | NO | 1 | CHECK (version >= 1) | Hỗ trợ Optimistic Locking chống ghi đè dữ liệu. |
+| subscription\_orders | created\_by | UUID | YES |  | FOREIGN KEY tham chiếu users(\_id) | Người dùng thực hiện lệnh đặt hàng. |
 | subscription\_orders | created\_at | TIMESTAMPTZ | NO | now() |  | Thời điểm tạo đơn hàng (UTC). |
 | subscription\_orders | updated\_at | TIMESTAMPTZ | NO | now() |  | Thời điểm cập nhật cuối cùng. |
 | subscription\_orders | deleted\_at | TIMESTAMPTZ | YES |  |  | Hỗ trợ Soft Delete. |
@@ -730,6 +748,48 @@
 | saas\_business\_reports | tenant\_count | UInt32 | NO | 0 |  | Số lượng khách hàng đóng góp vào doanh thu này. |
 | saas\_business\_reports | details\_json | String | NO | {}' | Dữ liệu dạng JSON String | Chi tiết doanh thu theo từng gói (Pro, Enterprise,...),. |
 | saas\_business\_reports | created\_at | DateTime64(3) | NO | now() | Độ chính xác mili-giây | Thời điểm hệ thống sinh báo cáo (UTC),. |
+| Quản lý cung cấp dịch vụ |  | Package |  |  |  |  |
+| digital\_asset\_types | YSQL | Collection |  |  |  | Loại tài sản số |
+| digital\_asset\_types | \_id | UUID | NO |  | PRIMARY KEY | Định danh duy nhất chuẩn UUID v7 [Source 2, 4]. |
+| digital\_asset\_types | code | VARCHAR(50) | NO |  | UNIQUE, CHECK | Mã loại tài sản (VD: DOMAIN, SSL, SMTP\_IP). Dùng làm khóa ngoại logic [Source 103, 113]. |
+| digital\_asset\_types | name | TEXT | NO |  |  | Tên hiển thị (VD: "Tên miền Quốc tế"). |
+| digital\_asset\_types | description | TEXT | YES | NULL |  | Mô tả chi tiết loại tài sản. |
+| digital\_asset\_types | provider\_config | JSONB | NO | {}' |  | Cấu hình kết nối với nhà cung cấp (VD: API Endpoint của GoDaddy hay Let's Encrypt) [Source 15, 84]. |
+| digital\_asset\_types | attributes\_schema | JSONB | NO | {}' |  | Quan trọng: Định nghĩa JSON Schema để validate dữ liệu đầu vào trong bảng tenant\_digital\_assets (VD: Bắt buộc phải có nameservers nếu là Domain) [Source 1263]. |
+| digital\_asset\_types | is\_renewable | BOOLEAN | NO | TRUE |  | Cờ đánh dấu tài sản này có cần gia hạn định kỳ hay mua đứt một lần [Source 84, 85]. |
+| digital\_asset\_types | provisioning\_job | VARCHAR(100) | YES | NULL |  | Tên của Worker/Job sẽ xử lý việc cấp phát tài sản này (VD: JobRegisterDomain) [Source 1595, 1596]. |
+| digital\_asset\_types | created\_at | TIMESTAMPTZ | NO | now() |  | Thời điểm tạo [Source 16, 17]. |
+| digital\_asset\_types | updated\_at | TIMESTAMPTZ | NO | now() |  | Thời điểm cập nhật cuối cùng. |
+| digital\_asset\_types | version | BIGINT | NO | 1 | CHECK (>= 1) | Optimistic Locking [Source 16]. |
+| tenant\_digital\_assets | YSQL | Collection |  |  |  | Tài sàn số |
+| tenant\_digital\_assets | \_id | UUID | NO |  | PRIMARY KEY | Định danh duy nhất chuẩn UUID v7, hỗ trợ sắp xếp theo thời gian và tối ưu Sharding [Source 469]. |
+| tenant\_digital\_assets | tenant\_id | UUID | NO |  | REFERENCES tenants(\_id) ON DELETE CASCADE | Xác định tài sản này thuộc sở hữu của khách hàng nào [Source 469]. |
+| tenant\_digital\_assets | order\_id | UUID | YES | NULL | REFERENCES subscription\_orders(\_id) | Liên kết với đơn hàng mua tài sản này (để truy vết nguồn gốc) [Source 469]. |
+| tenant\_digital\_assets | asset\_type | VARCHAR(50) | NO |  | CHECK (asset\_type IN ('DOMAIN', 'SSL', 'LICENSE\_KEY', 'DEDICATED\_IP')) | Phân loại tài sản để hệ thống xử lý logic Provisioning tương ứng [Source 469]. |
+| tenant\_digital\_assets | name | TEXT | NO |  | CHECK (LENGTH(name) > 0) | Tên định danh tài sản (VD: example.com, Wildcard SSL, License #123) [Source 469]. |
+| tenant\_digital\_assets | status | VARCHAR(20) | NO | PENDING' | CHECK (status IN ('PENDING', 'PROVISIONING', 'ACTIVE', 'EXPIRED', 'SUSPENDED', 'TRANSFERRING')) | Trạng thái vòng đời của tài sản [Source 470, 1311]. |
+| tenant\_digital\_assets | auto\_renew | BOOLEAN | NO | TRUE |  | Cờ bật/tắt tự động gia hạn (trừ tiền trong ví) khi hết hạn [Source 470]. |
+| tenant\_digital\_assets | asset\_metadata | JSONB | NO | {}' |  | Chứa thông tin kỹ thuật đặc thù (VD: Registrar Info, Auth Code, CSR, IP Address) [Source 470]. |
+| tenant\_digital\_assets | activated\_at | TIMESTAMPTZ | YES | NULL |  | Thời điểm tài sản được kích hoạt thành công (UTC). |
+| tenant\_digital\_assets | expires\_at | TIMESTAMPTZ | YES | NULL | CHECK (expires\_at > activated\_at) | Thời điểm hết hạn. Dùng để chạy Job quét gia hạn [Source 470]. |
+| tenant\_digital\_assets | created\_at | TIMESTAMPTZ | NO | now() |  | Thời điểm tạo bản ghi. |
+| tenant\_digital\_assets | updated\_at | TIMESTAMPTZ | NO | now() |  | Thời điểm cập nhật cuối cùng. |
+| tenant\_digital\_assets | version | BIGINT | NO | 1 | CHECK (version >= 1) | Cơ chế Optimistic Locking để tránh xung đột khi cập nhật trạng thái. |
+| tenant\_service\_deliveries | YSQL | Collection |  |  |  | Quản lý vòng đời của các dịch vụ chuyên nghiệp (Professional Services) như tư vấn, đào tạo, hoặc triển khai. |
+| tenant\_service\_deliveries | \_id | UUID | NO |  | PRIMARY KEY | Định danh duy nhất chuẩn UUID v7 [Source 1304]. |
+| tenant\_service\_deliveries | tenant\_id | UUID | NO |  | REFERENCES tenants(\_id) ON DELETE CASCADE | Xác định dịch vụ thuộc về khách hàng nào [Source 1304]. |
+| tenant\_service\_deliveries | product\_id | UUID | NO |  | REFERENCES saas\_products(\_id) | Tham chiếu đến dòng sản phẩm dịch vụ được định nghĩa trong catalog [Source 1304]. |
+| tenant\_service\_deliveries | subscription\_id | UUID | YES | NULL | REFERENCES tenant\_subscriptions(\_id) | Liên kết nếu dịch vụ này là một phần (Add-on) của một gói thuê bao lớn [Source 1305]. |
+| tenant\_service\_deliveries | unit\_type | VARCHAR(20) | NO |  | CHECK (unit\_type IN ('HOUR', 'SESSION', 'PROJECT')) | Đơn vị đo lường dịch vụ (Giờ, Buổi, Dự án) [Source 1305]. |
+| tenant\_service\_deliveries | total\_units | NUMERIC(15,2) | NO | 0 | CHECK (total\_units > 0) | Tổng số lượng dịch vụ khách hàng đã mua (VD: 10 giờ tư vấn) [Source 1305]. |
+| tenant\_service\_deliveries | delivered\_units | NUMERIC(15,2) | NO | 0 | CHECK (delivered\_units <= total\_units) | Số lượng thực tế đã cung cấp/nghiệm thu. Không được vượt quá tổng mua [Source 1305]. |
+| tenant\_service\_deliveries | unit\_price | NUMERIC(19,4) | NO |  | CHECK (unit\_price >= 0) | Snapshot giá: Giá mỗi đơn vị tại thời điểm mua để chốt doanh thu, tránh ảnh hưởng khi giá niêm yết thay đổi [Source 1305, 1310]. |
+| tenant\_service\_deliveries | currency\_code | VARCHAR(3) | NO | VND' | CHECK (LENGTH(currency\_code) = 3) | Mã tiền tệ ISO 4217 [Source 1306]. |
+| tenant\_service\_deliveries | status | VARCHAR(20) | NO | PENDING' | CHECK (status IN ('PENDING', 'IN\_PROGRESS', 'COMPLETED', 'CANCELLED')) | Trạng thái thực hiện dịch vụ [Source 1306]. |
+| tenant\_service\_deliveries | service\_metadata | JSONB | NO | {}' |  | Lưu thông tin bổ sung như tên người đào tạo, link tài liệu biên bản nghiệm thu [Source 1306]. |
+| tenant\_service\_deliveries | created\_at | TIMESTAMPTZ | NO | now() |  | Thời điểm mua dịch vụ (UTC) [Source 1306]. |
+| tenant\_service\_deliveries | updated\_at | TIMESTAMPTZ | NO | now() | CHECK (updated\_at >= created\_at) | Thời điểm cập nhật tiến độ gần nhất. |
+| tenant\_service\_deliveries | version | BIGINT | NO | 1 | CHECK (version >= 1) | Cơ chế Optimistic Locking để tránh xung đột khi cập nhật tiến độ. |
 | Nhóm Core Logic Hệ thống |  | Package |  |  |  |  |
 | tenant\_encryption\_keys | YSQL | Collection |  |  |  | Lưu trữ các khóa mã hóa dữ liệu (DEK) riêng biệt cho từng Tenant. Bảng này hỗ trợ tính năng bảo mật cao cấp như Crypto-shredding (xóa vĩnh viễn dữ liệu bằng cách hủy khóa) |
 | tenant\_encryption\_keys | \_id | UUID | NO |  | PRIMARY KEY | Định danh duy nhất chuẩn UUID v7. |
@@ -836,3 +896,86 @@
 | user\_notification\_settings | channels | JSONB | NO | {}' | Cấu trúc: {"email": bool, "sms": bool, ...} | Lưu trạng thái bật/tắt của từng kênh nhận tin dưới dạng JSON linh hoạt. |
 | user\_notification\_settings | version | BIGINT | NO | 1 | CHECK (version >= 1) | Hỗ trợ Optimistic Locking để ngăn chặn ghi đè dữ liệu đồng thời. |
 | user\_notification\_settings | updated\_at | TIMESTAMPTZ | NO | now() | Chuẩn UTC | Thời điểm cập nhật cấu hình gần nhất phục vụ Audit. |
+| Danh mục dùng chung |  | Package |  |  |  |  |
+| article\_types | YSQL | Collection |  |  | Loại bài viết |  |
+| article\_types | \_id | UUID | NO | PRIMARY KEY | Định danh chuẩn UUID v7. |  |
+| article\_types | app\_code | VARCHAR(50) | NO | FK -> applications(code) | Loại bài viết này thuộc ứng dụng nào (VD: CMS\_CORE, HRM\_RECRUIT). |  |
+| article\_types | code | VARCHAR(50) | NO | UNIQUE | Mã định danh (VD: NEWS, VIDEO, JOB). |  |
+| article\_types | name | TEXT | NO |  | Tên hiển thị mặc định (VD: "Tin tức", "Tuyển dụng"). |  |
+| article\_types | icon\_url | TEXT | YES |  | Icon đại diện cho loại bài viết trong Admin Menu. |  |
+| article\_types | is\_system | BOOLEAN | NO | FALSE | TRUE: Các loại mặc định của hệ thống, không được xóa. |  |
+| article\_types | config\_schema | JSONB | NO | {}' | Cấu trúc dữ liệu đặc thù của loại này (Schema-less definition). |  |
+| article\_types | is\_active | BOOLEAN | NO | TRUE | Trạng thái sử dụng. |  |
+| article\_types | created\_at | TIMESTAMPTZ | NO | now() | Thời điểm tạo. |  |
+| regions | YSQL | Collection |  |  | Các vùng địa lý |  |
+| regions | \_id | UUID | NO |  | PRIMARY KEY | Định danh duy nhất chuẩn UUID v7, giúp sắp xếp theo thời gian và tránh "hotspot" khi ghi phân tán. |
+| regions | parent\_id | UUID | YES | NULL | REFERENCES regions(\_id) | ID của vùng cha (VD: Quận Cầu Giấy thuộc TP Hà Nội). Dùng để tạo quan hệ cây. |
+| regions | path | TEXT | NO |  |  | Materialized Path (VD: /vn\_id/hn\_id/cg\_id/). Giúp truy vấn "Lấy tất cả phường xã của Hà Nội" cực nhanh bằng LIKE. |
+| regions | code | VARCHAR(50) | NO |  | CHECK (length(code) > 0) | Mã hành chính (VD: VN, HAN, 70000). Có thể trùng lặp giữa các quốc gia nên không unique tuyệt đối. |
+| regions | name | TEXT | NO |  | CHECK (length(name) > 0) | Tên hiển thị (VD: "Thành phố Hà Nội"). |
+| regions | type | VARCHAR(20) | NO |  | CHECK (type IN ('COUNTRY', 'STATE', 'PROVINCE', 'DISTRICT', 'WARD')) | Cấp hành chính. |
+| regions | status | VARCHAR(20) | NO | ACTIVE' | CHECK (status IN ('ACTIVE', 'INACTIVE', 'MERGED', 'SPLIT')) | Trạng thái hiện tại của vùng. |
+| regions | valid\_from | DATE | NO | 1900-01-01' |  | Ngày bắt đầu có hiệu lực hành chính. |
+| regions | valid\_to | DATE | YES | NULL | CHECK (valid\_to > valid\_from) | Ngày hết hiệu lực (nếu đã bị giải thể/sáp nhập). NULL nghĩa là đang hiện hành. |
+| regions | histories | JSONB | NO | []' |  | Lưu trữ lịch sử: Mảng các object chứa snapshot dữ liệu cũ mỗi khi có thay đổi (Tên, mã, cha...). |
+| regions | metadata | JSONB | NO | {}' |  | Lưu thông tin mở rộng: Zipcode, Dân số, Tọa độ trung tâm, Tên quốc tế (name\_en). |
+| regions | created\_at | TIMESTAMPTZ | NO | now() |  | Thời điểm tạo bản ghi (UTC). |
+| regions | updated\_at | TIMESTAMPTZ | NO | now() | CHECK (updated\_at >= created\_at) | Thời điểm cập nhật cuối cùng. |
+| regions | version | BIGINT | NO | 1 | CHECK (version >= 1) | Optimistic Locking để tránh xung đột khi nhiều admin cùng chỉnh sửa. |
+| pages | YSQL | Collection |  |  |  | Lưu trữ các cấu trúc giao diện (Layouts/Templates) để định nghĩa cách hiển thị cho các Danh mục hoặc Bài viết cụ thể. |
+| pages | \_id | UUID | NO |  | PRIMARY KEY | Định danh duy nhất chuẩn UUID v7 giúp tối ưu sharding và sắp xếp theo thời gian. |
+| pages | tenant\_id | UUID | NO |  | REFERENCES tenants(\_id) ON DELETE CASCADE | Xác định Page này thuộc về khách hàng nào (SaaS Isolation). |
+| pages | code | VARCHAR(50) | NO |  | UNIQUE(tenant\_id, code) | Mã định danh dùng trong code Frontend (VD: news-grid-v1, landing-summer). |
+| pages | name | TEXT | NO |  | CHECK (LENGTH(name) > 0) | Tên gợi nhớ của trang (VD: "Trang chủ Tin tức", "Layout Tuyển dụng"). |
+| pages | type | VARCHAR(20) | NO | CATEGORY' | CHECK (type IN ('HOME', 'CATEGORY', 'DETAIL', 'LANDING')) | Phân loại trang: Trang chủ, Danh sách, Chi tiết bài viết, hay Landing page rời. |
+| pages | layout\_config | JSONB | NO | {}' |  | Quan trọng: Chứa cấu hình kéo thả, danh sách components, slots, màu sắc (Schema-less). |
+| pages | supported\_types | TEXT[] | NO | {}' |  | Danh sách các loại bài viết (article\_type) mà Page này hỗ trợ hiển thị (VD: ['NEWS', 'BLOG']). |
+| pages | is\_system | BOOLEAN | NO | FALSE |  | TRUE: Page mẫu của hệ thống, Tenant không được xóa. FALSE: Page do Tenant tự tạo. |
+| pages | is\_active | BOOLEAN | NO | TRUE |  | Trạng thái sử dụng. |
+| pages | created\_at | TIMESTAMPTZ | NO | now() |  | Thời điểm tạo (UTC). |
+| pages | updated\_at | TIMESTAMPTZ | NO | now() | CHECK (updated\_at >= created\_at) | Thời điểm cập nhật cuối cùng. |
+| pages | version | BIGINT | NO | 1 | CHECK (version >= 1) | Cơ chế Optimistic Locking để tránh xung đột khi nhiều Admin cùng sửa layout. |
+| storage\_files | YSQL | Collection |  |  |  | Quản lý thư viện tài nguyên số (Ảnh, Video, Tài liệu). |
+| storage\_files | \_id | UUID | NO |  | PRIMARY KEY | Định danh chuẩn UUID v7 giúp tối ưu sắp xếp theo thời gian và sharding. |
+| storage\_files | tenant\_id | UUID | NO |  | REFERENCES tenants(\_id) ON DELETE CASCADE | Sharding Key. Xác định file thuộc sở hữu của tổ chức nào. |
+| storage\_files | parent\_id | UUID | YES | NULL |  | ID của thư mục chứa file (nếu có tính năng Media Folder). |
+| storage\_files | original\_name | TEXT | NO |  | CHECK (length(original\_name) > 0) | Tên gốc của file khi người dùng upload. |
+| storage\_files | storage\_path | TEXT | NO |  | UNIQUE(tenant\_id, storage\_path) | Đường dẫn (Key) lưu trên S3 (VD: tenant\_1/2023/10/img\_01.jpg). Không lưu domain ở đây. |
+| storage\_files | public\_url | TEXT | YES | NULL |  | URL đầy đủ (CDN) nếu file được public. |
+| storage\_files | mime\_type | VARCHAR(100) | NO |  |  | Loại file (VD: image/jpeg, video/mp4, application/pdf). |
+| storage\_files | file\_size | BIGINT | NO | 0 | CHECK (file\_size >= 0) | Kích thước file (bytes) để thống kê dung lượng sử dụng (Metering). |
+| storage\_files | dimensions | JSONB | NO | {}' |  | Lưu chiều rộng, chiều cao, độ dài video (VD: {"width": 1920, "height": 1080, "duration": 12.5}). |
+| storage\_files | alt\_text | TEXT | YES | NULL |  | Văn bản thay thế (phục vụ SEO và Accessibility). |
+| storage\_files | caption | TEXT | YES | NULL |  | Chú thích hiển thị dưới ảnh. |
+| storage\_files | variants | JSONB | NO | {}' |  | Lưu thông tin các phiên bản đã resize/optimize (Thumbnail, Small, Medium). |
+| storage\_files | metadata | JSONB | NO | {}' |  | Dữ liệu kỹ thuật mở rộng (EXIF, Focus point, Dominant color, AI tags). |
+| storage\_files | storage\_provider | VARCHAR(20) | NO | S3' | CHECK (IN ('S3', 'R2', 'MINIO', 'CLOUDFLARE')) | Nơi lưu trữ vật lý (Hỗ trợ Multi-cloud strategy). |
+| storage\_files | visibility | VARCHAR(20) | NO | PRIVATE' | CHECK (IN ('PUBLIC', 'PRIVATE', 'INTERNAL')) | Quyền truy cập: Public (CDN), Private (Signed URL). |
+| storage\_files | status | VARCHAR(20) | NO | PROCESSING' | CHECK (IN ('UPLOADING', 'PROCESSING', 'READY', 'FAILED')) | Trạng thái xử lý file (nếu cần resize/transcode video). |
+| storage\_files | uploaded\_by | UUID | YES | NULL | REFERENCES users(\_id) | Người thực hiện upload. |
+| storage\_files | created\_at | TIMESTAMPTZ | NO | now() |  | Thời điểm tạo bản ghi. |
+| storage\_files | updated\_at | TIMESTAMPTZ | NO | now() | CHECK (updated\_at >= created\_at) | Thời điểm cập nhật cuối cùng. |
+| storage\_files | deleted\_at | TIMESTAMPTZ | YES | NULL |  | Soft Delete (Giữ metadata một thời gian trước khi xóa file trên S3). |
+| storage\_files | version | BIGINT | NO | 1 | CHECK (version >= 1) | Optimistic Locking. |
+| reserved\_slugs | YSQL | Collection |  |  |  | Lưu các keyword không được dùng để đặt cho slug |
+| reserved\_slugs | YSQL | Collection | NO |  | PRIMARY KEY | Định danh duy nhất bản ghi (Sử dụng UUID v7). [Source 26, 1236] |
+| reserved\_slugs | YSQL | Collection | NO |  | UNIQUE, CHECK (slug \~ '^[a-z0-9-]+$') | Từ khóa bị cấm (Lưu chữ thường, không dấu). Là đối tượng chính cần kiểm tra. [Source 5, 2013] |
+| reserved\_slugs | YSQL | Collection | NO | SYSTEM' | CHECK (type IN ('SYSTEM', 'BUSINESS', 'OFFENSIVE', 'FUTURE')) | Phân loại lý do cấm: Hệ thống, Nghiệp vụ, Nhạy cảm, hoặc Dành cho tương lai. |
+| reserved\_slugs | YSQL | Collection | NO | EXACT' | CHECK (match\_type IN ('EXACT', 'PREFIX', 'REGEX')) | Cách thức so khớp: Chính xác (admin), Tiền tố (api-\*), hoặc Biểu thức chính quy. |
+| reserved\_slugs | YSQL | Collection | NO | {}' |  | Snapshot ngữ cảnh: Lưu trữ danh sách các tài nguyên bị ảnh hưởng hoặc metadata liên quan tại thời điểm cấm (VD: routes hệ thống đang dùng keyword này). |
+| reserved\_slugs | YSQL | Collection | YES | NULL |  | Thông báo lỗi hiển thị cho user (VD: "Từ khóa này dành riêng cho hệ thống"). |
+| reserved\_slugs | YSQL | Collection | NO | TRUE |  | Trạng thái hiệu lực của từ khóa cấm. |
+| reserved\_slugs | YSQL | Collection | NO | now() |  | Thời điểm thêm vào danh sách đen (UTC). [Source 40, 1143] |
+| reserved\_slugs | YSQL | Collection | NO | now() | CHECK (updated\_at >= created\_at) | Thời điểm cập nhật cuối cùng. |
+| reserved\_slugs | YSQL | Collection | NO | 1 | CHECK (version >= 1) | Cơ chế Optimistic Locking chống ghi đè. [Source 64] |
+| routing\_slugs | YSQL | Collection |  |  |  | Trung tâm ánh xạ giữa các đường dẫn thân thiện (SEO-friendly URLs) và các thực thể dữ liệu thực tế (Bài viết, Sản phẩm, Danh mục) trong hệ thống |
+| routing\_slugs | \_id | UUID | NO |  | PRIMARY KEY | Định danh duy nhất của bản ghi định tuyến. Sử dụng UUID v7 để tối ưu hóa sắp xếp thời gian và hiệu năng Sharding [Source 26, 27]. |
+| routing\_slugs | tenant\_id | UUID | NO |  | REFERENCES tenants(\_id) ON DELETE CASCADE | Xác định slug này thuộc về website của khách hàng nào (SaaS Isolation). Là khóa phân vùng (Partition Key) quan trọng [Source 156, 456]. |
+| routing\_slugs | slug | VARCHAR(255) | NO |  | CHECK (slug \~ '^[a-z0-9-]+$') | Đường dẫn URL (VD: ao-thun-nam). Chỉ chứa chữ thường, số và gạch ngang. Phải là duy nhất trong một Tenant [Source 97]. |
+| routing\_slugs | entity\_type | VARCHAR(50) | NO |  | CHECK (length > 0) | Loại đối tượng đích (VD: PRODUCT, ARTICLE, CATEGORY, LANDING\_PAGE). Hỗ trợ mô hình đa hình (Polymorphic) [Source 2013]. |
+| routing\_slugs | entity\_id | UUID | NO |  |  | ID của đối tượng thực tế (Primary Key của bảng Products/Articles...). |
+| routing\_slugs | is\_canonical | BOOLEAN | NO | TRUE |  | TRUE: Đây là đường dẫn chính thức (Canonical URL). FALSE: Đây là đường dẫn cũ hoặc phụ (Alias/Redirect 301). |
+| routing\_slugs | redirect\_to | VARCHAR(255) | YES | NULL |  | Nếu is\_canonical = FALSE, trường này chứa slug mới để hệ thống thực hiện Redirect 301. |
+| routing\_slugs | items\_snapshot | JSONB | NO | {}' |  | Snapshot dữ liệu: Lưu trữ thông tin tóm tắt của đối tượng (Tiêu đề, Ảnh thumbnail, SEO Meta) tại thời điểm tạo slug. Giúp Frontend render Link Preview hoặc Breadcrumb mà không cần JOIN vào bảng gốc [Source 23, 1459]. |
+| routing\_slugs | created\_at | TIMESTAMPTZ | NO | now() |  | Thời điểm tạo đường dẫn (UTC) [Source 12, 20]. |
+| routing\_slugs | updated\_at | TIMESTAMPTZ | NO | now() | CHECK (updated\_at >= created\_at) | Thời điểm cập nhật cuối cùng. |

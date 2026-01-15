@@ -17,7 +17,7 @@ Mọi code phát sinh trong Workspace này ĐỀU PHẢI tuân thủ các quy t�
     - Mặc định: `WHERE tenant_id = current_tenant`.
     - View-chéo: `WHERE tenant_id IN (sub_tenant_ids)` sau Authorization Check.
     - Kỷ luật: Cấm truy vấn thiếu điều kiện `tenant_id`.
-## 2. Phân tầng Persistence (Context: #file:docs/architecture/NEW_ARCHITECHTURE.md)
+## 2. Phân tầng Persistence (Context: #file:docs/architecture/Architecture.md)
 * **YugabyteDB:** ACID/Transactions/Relational data.
 * **MongoDB:** Tenant Config/Metadata/Schema-less.
 * **ClickHouse:** Logging/Analytics ghi qua Kafka (Yêu cầu Retry & DLQ).
@@ -26,14 +26,8 @@ Mọi code phát sinh trong Workspace này ĐỀU PHẢI tuân thủ các quy t�
 * **Telemetry:** Phải đính kèm `trace_id` vào payload của Outbox Event để OpenTelemetry có thể trace sang các service tiêu thụ event (consumers).
 ## 3. Giao tiếp & API (Context: #file:docs/guides/CODING_GUIDELINES.md)
 * **Transport:** 100% gRPC + mTLS + `protoc-gen-validate`.
-* **Pathing Rules:** - Pattern: `/api/{domain}/v{n}/{resource}`.
-    - **Tên Service (Domain):** Luôn sử dụng danh từ số ít, không có hậu tố `-service`.
-    - Ví dụ: `/api/tenant/v1/...`, `/api/user/v1/...`, `/api/auth/v1/...`.
-    - **Web Page (Frontend):** `/page/{domain}/{resource}` (KHÔNG có version).
-    - **Quy tắc đặt tên Domain:** Luôn dùng danh từ Số ít (Singular), không có hậu tố -service (Ví dụ: tenant, user, auth).
-    - **Quy tắc đặt tên Resource:** Dùng danh từ Số nhiều (Plural) theo chuẩn RESTful (Ví dụ: /api/user/v1/users).
+* **Pathing Rules:** (Context: #file:docs/architecture/Routing.md)
 
-Quy tắc đặt tên Resource: Dùng danh từ Số nhiều (Plural) theo chuẩn RESTful (Ví dụ: /api/user/v1/users).
 * **Security**: Tin tưởng Internal JWT từ Gateway qua Auth Broker.
 ## 4. Observability (OpenTelemetry)
 * **Tracing:** Propagate `trace_id` & `span_id` xuyên suốt. Mọi log phải đính kèm `trace_id`.
