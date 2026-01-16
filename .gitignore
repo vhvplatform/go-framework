@@ -48,6 +48,9 @@ vendor/
 docs/diagrams/*.png
 docs/diagrams/*.svg
 docs/diagrams/*.eps
+
+# AI Agent working directory (copilot tasks, summaries, scripts)
+tasks/
 docs/diagrams/*.pdf
 
 # Setup summary files

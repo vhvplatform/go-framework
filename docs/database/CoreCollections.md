@@ -32,6 +32,21 @@
 | applications | updated\_at | TIMESTAMPTZ | NO | now() | CHECK (updated\_at >= created\_at) | Thời điểm cập nhật dữ liệu gần nhất. |
 | applications | deleted\_at | TIMESTAMPTZ | YES | NULL | - | Thời điểm xóa mềm (Soft Delete) để bảo toàn dữ liệu lịch sử. |
 | applications | version | BIGINT | NO | 1 | CHECK (version >= 1) | Cơ chế Optimistic Locking, ngăn chặn ghi đè dữ liệu đồng thời. |
+| tenant\_app\_routes | YSQL | Collection |  |  |  | **Bản đồ định tuyến trung tâm:** Quản lý ánh xạ giữa (Domain + Path Prefix) → (Tenant + Application). Đây là Source of Truth cho cơ chế multi-tenant routing tại API Gateway. |
+| tenant\_app\_routes | \_id | UUID | NO | - | PRIMARY KEY | Định danh duy nhất chuẩn UUID v7 để tối ưu sắp xếp theo thời gian. |
+| tenant\_app\_routes | tenant\_id | UUID | NO | - | REFERENCES tenants(\_id) ON DELETE CASCADE | Xác định tenant (khách hàng) sở hữu mapping này. Sharding Key quan trọng. |
+| tenant\_app\_routes | app\_code | VARCHAR(50) | NO | - | CHECK (app\_code \~ '^[A-Z0-9\_]+$') | Mã định danh ứng dụng (VD: HRM\_APP, CRM\_APP). Chỉ chứa chữ hoa, số và gạch dưới. |
+| tenant\_app\_routes | domain | VARCHAR(255) | NO | - | CHECK (LENGTH(domain) > 0) | Tên miền truy cập (Host). VD: fpt.saas.com hoặc hr.fpt.com. |
+| tenant\_app\_routes | path\_prefix | VARCHAR(255) | NO | / | CHECK (path\_prefix \~ '^/') | Đường dẫn để phân biệt App/Tenant trên cùng domain. Mặc định là /. VD: /hrm, /crm. |
+| tenant\_app\_routes | is\_custom\_domain | BOOLEAN | NO | FALSE | - | TRUE: Domain riêng khách mua. FALSE: Subdomain hệ thống. |
+| tenant\_app\_routes | priority | INT | NO | 0 | CHECK (priority >= 0) | Độ ưu tiên khi có nhiều rule khớp (Longest prefix match). Số càng cao càng ưu tiên. |
+| tenant\_app\_routes | is\_active | BOOLEAN | NO | TRUE | - | Trạng thái bật/tắt route. Nếu FALSE, Gateway sẽ trả về 404. |
+| tenant\_app\_routes | metadata | JSONB | NO | {}' | - | Lưu thông tin bổ sung như redirect\_url, SSL cert info, hoặc feature flags. |
+| tenant\_app\_routes | created\_at | TIMESTAMPTZ | NO | now() | - | Thời điểm tạo route (UTC). |
+| tenant\_app\_routes | updated\_at | TIMESTAMPTZ | NO | now() | CHECK (updated\_at >= created\_at) | Thời điểm cập nhật route cuối cùng. |
+| tenant\_app\_routes | deleted\_at | TIMESTAMPTZ | YES | NULL | - | Soft Delete: Route bị xóa nhưng giữ lại để truy vết. |
+| tenant\_app\_routes | version | BIGINT | NO | 1 | CHECK (version >= 1) | Optimistic Locking để chống xung đột khi cập nhật đồng thời. |
+| tenant\_app\_routes | INDEX | - | - | - | CREATE UNIQUE INDEX idx\_routes\_fast\_lookup ON tenant\_app\_routes (domain, path\_prefix) INCLUDE (tenant\_id, app\_code, is\_custom\_domain) WHERE deleted\_at IS NULL | **Covering Index** giúp Gateway lookup cực nhanh mà không cần đọc bảng gốc. UNIQUE đảm bảo không có route trùng lặp. |
 | users | YSQL | Collection |  |  |  | Lưu trữ thông tin định danh toàn cục của một con người thực (Email, Password Hash, Avatar). Đây là bảng duy nhất chứa thông tin đăng nhập trên toàn sàn. |
 | users | \_id | UUID | NO | - | PRIMARY KEY | Định danh duy nhất toàn cục chuẩn UUID v7,. |
 | users | email | VARCHAR(255) | NO | - | UNIQUE, CHECK (email \~\* '^[A-Za-z0-9.\_%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$') | Email đăng nhập chính. Phải là duy nhất trên toàn hệ thống và đúng định dạng,. |
@@ -965,6 +980,21 @@
 | reserved\_slugs | YSQL | Collection | NO | {}' |  | Snapshot ngữ cảnh: Lưu trữ danh sách các tài nguyên bị ảnh hưởng hoặc metadata liên quan tại thời điểm cấm (VD: routes hệ thống đang dùng keyword này). |
 | reserved\_slugs | YSQL | Collection | YES | NULL |  | Thông báo lỗi hiển thị cho user (VD: "Từ khóa này dành riêng cho hệ thống"). |
 | reserved\_slugs | YSQL | Collection | NO | TRUE |  | Trạng thái hiệu lực của từ khóa cấm. |
+
+---
+
+## Change History
+
+| Date | Author | Description |
+|------|--------|-------------|
+| 2025-12-XX | System | Initial database schema documentation |
+| 2026-01-16 | AI Agent | Added `tenant_app_routes` table schema with full field descriptions |
+| 2026-01-16 | AI Agent | Added covering index specification for fast tenant routing lookup |
+| 2026-01-16 | AI Agent | Added uniqueness constraint details (domain + path_prefix) |
+| 2026-01-16 | AI Agent | Added metadata field for route-specific configurations |
+
+**Last Updated:** 2026-01-16
+**Schema Version:** 3.2 (Multi-Tenant Routing Table)
 | reserved\_slugs | YSQL | Collection | NO | now() |  | Thời điểm thêm vào danh sách đen (UTC). [Source 40, 1143] |
 | reserved\_slugs | YSQL | Collection | NO | now() | CHECK (updated\_at >= created\_at) | Thời điểm cập nhật cuối cùng. |
 | reserved\_slugs | YSQL | Collection | NO | 1 | CHECK (version >= 1) | Cơ chế Optimistic Locking chống ghi đè. [Source 64] |

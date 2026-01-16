@@ -172,13 +172,24 @@ version      BIGINT DEFAULT 1     -- Optimistic Locking
 
 ### 1\. API Gateway \(The Entry Point\)
 
-* **Role:** Route traffic, Enforce Security, Protocol Conversion.
-* **Tech:** Custom Go Service (using `grpc-gateway`).
+* **Role:** Route traffic, Enforce Security, Protocol Conversion, Multi-tenant Routing.
+* **Tech:** Custom Go Service (using `grpc-gateway` + Gin framework).
 * **Middleware Pipeline:**
     1. **Trace ID:** Generate/Propagate Correlation ID.
-    2. **Auth Interceptor:** Phantom Token Validation & Injection.
-    3. **Rate Limiter:** Redis-based sliding window.
-    4. **Response Caching:** Cache generic GET requests.
+    2. **Tenant Routing:** Extract domain + path_prefix, lookup tenant_id + app_code from `tenant_app_routes` (cached in Redis).
+    3. **Auth Interceptor:** Phantom Token Validation & Injection.
+    4. **Rate Limiter:** Redis-based sliding window.
+    5. **Response Caching:** Cache generic GET requests.
+
+**Tenant Routing Logic:**
+* **Lookup Strategy:** Domain + Path Prefix → tenant_id + app_code
+* **Data Flow:**
+  1. L1 Cache (Ristretto) → Check local cache first
+  2. L2 Cache (Redis/Dragonfly) → Check distributed cache
+  3. YugabyteDB → Query `tenant_app_routes` table with covering index
+  4. Fallback → Mock data if DB unavailable
+* **Uniqueness Check:** Returns 409 Conflict if multiple tenants map to same (domain, path_prefix)
+* **Context Injection:** Injects tenant_id, app_code, is_custom_domain into request headers and Gin context for downstream services
 
 ### 2\. Auth Service \(The Broker\)
 
@@ -299,6 +310,12 @@ Cung cấp thông qua Shared SDK (`@shared/auth-sdk`) dùng chung cho toàn bộ
 * **Injection:** Tự động đính kèm Opaque Token vào mọi request.
 * **Kill-Switch:** Khi Gateway trả về `401/403`, SDK thực hiện wipe cache và redirect về Login đồng bộ cho tất cả các tab/module.
 
+## Frontend Monorepo Strategy (Turborepo)
+To manage multiple SaaS applications efficiently, we utilize a Monorepo structure:
+* **Apps Layer (`/apps`):** Independent SPAs deployed on subdomains (e.g., `hrm.domain.com`, `billing.domain.com`).
+* **Package Layer (`/packages`):** Internal SDKs (`@shared/auth-sdk`) and UI components.
+* **Shared Auth Context:** All apps share the same Opaque Token via Wildcard Cookies (`*.domain.com`).
+* **Deployment:** Independent CI/CD pipelines for each app within the monorepo, triggered only on relevant changes.
 ***
 
 ## Development Workflow (Zero-Config)
@@ -336,8 +353,18 @@ make test      # Chạy Unit Tests (Mocked DB)
 3. **Soft Delete:** Sử dụng Partial Unique Index để xử lý ràng buộc:
     `CREATE UNIQUE INDEX uq_code ON products (tenant_id, code) WHERE (deleted_at IS NULL);`
 4. **SDK Consistency:** Mọi Micro-frontend phải sử dụng cùng một version của `@shared/auth-sdk` để đảm bảo cơ chế Token Exchange hoạt động đồng bộ.
+5. **Multi-Tenant Routing:** API Gateway sử dụng `tenant_app_routes` table làm Source of Truth. Middleware PHẢI inject tenant context vào request trước khi forward đến microservices.
 
 ***
 
-**Last Updated:** 2026-01-15
-**Architecture Version:** 2.6 (Enterprise Multi-Frontend Ready)
+## Change History
+
+| Date | Author | Description |
+|------|--------|-------------|
+| 2026-01-15 | System | Initial architecture documentation v2.6 |
+| 2026-01-16 | AI Agent | Added TenantRoutingMiddleware section in API Gateway details |
+| 2026-01-16 | AI Agent | Updated middleware pipeline with Tenant Routing step |
+| 2026-01-16 | AI Agent | Added tenant context injection strategy (headers + Gin context + tracing) |
+
+**Last Updated:** 2026-01-16
+**Architecture Version:** 2.7 (Multi-Tenant Routing Implementation)

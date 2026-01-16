@@ -34,12 +34,14 @@ Mọi code phát sinh trong Workspace này ĐỀU PHẢI tuân thủ các quy t�
 * **Metrics:** Prometheus format cho các chỉ số nghiệp vụ quan trọng.
 
 ## 5. Hiệu năng & Config
-* **2-Level Cache:** L1 (Ristretto) + L2 (Dragonfly). Namespace: `{tenant_id}:{service}:{dev_name}:{key}`.
+* **3-Level Cache:** Golang sử dụng L1 (Ristretto) + L2 (Dragonfly). Namespace: `{tenant_id}:{service}:{dev_name}:{key}`. React lưu toàn bộ vào **Zustand Store** (Level 0 Cache).
+
 * **Config:** Tuyệt đối không hardcode secret. Dùng Env Vars hoặc Vault qua struct `Config` tập trung.
 
 ## 6. Kỷ luật phát triển
 * **No Hotfixes:** Không sửa tạm vi phạm kiến trúc. Phải fix tận gốc (Root Cause).
 * **Error Handling:** Trả về gRPC Status hoặc `InternalError` từ `go-shared`. Cấm trả về raw error từ hệ thống.
+* **Multi language:** Toàn bộ text trong code phải viết dưới dạng đa ngôn ngữ (i18n). Golang dùng `go-i18n`, React dùng `react-i18next`. Mặc định ngôn ngữ là tiếng Việt.
 
 ## 7. Quy trình phản hồi (Mandatory Workflow)
 1. **Context Check:** Đọc tài liệu dẫn chiếu trước khi đề xuất.
@@ -59,11 +61,10 @@ Mọi code phát sinh trong Workspace này ĐỀU PHẢI tuân thủ các quy t�
 ## 10. Viết summary
 * Khi hoàn thành các nhiệm vụ tôi đưa ra, viết tóm tắt ngắn gọn
 * File summary phải có tên kết thúc là copilot-summary.md và đặt trong thư mục tasks/
-* Các file hướng dẫn khác cũng đưa vào thư mục tasks/ với tên kết thúc là copilot-instructions.md
+* Các file hướng dẫn khác cũng đưa vào thư mục tasks/ với tên bắt đầu là thời gian dạng Ymdhm, kết thúc là copilot-instructions.md
 * Các file .sh, .bat hỗ trợ cũng đưa vào thư mục tasks/ thư mục con là scripts/
 * Thư mục tasks/ có thể chưa tồn tại, hãy tạo nó nếu cần thiết và thêm vào .gitignore để tránh commit nhầm
 
 ## 11. Quy ước khác
-* Ngôn ngữ mặc định là tiếng Việt trừ khi tôi yêu cầu dùng tiếng khác.
 * Kiểm tra cấu hình để xem terminal default là PowerShell hay Bash để chạy lệnh hoặc viết script phù hợp.
 * Mọi thay đổi phải tuân thủ các quy tắc kiến trúc đã nêu ở trên.
