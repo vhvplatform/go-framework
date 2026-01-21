@@ -73,7 +73,7 @@ user_lockouts           // Temporary account locks
 
 **Purpose**: Lưu trữ **master data & relationships** - cần ACID, foreign keys, complex queries.
 
-**Database**: `vhv_saas` 
+**Database**: `vhv_saas`
 
 **Schema**: `core`
 
@@ -148,7 +148,7 @@ auth_logs               -- Authentication events
   - timestamp, user_id, tenant_id
   - event_type, ip_address, user_agent
   - success, failure_reason
-  
+
 security_audit_logs     -- Security events
   - timestamp, actor_id, action
   - resource_type, resource_id
@@ -248,7 +248,7 @@ db.user_tenants.insertOne({
 ```sql
 -- DO THIS
 INSERT INTO tenant_members (
-    _id, tenant_id, user_id, 
+    _id, tenant_id, user_id,
     display_name, status, custom_data
 ) VALUES (...);
 ```
@@ -373,6 +373,6 @@ ORDER BY (timestamp, user_id);
 
 ---
 
-**Last Updated**: 2026-01-19  
-**Version**: 1.0.0  
+**Last Updated**: 2026-01-19
+**Version**: 1.0.0
 **Maintainer**: Architecture Team
